@@ -67,7 +67,6 @@
         reaches' (fixpoint (set reaches) edges)]
     {:taints taints'
      :reaches reaches'
-     ;; a var that both obtains attacker data and hands data to a sink
      :paths (into #{} (filter #(and (contains? taints' %) (contains? reaches' %)))
                   (keys graph))}))
 
@@ -86,8 +85,6 @@
   (let [graph (call-graph analysis-text)
         {:keys [paths] :as closed} (propagate graph direct)]
     (for [caller paths
-          ;; a var that is itself the direct source AND the direct sink is
-          ;; already reported by the intraprocedural pass; do not duplicate
           :when (not (and (contains? (set taints) caller)
                           (contains? (set reaches) caller)))
           :let [sites (call-sites graph caller

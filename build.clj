@@ -6,8 +6,6 @@
 (def class-dir "target/classes")
 (def jar-file (format "target/sonar-clojure-plugin-%s.jar" version))
 
-;; Sonar hands the plugin its own copy of the API. Bundling it produces two
-;; class identities for every interface and every extension fails to register.
 (def api-excludes ["^org/sonar/api/.*" "^org/sonar/plugins/.*"])
 
 (defn- basis [] (b/create-basis {:aliases [:provided]}))
@@ -79,11 +77,6 @@
                        "Plugin-OrganizationName" "Heisenberg Technologies"
                        "Plugin-Homepage"         "https://hbtcomputers.com.au"
                        "Plugin-SourcesUrl"       "https://github.com/hbtweb"
-                       ;; Floor, not a tested claim: verified only against
-                       ;; SonarQube 26.7 with sonar-plugin-api 13.9.
                        "Sonar-Version"           "10.0"
-                       ;; Skips the download entirely for projects with no
-                       ;; Clojure in them. sonar-php sets this and defines PHP,
-                       ;; so defining the language you require is not circular.
                        "Plugin-RequiredForLanguages" "clj"}})
   (println "built" jar-file))

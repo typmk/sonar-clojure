@@ -2,11 +2,6 @@
   (:require [clojure.test :refer [deftest is testing]]
             [hbt.sonar.callgraph :as cg]))
 
-;; clj-kondo analysis for:
-;;   (defn untrusted [req] (:params req))
-;;   (defn danger [x] (sh "sh" "-c" x))
-;;   (defn handler [req] (danger (untrusted req)))
-;;   (defn innocent [a b] (+ a b))
 (def analysis
   (str "{\"analysis\":{\"var-usages\":["
        "{\"filename\":\"p.clj\",\"from\":\"probe\",\"from-var\":\"handler\","

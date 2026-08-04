@@ -59,10 +59,6 @@
     (is (false? (:ok? r)))
     (is (string? (:error r)) "the reason reaches the scanner log")))
 
-;; parse/ runs over every file in the project. rewrite-clj throws on
-;; malformed input; this wrapper must convert that into a reported failure,
-;; never an escaping exception that ends the sensor and loses every
-;; remaining file's measures.
 (defspec never-throws-on-arbitrary-input 400
   (prop/for-all [s gen/string]
     (contains? (parse/parse s) :ok?)))

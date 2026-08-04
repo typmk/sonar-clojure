@@ -39,8 +39,6 @@
   (is (= {} (lcov/parse "")))
   (is (= {} (lcov/parse nil))))
 
-;; Sonar throws on a non-integer line or a negative hit count, and one throw
-;; loses every remaining file's coverage in the report.
 (defspec never-throws-and-never-yields-a-bad-line 400
   (prop/for-all [s gen/string]
     (let [p (lcov/parse s)]

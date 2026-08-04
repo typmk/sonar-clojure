@@ -7,14 +7,7 @@
             [hbt.sonar.metrics :as metrics]))
 
 (def sample
-  (str "(ns example)\n"                       ; 1  code
-       "\n"                                   ; 2  blank
-       ";; a comment line\n"                  ; 3  comment
-       "(defn f [x]\n"                        ; 4  code
-       "  (if (pos? x) :a :b))\n"             ; 5  code
-       "(defn g [x] x) ; trailing comment\n"  ; 6  code + comment
-       "(defrecord R [a])\n"))                ; 7  code
-
+  (str "(ns example)\n"       "\n"       ";; a comment line\n"       "(defn f [x]\n"       "  (if (pos? x) :a :b))\n"       "(defn g [x] x) ; trailing comment\n"       "(defrecord R [a])\n"))
 (deftest counts-lines-the-way-sonar-means-them
   (let [m (metrics/measures sample)]
     (testing "blank and comment-only lines are not code"
@@ -49,7 +42,6 @@
     (is (= 1 (:ncloc m)))
     (is (= 0 (:comment-lines m)))))
 
-;; The tree knows what a hand-written lexer could only guess at.
 (deftest commented-out-code-is-comment-not-code
   (testing "a #_ form contributes comment lines, not code lines"
     (let [m (metrics/measures "(defn f [] 1)\n#_(defn dead [] 2)\n")]
@@ -67,8 +59,6 @@
     (is (nil? (metrics/measures "(defn f [")))
     (is (some? (metrics/measures "")))))
 
-;; ncloc drives every ratio on the dashboard. A negative or impossible value
-;; corrupts the technical-debt ratio silently rather than failing.
 (defspec measures-are-never-negative 300
   (prop/for-all [s gen/string]
     (let [m (metrics/measures s)]

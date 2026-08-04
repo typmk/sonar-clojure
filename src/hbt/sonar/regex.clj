@@ -38,9 +38,6 @@
     (subs text 2 (max 2 (dec (count text))))))
 
 (defn- redos? [p]
-  ;; The alternation heuristic was deleted: it required only "two branches
-  ;; under a quantifier" and never overlap, so (a|b)* and (foo|bar)+ -- both
-  ;; measured linear -- were reported as High vulnerabilities.
   (boolean (or (re-find brace-nested p)
                (re-find nested-quantifier-unmemoised p))))
 
@@ -54,6 +51,17 @@
 (defn- anchored? [p]
   (and (str/starts-with? p "^") (str/ends-with? p "$")))
 
+(def ^:private branch-heads
+  #{"if" "when" "when-not" "if-not" "and" "or" "cond" "assert" "when-let" "if-let"})
+
+(defn- deciding?
+  "True when this match sits in the test position of a branch."
+  [nodes l]
+  (some (fn [b]
+          (when-let [a (tree/first-argument nodes b)]
+            (and (= (:line a) (:line l)) (= (:col a) (:col l)))))
+        (tree/lists-headed-by nodes branch-heads)))
+
 (defn findings [nodes]
   (concat
    (for [n nodes
@@ -65,15 +73,21 @@
       :message (str "nested quantifier in " (:text n)
                     " -- a short crafted input can take exponential time")})
 
-   ;; A regex that anchors both ends is clearly meant to match a whole value.
-   ;; Handing it to re-find, which matches anywhere, silently weakens it to a
-   ;; substring test.
    (for [l (tree/lists-headed-by nodes validating)
          :let [a (tree/first-argument nodes l)]
          :when (and a (= :regex (:type a)))
          :let [p (pattern-text a)]
-         :when (and p (anchored? p) (not= "re-matches" (:head l)))]
+         :when p
+         :let [multiline? (str/includes? p "(?m)")
+               anchored (anchored? p)]
+         :when (or (not anchored) multiline?)
+         ;; It must be DECIDING something. `re-find` for extraction or
+         ;; detection is the normal use and is not a weakness -- unqualified,
+         ;; this rule raised fourteen findings against this plugin's own
+         ;; detection code.
+         :when (deciding? nodes l)]
      {:rule "partial-match-validation"
       :line (:line l) :col (:col l) :end-line (:end-line l) :end-col (:end-col l)
-      :message (str (:head l) " matches anywhere in the string; the pattern is anchored,"
-                    " so re-matches is what was meant")})))
+      :message (str (:head l) " matches anywhere in the string, so this accepts any value"
+                    " CONTAINING a match"
+                    (when multiline? " -- (?m) makes ^ and $ line anchors, not string anchors"))})))

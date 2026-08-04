@@ -16,11 +16,6 @@
   (:require [hbt.sonar.parse :as parse]
             [hbt.sonar.tree :as tree]))
 
-;; ---------------------------------------------------------------------------
-;; Rule catalogue. `:hotspot?` marks a rule that flags something a human must
-;; judge rather than something known to be wrong -- Sonar reviews those
-;; separately, and mixing the two makes both easier to ignore.
-
 (def rule-keys
   "Every rule this namespace can raise. Title, severity, CWE, remediation and
   prose live in org/sonar/l10n/clj/rules/clj-kondo/<key>.{json,html} -- see
@@ -30,16 +25,12 @@
    "interprocedural-taint" "shell-invocation" "reflective-call"
    "permissive-file-permissions"])
 
-;; ---------------------------------------------------------------------------
-;; Sources and sinks.
-
 (def ^:private sources
   "Forms whose result is attacker-influenced. Deliberately small: a false
   source produces a false flow, and a security rule nobody trusts is worse
   than no rule."
   #{"slurp" "read-line" "System/getenv" "System/getProperty"
     ".getParameter" ".getHeader" ".getQueryString" ".getInputStream"
-    ;; Ring destructuring: (:params req) is a list headed by the keyword
     ":params" ":query-params" ":form-params" ":body" ":json-params" ":headers"
     ":query-string" ":path-params" ":multipart-params"})
 
@@ -57,10 +48,6 @@
   `tokenizer` matches `token` -- and a security rule that cries wolf is a
   security rule nobody reads."
   #"(?i)(^|[-_*/.])(passwords?|passwds?|secrets?|api[-_]?keys?|tokens?|credentials?|private[-_]?keys?|access[-_]?keys?|client[-_]?secrets?)([-_*?!]|$)")
-
-
-;; ---------------------------------------------------------------------------
-;; Detection over the parse tree.
 
 (defn- finding [rule node message & [flow]]
   (cond-> {:rule rule
@@ -129,8 +116,6 @@
        (assoc (finding "read-string-untrusted" l
                        "clojure.core/read-string evaluates #= forms; use clojure.edn/read-string"
                        (flow l))
-              ;; The head symbol's own span, so the edit replaces the call
-              ;; name and nothing else.
               :quick-fix {:message "Replace with clojure.edn/read-string"
                           :text "edn/read-string"
                           :line (:line l) :col (inc (:col l))
@@ -147,7 +132,6 @@
            :when (not (any-dynamic-arg? nodes l))]
        (finding "shell-invocation" l "shell invocation -- confirm no argument is caller-controlled"))
 
-     ;; SQL assembled by str/format and handed to a query fn
      (for [l (tree/lists-headed-by nodes sql-fns)
            :when (some #(and (= :list (:tag %)) (contains? build-fns (:head %)))
                        (tree/children-of nodes l))]
@@ -155,19 +139,9 @@
                 "SQL statement is assembled by string building; pass parameters as values"
                 (flow l)))
 
-     ;; weak-hash-algorithm and insecure-random moved to hbt.sonar.interop,
-     ;; which resolves the actual class through the ns form's :import rather
-     ;; than matching "MD5" anywhere a string happens to contain it.
-
-     ;; a credential-shaped name bound to a string literal
-     ;; The def's VALUE, not its docstring. Taking the first string child made
-     ;; `(def api-key "read from the environment" (System/getenv ...))` a
-     ;; hardcoded credential.
      (for [l (tree/lists-headed-by nodes #{"def" "defonce"})
            :let [args (tree/arguments nodes l)
                  nm   (first args)
-                 ;; (def n "value")      -> the string IS the value
-                 ;; (def n "doc" value)   -> the string is the docstring
                  v    (let [lst (last args)]
                         (when (and (= :string (:type lst))
                                    (or (= 2 (count args))
@@ -187,9 +161,6 @@
        (finding "reflective-call" l
                 (str (:head l) " selects code by a computed name")))
 
-     ;; World-accessible means the OTHERS digit carries a bit, which is the
-      ;; LAST octal digit -- not the first. The previous pattern required a
-      ;; leading 7, so "0700" (owner-only) fired and "0666" did not.
       (for [n nodes
             :when (= :string (:type n))
             :when (not (:commented? n))
@@ -198,7 +169,6 @@
                        (or (when-let [m (re-matches #"0?([0-7])([0-7])([0-7])" s)]
                              (let [others (parse-long (nth m 3))]
                                (pos? (bit-and others 2r011))))
-                           ;; symbolic: others' write or read bit set
                            (re-matches #"[-dlbcps][-r][-w][-xsS][-r][-w][-xsS][-r][-w][-xtT]" s)
                            (re-matches #"[-r][-w][-xsS][-r][-w][-xsS][-r][-w][-xtT]" s)))
             :when (or (not (re-matches #"[0-7]{3,4}" s))

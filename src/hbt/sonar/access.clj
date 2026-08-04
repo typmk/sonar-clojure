@@ -57,26 +57,14 @@
 
 (defn findings [nodes]
   (concat
-   ;; The WEB-184 shape: a two-valued test whose subject is the tenant
-   ;; boundary. nil there is ambiguous -- untenanted or unresolved -- and the
-   ;; two must not share a branch.
    (for [l (tree/lists-headed-by nodes two-valued)
          :let [a (tree/first-argument nodes l)]
-         ;; The condition must concern the tenant boundary AND the form must be
-         ;; able to DENY. That second half is what distinguishes an
-         ;; authorisation decision from presence-of-context plumbing -- matching
-         ;; the word alone gave 24% precision, with eleven findings in one file
-         ;; that authorises nothing.
          :when (and a (mentions? nodes a tenant-word) (denies? nodes l))]
      {:rule "ambiguous-owner-check"
       :line (:line l) :col (:col l) :end-line (:end-line l) :end-col (:end-col l)
       :message (str "two-valued test on the tenant boundary: nil owner means both"
                     " untenanted and unresolved, and both would take this branch")})
 
-   ;; A query against owned data that never names the owner. Datomic and SQL
-   ;; alike: the scope has to be IN the query, not applied to its results.
-   ;; A protocol method named `pull` in a defrecord/extend-type body is a
-   ;; definition, not a query.
    (let [defining (into #{} (mapcat #(map :text (tree/children-of nodes %)))
                         (tree/lists-headed-by nodes #{"defrecord" "deftype" "extend-type"
                                                       "extend-protocol" "reify" "defprotocol"}))]
@@ -94,7 +82,6 @@
         :message (str (:head l) " names no owner or tenant -- confirm the scope is in the"
                       " query and not applied afterwards")}))
 
-   ;; "Party to none is enforced by absence, not a flag."
    (for [n nodes
          :when (and (= :keyword (:type n)) (not (:commented? n))
                     (contains? banned-operator-attrs (:text n)))]

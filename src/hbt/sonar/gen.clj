@@ -46,8 +46,6 @@
      :attribute (attribute q)
      :type      (rule-type q)
      :severity  (severity level)
-     ;; clj-kondo's own docs are the description; linking beats paraphrasing,
-     ;; because a paraphrase here is a copy that rots.
      :url       (str "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#" (name k))}))
 
 (defn write-linters!

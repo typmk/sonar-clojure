@@ -18,25 +18,18 @@
                                   (remove #(contains? #{:comment :trivia} (:type %)))
                                   (mapcat line-span))
                         leaves)
-        ;; `;` comments, `#_` forms and `(comment ...)` bodies all count
         commented (into #{} (comp (filter #(or (:commented? %) (= :comment (:type %))))
                                   (remove #(= :trivia (:type %)))
                                   (mapcat line-span))
                         leaves)
-        ;; commented-out code is not code: a `#_`-ed defn is not a function,
-        ;; and an `(if ...)` inside `(comment ...)` decides nothing
         live      (remove :commented? nodes)
         branches  (filter :branch? live)]
     {:ncloc         (count code)
-     ;; a line carrying code and a trailing comment counts once, as code
      :comment-lines (count (remove code commented))
      :functions     (count (filter :function? live))
      :classes       (count (filter :class? live))
-     ;; a statement is an invocation: in a Lisp that is every list form
      :statements    (count (filter #(= :list (:tag %)) live))
      :complexity    (inc (count branches))
-     ;; nesting-weighted, as Sonar defines cognitive complexity: a branch
-     ;; inside two branches costs three, not one
      :cognitive     (reduce + 0 (map #(inc (:branch-nesting %)) branches))}))
 
 (defn- line-map
@@ -65,10 +58,6 @@
                                (remove #(contains? #{:comment :trivia} (:type %)))
                                (mapcat line-span))
                      leaves)
-        ;; A line is executable if a live list form starts on it. A vector of
-        ;; bindings or a bare symbol is code but nothing to execute, and
-        ;; counting it would understate coverage against lines no test could
-        ;; ever hit.
         exec   (into #{} (comp (remove :commented?)
                                (filter #(= :list (:tag %)))
                                (map :line))

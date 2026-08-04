@@ -54,8 +54,6 @@
          (let [cases (elements suite "testcase")]
            (reduce
             (fn [a ^Element c]
-              ;; kaocha writes the namespace as the testcase classname; fall
-              ;; back to the suite name when a runner omits it.
               (let [nsname (or (attr c "classname") (attr suite "name"))]
                 (if-not nsname
                   a

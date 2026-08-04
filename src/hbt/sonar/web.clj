@@ -30,14 +30,15 @@
 (def ^:private secret-name
   #"(?i)(^|[-_*/.])(passwords?|passwds?|secrets?|api[-_]?keys?|tokens?|credentials?|private[-_]?keys?|access[-_]?keys?|client[-_]?secrets?|session[-_]?ids?|jwts?)([-_*?!]|$)")
 
-(defn- text-of [nodes n]
-  (str/join " " (map :text (tree/children-of nodes n))))
+(defn- direct-text
+  "The text of a form's DIRECT children only. Using the whole subtree made an
+  outer map inherit its inner map's keys, so a cookie map reported twice."
+  [nodes n]
+  (let [d (inc (:depth n))]
+    (str/join " " (map :text (filter #(= d (:depth %)) (tree/children-of nodes n))))))
 
 (defn findings [nodes]
   (concat
-   ;; hiccup escapes strings it renders; `raw` is the documented way to opt
-   ;; out. A raw call whose argument is not a literal is rendering something
-   ;; computed, unescaped.
    (for [l (tree/lists-headed-by nodes raw-html)
          :let [a (tree/first-argument nodes l)]
          :when (and a (not (tree/literal? a)))]
@@ -45,12 +46,6 @@
       :line (:line l) :col (:col l) :end-line (:end-line l) :end-col (:end-col l)
       :message (str (:head l) " renders a computed value without escaping it")})
 
-   ;; A namespace that routes state-changing methods and never mentions
-   ;; anti-forgery. File-scoped on purpose: middleware is usually assembled
-   ;; somewhere other than the route it protects, so this is a hotspot.
-   ;; Establish this is a web namespace FIRST. Without it the method keyword
-   ;; means nothing: measured over lume+sur, 8 of 10 findings were malli enums,
-   ;; permission-verb sets and OUTBOUND http client calls.
    (let [web-ns? (some (fn [n] (and (= :symbol (:type n))
                                     (re-find #"(?i)(^|[./])(ring|reitit|compojure|muuntaja|handler|routes|middleware)([./]|$)"
                                              (:text n))))
@@ -67,8 +62,6 @@
           :line (:line n) :col (:col n) :end-line (:end-line n) :end-col (:end-col n)
           :message "state-changing routes here, and no anti-forgery middleware named in this namespace"})))
 
-   ;; A credential-shaped name handed to a logger. Logs are copied, shipped
-   ;; and retained far more widely than the store the secret came from.
    (for [l (tree/lists-headed-by nodes logging)
          :let [args (tree/arguments nodes l)]
          a args
@@ -77,16 +70,22 @@
       :line (:line a) :col (:col a) :end-line (:end-line a) :end-col (:end-col a)
       :message (str "'" (:text a) "' is credential-shaped and is being logged")})
 
-   ;; A cookie map that sets one security flag has clearly thought about
-   ;; them; one that turns a flag off, or omits :http-only while setting
-   ;; others, has usually not.
-   (for [n nodes
-         :when (and (= :map (:tag n)) (not (:commented? n)))
-         :let [t (text-of nodes n)]
-         :when (and (re-find #":secure|:http-only|:same-site" t)
-                    (or (re-find #":secure\s+false" t)
-                        (re-find #":http-only\s+false" t)
-                        (not (str/includes? t ":http-only"))))]
-     {:rule "cookie-missing-security-flags"
-      :line (:line n) :col (:col n) :end-line (:end-line n) :end-col (:end-col n)
-      :message "cookie attributes set without :http-only true, or with a flag disabled"})))
+   (let [cookie-ctx (or (some #(and (= :keyword (:type %))
+                                    (contains? #{":cookies" ":set-cookie" ":session-cookie-attrs"}
+                                               (:text %)))
+                              nodes)
+                        (some #(and (contains? tree/call-tags (:tag %))
+                                    (re-find #"(?i)set-cookie|wrap-session|wrap-cookies"
+                                             (or (:head %) "")))
+                              nodes))]
+     (when cookie-ctx
+       (for [n nodes
+             :when (and (= :map (:tag n)) (not (:commented? n)) (not (:quoted? n)))
+             :let [t (direct-text nodes n)]
+             :when (re-find #":value|:max-age|:expires" t)
+             :when (or (not (re-find #":http-only\s+true" t))
+                       (not (re-find #":secure\s+true" t))
+                       (re-find #":secure\s+false|:http-only\s+false" t))]
+         {:rule "cookie-missing-security-flags"
+          :line (:line n) :col (:col n) :end-line (:end-line n) :end-col (:end-col n)
+          :message "cookie without :http-only true and :secure true"})))))

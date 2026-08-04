@@ -85,8 +85,6 @@
       (let [issue (.newIssue ctx)]
         (.forRule issue (RuleKey/of const/repository-key rule))
         (.at issue (location issue f finding))
-        ;; The flow is what makes a taint finding reviewable: it shows where
-        ;; the value came from, not just where it landed.
         (when (seq flow)
           (.addFlow issue
                     (mapv #(location issue f %) flow)
@@ -96,15 +94,12 @@
           (.addQuickFix issue (add-quick-fix! issue f quick-fix)))
         (.save issue))
       (catch Exception e
-        ;; A range Sonar rejects must cost one finding, not the file's rest.
         (println "Clojure: could not save security finding" rule "in"
                  (str (.filename f)) "--" (.getMessage e))))))
 
 (defn- save-cpd! [ctx ^InputFile f tokens]
   (let [cpd (.onFile (.newCpdTokens ctx) f)]
     (doseq [t tokens
-            ;; comments are not duplication; two files with the same licence
-            ;; header are not two copies of the same code
             :when (not= :comment (:type t))]
       (.addToken cpd (int (:line t)) (int (dec (:col t)))
                  (int (:end-line t)) (int (dec (:end-col t)))
@@ -144,7 +139,6 @@
           (report/paths ctx const/analysis-paths-prop const/default-analysis)))
 
 (defn- cache-key [^InputFile f]
-  ;; Sonar's own content hash: the file is unchanged iff this is unchanged.
   (str "hbt.sonar.parse:" (.key f) ":" (.md5Hash f)))
 
 (defn- skip?
@@ -164,7 +158,6 @@
     (try
       (.write (.nextCache ctx) (cache-key f) (.getBytes "1" "UTF-8"))
       (catch Exception _
-        ;; A duplicate key or a closed cache must not cost the analysis.
         nil))))
 
 (defn- instrumented
@@ -193,9 +186,6 @@
     (do (.copyFromPrevious (.nextCache ctx) (cache-key f)) ::skipped)
     (let [{:keys [ok? nodes error]} (parse/parse (slurp (.inputStream f)))]
     (if-not ok?
-      ;; The file contributes no ncloc, so every ratio computed over it is
-      ;; wrong. Scanner stdout is not where anyone looks -- raise it as an
-      ;; analysis error so the omission is visible in Sonar itself.
       (do (-> (.newAnalysisError ctx)
               (.onFile f)
               (.message (str "Clojure source could not be parsed, so its lines are "
@@ -214,7 +204,6 @@
                                       (regex/findings nodes)
                                       (web/findings nodes)
                                       (access/findings nodes)
-                                      ;; test rules apply to test files only
                                       (when (= InputFile$Type/TEST (.type f))
                                         (tests/findings nodes))))
         (save-cpd! ctx f leaves)
@@ -254,8 +243,6 @@
     (println (format "Clojure: measured %d files, %d ncloc%s"
                      (count ok) (reduce + 0 (map :ncloc ok))
                      (if (pos? skipped) (format " (%d unchanged, from cache)" skipped) "")))
-    ;; The interprocedural pass needs every file's seeds, so it runs once the
-    ;; per-file walk is done rather than inside it.
     (let [n (interprocedural! ctx @seeds)]
       (when (pos? n)
         (println (format "Clojure: %d interprocedural taint paths" n))))

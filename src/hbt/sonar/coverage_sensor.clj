@@ -40,9 +40,6 @@
   (let [c (.onFile (.newCoverage ctx) in)]
     (doseq [[line {:keys [hits partial?]}] lines]
       (.lineHits c (int line) (int hits))
-      ;; A partial line is one condition of two taken. cloverage collapses
-      ;; partial to a bare flag, so exact form counts are not available and
-      ;; inventing them would be worse than showing the true shape.
       (when partial?
         (.conditions c (int line) (int 2) (int 1))))
     (.save c)))
@@ -71,8 +68,6 @@
   (doseq [^File f (report/paths ctx const/coverage-paths-prop const/default-coverage)]
     (if (report/exists? f)
       (import-report! ctx f)
-      ;; Silence here reads as 0% coverage, which fails the gate for a reason
-      ;; that has nothing to do with the tests.
       (println "cloverage report not found:" (.getPath f)
                "-- coverage will be reported as 0% and the quality gate will fail on it")))
   nil)

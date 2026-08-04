@@ -5,12 +5,6 @@
 (def repository-key "clj-kondo")
 (def profile-name "Sane")
 
-;; Keyed by the LANGUAGE KEY, not the plugin name. The scanner reads
-;; `sonar.<languageKey>.file.suffixes` / `.file.patterns` from project
-;; settings -- /api/languages/list returns only key and name, for every
-;; language including java and python, so settings are the ONLY channel that
-;; carries suffixes to the scanner. Named `sonar.clojure.*` it was never read
-;; and the scanner claimed no files at all.
 (def suffixes-prop "sonar.clj.file.suffixes")
 (def patterns-prop "sonar.clj.file.patterns")
 (def report-paths-prop "sonar.clojure.kondo.reportPaths")
@@ -24,15 +18,10 @@
 (def default-coverage "target/coverage/codecov.json")
 (def default-test-report "target/junit.xml")
 
-;; One property per external analyzer. No default path: an analyzer nobody
-;; runs must not log a missing report every scan.
 (def external-report-props
   {"splint"     "sonar.clojure.splint.reportPaths"
    "clj-holmes" "sonar.clojure.cljholmes.reportPaths"
    "eastwood"   "sonar.clojure.eastwood.reportPaths"
    "nvd"        "sonar.clojure.nvd.reportPaths"})
 
-;; A finding whose linter is absent from the generated catalogue lands here
-;; rather than being dropped. A newer clj-kondo than the plugin was built
-;; against must be visible, not silent.
 (def unknown-rule "unknown-linter")

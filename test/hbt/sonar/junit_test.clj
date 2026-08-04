@@ -45,7 +45,6 @@
   (is (nil? (junit/parse "")))
   (is (nil? (junit/parse nil))))
 
-;; A CI-produced XML file is exactly the input an attacker reaches first.
 (deftest external-entities-are-refused
   (let [xxe (str "<?xml version=\"1.0\"?>"
                  "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>"

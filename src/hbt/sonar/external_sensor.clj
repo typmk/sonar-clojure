@@ -64,8 +64,6 @@
       (println (format "%s %s: not a recognised report shape -- no findings imported"
                        engine-id (.getName f)))
       (let [known (set (map :key (external-rules/catalogue engine-id)))]
-        ;; A rule the shipped catalogue already documents needs no ad-hoc
-        ;; declaration -- the repository carries its name and description.
         (doseq [[e r] (external/rule-ids fs) :when (not (contains? known r))]
           (declare-rule! ctx e r))
         (let [saved (reduce (fn [n finding]

@@ -39,8 +39,6 @@
       :message (str (:head n) " retries under contention, so the side effect inside it"
                     " can happen more than once")})
 
-   ;; A future in expression position whose value is used is fine. One that
-   ;; is a statement -- a direct child of a do/when/let body -- is not.
    (for [n (tree/lists-headed-by nodes #{"future"})
          :let [parent (->> nodes
                            (filter #(and (= :list (:tag %))

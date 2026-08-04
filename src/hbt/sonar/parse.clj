@@ -58,18 +58,11 @@
         inner? (n/inner? node)
         p      (pos node)
         text   (n/string node)
-        ;; `#(...)` is a call form too. Treating only :list as one made every
-        ;; rule blind to anything inside an anonymous fn -- 259 of them in the
-        ;; four Clojure repos.
         list?  (contains? #{:list :fn} tag)
         head   (when list? (head-text node))
-        ;; `(comment ...)` and `#_form` are commented-out code, not code
         commented?' (or commented?
                         (= :uneval tag)
                         (and list? (= "comment" head)))
-        ;; Inside a quoted form nothing is invoked. `(pull ?e [*])` in a
-        ;; datalog vector is a clause, not a call, and reading it as one made
-        ;; correctly tenant-scoped queries look unscoped.
         quoted?'    (or quoted? (contains? #{:quote :syntax-quote} tag))
         branch?     (and list? (contains? forms/branch head))
         acc' (if p

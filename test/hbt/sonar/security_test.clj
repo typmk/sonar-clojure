@@ -16,8 +16,6 @@
   (is (contains? (rules-for "(jdbc/query db (str \"select \" x))") "sql-string-built")))
 
 (deftest detects-hardcoded-secrets
-  ;; weak-hash-algorithm and insecure-random live in hbt.sonar.interop now:
-  ;; resolving the class beats matching the string "MD5" wherever it appears.
   (is (contains? (rules-for "(def api-key \"sk-live-abcdef\")") "hardcoded-credential")))
 
 (deftest distinguishes-a-defect-from-a-thing-to-review
@@ -40,7 +38,6 @@
     (is (some? f) "(:params req) must count as attacker-influenced")
     (is (seq (:flow f)))))
 
-;; The honest bound on what this can claim.
 (deftest states-its-own-limits
   (testing "commented-out code is not a finding"
     (is (empty? (rules-for "#_(eval (read-string x))")))
@@ -94,8 +91,6 @@
     (is (every? declared (map :rule (security/findings-of-source src)))
         "a finding whose rule is not registered would be dropped by Sonar")))
 
-;; This runs over every file in the project. A throw costs the whole file's
-;; measures, not just its security findings.
 (defspec never-throws-on-arbitrary-source 300
   (prop/for-all [s gen/string]
     (let [r (security/findings-of-source s)]

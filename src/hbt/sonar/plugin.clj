@@ -2,7 +2,6 @@
   "Entry point named by Plugin-Class in the jar manifest."
   (:require [clojure.string :as str]
             [hbt.sonar.const :as const]
-            ;; required so their AOT'd classes are loadable by name below
             [hbt.sonar.coverage-sensor]
             [hbt.sonar.language]
             [hbt.sonar.profile]

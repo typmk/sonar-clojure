@@ -33,8 +33,6 @@
         (.selectLine f (:line s))
         (.newRange f (:line s) (:start-offset s) (:end-line s) (:end-offset s)))
       (catch Exception _
-        ;; A range Sonar rejects (past end of line after a file edit) must not
-        ;; cost the finding. Fall back to the line.
         (.selectLine f (:line s))))))
 
 (defn- save-issue! [ctx known ^InputFile f finding]
@@ -47,7 +45,6 @@
                  (.at (text-range f finding))
                  (.message message)))
         (.save))
-    ;; the caller tallies unrecognised linters off this
     recognised?))
 
 (defn- import-report! [ctx known ^File f]
@@ -60,8 +57,6 @@
         (swap! tally update :unmatched inc)))
     (let [{:keys [saved unmatched unrecognised]} @tally]
       (println (format "clj-kondo %s: %d issues saved" (.getName f) saved))
-      ;; Silence here would be indistinguishable from a clean project, which
-      ;; is the failure this plugin exists to avoid.
       (when (pos? unmatched)
         (println (format "clj-kondo %s: %d findings dropped -- file not indexed by Sonar. Check sonar.sources and %s."
                          (.getName f) unmatched const/suffixes-prop)))
@@ -74,6 +69,5 @@
     (doseq [^File f (report/paths ctx const/report-paths-prop const/default-report)]
       (if (report/exists? f)
         (import-report! ctx known f)
-        ;; A missing report is a broken pipeline, not an absence of findings.
         (println "clj-kondo report not found:" (.getPath f)))))
   nil)

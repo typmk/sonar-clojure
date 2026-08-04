@@ -65,8 +65,6 @@
     (.setCleanCodeAttribute (CleanCodeAttribute/valueOf ^String (:attribute r)))
     (.addDefaultImpact (SoftwareQuality/valueOf ^String (:quality r))
                        (Severity/valueOf ^String (:severity r)))
-    ;; clj-kondo's own default level decides membership of the shipped
-    ;; profile: what it considers off by default stays off here.
     (.setActivatedByDefault (not= :off (:level r)))))
 
 (defn- add-authored-rule!
@@ -89,7 +87,6 @@
       (.addOwaspTop10 rule RulesDefinition$OwaspTop10Version/Y2021
                       (into-array RulesDefinition$OwaspTop10
                                   (map #(RulesDefinition$OwaspTop10/valueOf %) owasp))))
-    ;; a hotspot is outside the clean-code model: not yet known to be a defect
     (when-not hotspot?
       (.setCleanCodeAttribute rule (CleanCodeAttribute/valueOf ^String attribute))
       (.addDefaultImpact rule (SoftwareQuality/valueOf ^String quality)
@@ -100,15 +97,11 @@
   (let [repo (-> (.createRepository ctx const/repository-key const/language-key)
                  (.setName "clj-kondo"))]
     (run! #(add-rule! repo %) (catalogue))
-    ;; deduped by key: interop registers weak-hash-algorithm once even though
-    ;; several classes raise it
     (run! #(add-authored-rule! repo %)
           (metadata/load-rules (concat security/rule-keys interop/rule-keys
                                        concurrency/rule-keys regex/rule-keys
                                        tests/rule-keys web/rule-keys
                                        access/rule-keys)))
-    ;; The catch-all. A finding from a clj-kondo newer than this plugin must
-    ;; surface as an issue, not vanish between the report and the dashboard.
     (doto (.createRule repo const/unknown-rule)
       (.setName "Unrecognised clj-kondo linter")
       (.setHtmlDescription

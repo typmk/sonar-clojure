@@ -6,8 +6,6 @@
             [hbt.sonar.const :as const]
             [hbt.sonar.kondo :as kondo]))
 
-;; Captured verbatim from `clj-kondo --config '{:output {:format :json}}'`,
-;; v2026.07.24. Regenerate rather than hand-edit if the shape moves.
 (def report
   (str "{\"findings\":["
        "{\"end-row\":2,\"type\":\"unused-binding\",\"level\":\"warning\","
@@ -47,9 +45,6 @@
         (is (false? (:recognised? c)))
         (is (re-find #"from-the-future" (:message c)))))))
 
-;; The property that matters: Sonar rejects a negative offset or a line below
-;; 1 by throwing, and a throw inside the sensor loses every remaining finding
-;; in the report. No generated finding may produce one.
 (def gen-finding
   (gen/hash-map :row     (gen/one-of [(gen/choose -5 500) (gen/return nil)])
                 :col     (gen/one-of [(gen/choose -5 500) (gen/return nil)])

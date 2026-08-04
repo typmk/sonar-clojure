@@ -42,8 +42,6 @@
     (.setCleanCodeAttribute CleanCodeAttribute/LOGICAL)
     (.addDefaultImpact (SoftwareQuality/valueOf ^String (or quality "MAINTAINABILITY"))
                        (Severity/valueOf ^String (or severity "MEDIUM")))
-    ;; Off by default: the engine is opt-in, and a repository that switches
-    ;; itself on would raise issues for a tool nobody runs.
     (.setActivatedByDefault false)))
 
 (defn -define [_ ctx]

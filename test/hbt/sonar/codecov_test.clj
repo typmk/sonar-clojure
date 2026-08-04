@@ -5,8 +5,6 @@
             [clojure.test.check.properties :as prop]
             [hbt.sonar.codecov :as codecov]))
 
-;; The shape cloverage's codecov reporter writes: leading null so index 1 is
-;; line 1; number = fully covered; true = PARTIAL; 0 = never run.
 (def report
   "{\"src/a.clj\":[null,3,true,0,null,7],\"src/b.clj\":[null,0]}")
 

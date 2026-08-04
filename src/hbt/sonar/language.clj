@@ -7,9 +7,6 @@
   (:gen-class
    :name hbt.sonar.ClojureLanguage
    :implements [org.sonar.api.resources.Language]
-   ;; A typed constructor. deftype erases reference hints to Object and the
-   ;; container then cannot resolve the parameter -- gen-class is the only
-   ;; form that emits the real signature.
    :constructors {[org.sonar.api.config.Configuration] []}
    :init init
    :state state))

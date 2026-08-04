@@ -39,7 +39,6 @@
        :owasp (vec (get-in m [:securityStandards :OWASP] []))
        :remediation (get-in m [:remediation :constantCost] "10min")
        :tags (vec (:tags m))
-       ;; a rule whose precision is unproven ships registered but inactive
        :activate? (not (false? (:defaultActivation m)))
        :html (or html "<p>No description shipped.</p>")})))
 

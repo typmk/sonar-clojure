@@ -4,10 +4,6 @@
             [hbt.sonar.highlight :as hl]
             [hbt.sonar.parse :as parse]))
 
-;; Captured from clj-kondo 2026.07.24 over:
-;;   (ns probe)
-;;   (defn add [x y] (+ x y))
-;;   (defn use-it [] (let [n 5] (add n n)))
 (def report
   (str "{\"analysis\":{"
        "\"var-definitions\":["

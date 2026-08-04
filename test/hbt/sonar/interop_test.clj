@@ -63,9 +63,6 @@
     (is (empty? (rules-for (str ns-form "#_(MessageDigest/getInstance \"MD5\")"))))))
 
 (deftest a-hardened-xml-parser-is-not-a-finding
-  ;; Found by running the plugin against its own source: hbt.sonar.junit
-  ;; disables doctypes and external entities, and was still flagged. The rule
-  ;; exists to find the parser nobody hardened.
   (testing "an untouched factory is a finding"
     (is (contains? (rules-for "(ns a (:import [javax.xml.parsers DocumentBuilderFactory]))
                                (defn f [] (DocumentBuilderFactory/newInstance))")

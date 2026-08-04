@@ -50,8 +50,6 @@
         missed (count (remove true? placed))]
     (println (format "kaocha %s: %d tests, %d failures, %d errors, %d skipped"
                      (.getName f) (:tests t) (:failures t) (:errors t) (:skipped t)))
-    ;; A namespace whose file Sonar did not index contributes nothing, and a
-    ;; test count quietly short by a few namespaces is worse than none.
     (when (pos? missed)
       (println (format "kaocha %s: %d namespaces had no indexed file -- their results are missing. Check sonar.tests."
                        (.getName f) missed)))))

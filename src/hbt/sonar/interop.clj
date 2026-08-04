@@ -20,9 +20,6 @@
   (:require [clojure.string :as str]
             [hbt.sonar.tree :as tree]))
 
-;; ---------------------------------------------------------------------------
-;; Import resolution.
-
 (defn imports
   "simple class name -> fully qualified, from the ns form's :import clauses.
   Handles both `[java.security MessageDigest Signature]` and a bare
@@ -35,7 +32,6 @@
          (reduce
           (fn [a n]
             (cond
-              ;; [package Class Class]
               (= :vector (:tag n))
               (let [syms (->> (tree/children-of nodes n)
                               (filter #(= :symbol (:type %)))
@@ -44,7 +40,6 @@
                   (reduce (fn [m c] (assoc m c (str pkg "." c))) a (rest syms))
                   a))
 
-              ;; bare java.util.Random
               (and (= :symbol (:type n)) (str/includes? (:text n) "."))
               (assoc a (last (str/split (:text n) #"\.")) (:text n))
 
@@ -59,10 +54,6 @@
     (nil? nm) nil
     (str/includes? nm ".") nm
     :else (get imported nm)))
-
-;; ---------------------------------------------------------------------------
-;; The rule table. Each entry is data: a class, a member, and optionally a
-;; predicate over the first string argument.
 
 (def detections
   "Class, member, and optionally a predicate over the first string argument.
@@ -163,8 +154,6 @@
 
 (defn- matches? [nodes lst {:keys [arg dynamic]}]
   (and (if dynamic
-         ;; the weakness needs a name the caller can influence; a compile-time
-         ;; constant lookup is not it
          (let [a (tree/first-argument nodes lst)] (and a (not (tree/literal? a))))
          true)
        (or (nil? arg)
@@ -202,7 +191,6 @@
           :when (and (or (= (:member r) member)
                          (and (= :new (:member r)) (= :new member)))
                      (matches? nodes n r)
-                     ;; a parser that IS hardened is not a finding
                      (not (and (= "xml-external-entity" (:key r))
                                (hardened? nodes n))))]
       {:rule (:key r)
