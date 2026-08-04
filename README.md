@@ -8,7 +8,7 @@ SonarQube ships no Clojure support. Without a language claiming these files,
 nothing is indexed and no finding — from this plugin or any other source — can
 attach to them.
 
-**293 rules** · SonarQube 25.6+, verified on 25.6 / 26.1 / 26.7 Community · JRE 17+ · ~7 MB
+**293 rules** · SonarQube 25.2+, verified on 25.2 / 26.1 / 26.7 Community · JRE 17+ · ~7 MB
 
 ---
 
@@ -172,19 +172,21 @@ switching them on for everyone.
   runs plugin-side over the analysis report, and over-approximates.
 - **rewrite-clj is stricter than Clojure's reader** in rare cases. An unparseable
   file contributes no measures and raises an analysis error naming itself.
-- **SonarQube 25.6 and later.** Verified by running a real scan on 25.6, 26.1
-  and 26.7. Below that:
-  - **24.12 is broken** — its Compute Engine runs under a SecurityManager that
-    denies `getClassLoader`, which is the classloader swap the Clojure
-    bootstrap cannot work without. The web server starts and reports `UP`
-    while the Compute Engine is already dead, so a health check does not catch
-    it.
+- **SonarQube 25.2 and later.** Every 25.x and 26.x release from 25.1 to 26.7
+  was installed and started; 25.2 is the oldest that works, and the boundary
+  is exact rather than assumed. Below it:
+  - **24.12 and 25.1 are broken** — their Compute Engine runs under a
+    SecurityManager that denies `getClassLoader`, which is the classloader
+    swap the Clojure bootstrap cannot work without. The web server starts and
+    reports `UP` while the Compute Engine is already dead, so a health check
+    does not catch it; the tell is that only one `sonar-clojure:` line reaches
+    the log instead of two. SonarQube stopped running the CE under a
+    SecurityManager in 25.2.
   - **10.7 and earlier are refused** by the manifest's `Sonar-Version: 10.13`,
     which is the plugin API version that introduced
     `PropertyDefinition$ConfigScope`. The floor previously read `10.0`; that
     did not make the plugin work on 10.7, it made SonarQube accept a plugin
     that then died with `ClassNotFoundException` and took the server down.
-  - **25.1 to 25.5 are untested**, which is not the same as broken.
 - SonarSource's taint engine is closed to third-party plugins, and Java's
   `javasecurity` rules are Developer Edition. Nothing here substitutes for them.
 
@@ -225,7 +227,7 @@ both compatibility failures above, neither of which any unit test can reach.
 ```bash
 clojure -X:gen-rules     # regenerate the rule catalogue from clj-kondo
 clojure -T:build uber    # -> target/sonar-clojure-plugin-0.1.1.jar + .sha256
-clojure -M:test          # 122 tests, 436 assertions (needs the jar)
+clojure -M:test          # 123 tests, 438 assertions (needs the jar)
 clojure -T:build release # the same, gated on a clean tree and a v<version> tag
 clojure -M:coverage      # 91% forms / 92% lines, measured
 ```

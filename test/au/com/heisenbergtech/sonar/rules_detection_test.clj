@@ -102,6 +102,16 @@
            "(deftest nothing (println :hi))"
            "(deftest something (is (= 1 1)))")))
 
+(deftest empty-test-understands-assertion-helpers
+  (testing "found by dogfooding: this very namespace asserts through `fires`,
+            and the rule raised 19 findings against it, every one wrong"
+    (is (empty? (rules tests/findings
+                       "(defn- fires [a b] (is (= a b)))\n(deftest x (testing \"t\" (fires 1 1)))"))
+        "a deftest delegating to a helper that asserts is not an empty test"))
+  (testing "and a helper that asserts nothing still does not rescue it"
+    (is (contains? (rules tests/findings "(defn- noop [a] a)\n(deftest x (noop 1))")
+                   "empty-test"))))
+
 (deftest testing-without-assertion
   (fires tests/findings "testing-without-assertion"
          "(deftest t (is (= 1 1)) (testing \"nothing\" (println :x)))"

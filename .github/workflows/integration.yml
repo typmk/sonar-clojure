@@ -24,13 +24,16 @@ on:
 
 jobs:
   scan:
-    # Versions listed here are ones the plugin has been observed to work on.
-    # 25.1 through 25.5 are untested, not known-good.
+    # The floor, a middle release, and the current one. 25.2 is the oldest
+    # version this works on: 24.12 and 25.1 both die in the Compute Engine with
+    # AccessControlException on getClassLoader, and 25.2 is where SonarQube
+    # stopped running the CE under a SecurityManager. Testing the floor matters
+    # most -- it is the version most likely to regress unnoticed.
     strategy:
       fail-fast: false
       matrix:
         sonarqube:
-          - 25.6.0.109173-community
+          - 25.2.0.102705-community
           - 26.1.0.118079-community
           - 26.7.0.124771-community
 
