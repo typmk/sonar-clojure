@@ -1,0 +1,31 @@
+{
+ "title": "Cookie set without the security flags",
+ "type": "VULNERABILITY",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "15min"
+ },
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "defaultSeverity": "Medium",
+ "sqKey": "cookie-missing-security-flags",
+ "scope": "Main",
+ "securityStandards": {
+  "CWE": [
+   1004,
+   614
+  ],
+  "OWASP": [
+   "A5"
+  ]
+ },
+ "code": {
+  "impacts": {
+   "SECURITY": "MEDIUM"
+  },
+  "attribute": "TRUSTWORTHY"
+ }
+}

@@ -1,9 +1,24 @@
-{"tags":["cwe", "security"],
- "remediation":{"func":"Constant\/Issue", "constantCost":"10min"},
- "type":"SECURITY_HOTSPOT",
- "scope":"Main",
- "sqKey":"permissive-file-permissions",
- "title":"File permissions should be reviewed",
- "status":"ready",
- "securityStandards":{"CWE":[732], "OWASP":["A1"]},
- "defaultSeverity":"Medium"}
+{
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "10min"
+ },
+ "type": "SECURITY_HOTSPOT",
+ "scope": "Main",
+ "sqKey": "permissive-file-permissions",
+ "title": "File permissions should be reviewed",
+ "status": "ready",
+ "securityStandards": {
+  "CWE": [
+   276
+  ],
+  "OWASP": [
+   "A1"
+  ]
+ },
+ "defaultSeverity": "Medium"
+}

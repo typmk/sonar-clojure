@@ -1,0 +1,9 @@
+<h2>Why is this an issue?</h2>
+<p>Tenant scope belongs inside the query. Applied to the results instead, the database has already returned another tenant's rows, and any path that forgets the filter returns them to the caller.</p>
+<h2>How can I fix it?</h2>
+<p>Put <code>:obj/owner</code> in the <code>:where</code> clause, or the org column in the <code>WHERE</code>.</p>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/285.html">CWE-285</a></li>
+  <li><a href="https://cwe.mitre.org/data/definitions/639.html">CWE-639</a></li>
+</ul>

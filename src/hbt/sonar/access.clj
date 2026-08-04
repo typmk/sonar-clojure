@@ -1,0 +1,70 @@
+(ns hbt.sonar.access
+  "Rules for the access kernel, keyed on this codebase's own vocabulary.
+
+  Java fills CWE-285 and CWE-287 with rules about Spring Security
+  annotations. The vulnerability class is the same and the vocabulary is not:
+  here authorisation is `:obj/owner` scoping, a grant lattice and an operator
+  that must never be a party. Those invariants are stated in CLAUDE.md and
+  enforced by nothing.
+
+  The motivating defect is real and was shipped: WEB-184, where a nil owner
+  meant BOTH \"untenanted, shared by design\" and \"lookup failed\" -- and
+  both branches allowed. A two-valued test on a three-valued question. No
+  general-purpose analyzer can find that, because only this codebase knows
+  that `:obj/owner` is the tenant boundary.
+
+  Everything here is a hotspot rather than a vulnerability. The shapes are
+  strong signals, not proofs, and a wrong accusation about authorisation is
+  the fastest way to get a security ruleset switched off."
+  (:require [clojure.string :as str]
+            [hbt.sonar.tree :as tree]))
+
+(def rule-keys ["ambiguous-owner-check" "unscoped-tenant-query" "operator-as-party"])
+
+(def ^:private tenant-word
+  #"(?i)(^|[-_*/:.])(owner|org-id|orgid|tenant|tenant-id|party-uuid)([-_*?!]|$)")
+
+(def ^:private two-valued #{"if" "when" "when-not" "if-not" "nil?" "some?" "if-let" "when-let"})
+
+(def ^:private query-fns
+  #{"d/q" "datomic/q" "q" "jdbc/execute!" "jdbc/query" "sql/query" "execute!" "pull" "d/pull"})
+
+(def ^:private banned-operator-attrs
+  "Named in CLAUDE.md's `Banned -> use` table: operator access is an
+  off-graph staff fact, never a party attribute."
+  #{":party/platform-role" ":party/operator" ":party/staff-role" ":party/is-operator"})
+
+(defn- mentions? [nodes n re]
+  (boolean (some #(and (:text %) (re-find re (:text %)))
+                 (cons n (tree/children-of nodes n)))))
+
+(defn findings [nodes]
+  (concat
+   ;; The WEB-184 shape: a two-valued test whose subject is the tenant
+   ;; boundary. nil there is ambiguous -- untenanted or unresolved -- and the
+   ;; two must not share a branch.
+   (for [l (tree/lists-headed-by nodes two-valued)
+         :let [a (tree/first-argument nodes l)]
+         :when (and a (mentions? nodes a tenant-word))]
+     {:rule "ambiguous-owner-check"
+      :line (:line l) :col (:col l) :end-line (:end-line l) :end-col (:end-col l)
+      :message (str "two-valued test on the tenant boundary: nil owner means both"
+                    " untenanted and unresolved, and both would take this branch")})
+
+   ;; A query against owned data that never names the owner. Datomic and SQL
+   ;; alike: the scope has to be IN the query, not applied to its results.
+   (for [l (tree/lists-headed-by nodes query-fns)
+         :when (not (mentions? nodes l tenant-word))]
+     {:rule "unscoped-tenant-query"
+      :line (:line l) :col (:col l) :end-line (:end-line l) :end-col (:end-col l)
+      :message (str (:head l) " names no owner or tenant -- confirm the scope is in the"
+                    " query and not applied afterwards")})
+
+   ;; "Party to none is enforced by absence, not a flag."
+   (for [n nodes
+         :when (and (= :keyword (:type n)) (not (:commented? n))
+                    (contains? banned-operator-attrs (:text n)))]
+     {:rule "operator-as-party"
+      :line (:line n) :col (:col n) :end-line (:end-line n) :end-col (:end-col n)
+      :message (str (:text n) " puts operator access on the graph; it is an off-graph"
+                    " staff fact, and blindness is enforced by absence")})))

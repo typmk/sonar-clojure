@@ -1,10 +1,31 @@
-{"tags":["cwe", "security"],
- "remediation":{"func":"Constant\/Issue", "constantCost":"10min"},
- "type":"VULNERABILITY",
- "scope":"Main",
- "sqKey":"insecure-random",
- "title":"java.util.Random is predictable",
- "status":"ready",
- "code":{"impacts":{"SECURITY":"MEDIUM"}, "attribute":"TRUSTWORTHY"},
- "securityStandards":{"CWE":[338, 330], "OWASP":["A2"]},
- "defaultSeverity":"Medium"}
+{
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "10min"
+ },
+ "type": "VULNERABILITY",
+ "scope": "Main",
+ "sqKey": "insecure-random",
+ "title": "java.util.Random is predictable",
+ "status": "ready",
+ "code": {
+  "impacts": {
+   "SECURITY": "MEDIUM"
+  },
+  "attribute": "TRUSTWORTHY"
+ },
+ "securityStandards": {
+  "CWE": [
+   338,
+   1241
+  ],
+  "OWASP": [
+   "A2"
+  ]
+ },
+ "defaultSeverity": "Medium"
+}

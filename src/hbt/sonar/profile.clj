@@ -3,7 +3,11 @@
   :off is active, so the dashboard and a local `clj-kondo --lint` agree."
   (:require [hbt.sonar.const :as const]
             [hbt.sonar.rules :as rules]
+            [hbt.sonar.access :as access]
             [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.regex :as regex]
+            [hbt.sonar.tests :as tests]
+            [hbt.sonar.web :as web]
             [hbt.sonar.interop :as interop]
             [hbt.sonar.security :as security])
   (:gen-class
@@ -18,7 +22,8 @@
       (.activateRule p const/repository-key (:key r)))
     (.activateRule p const/repository-key const/unknown-rule)
     (doseq [k (distinct (concat security/rule-keys interop/rule-keys
-                                concurrency/rule-keys))]
+                                concurrency/rule-keys regex/rule-keys
+                                tests/rule-keys web/rule-keys access/rule-keys))]
       (.activateRule p const/repository-key k))
     (.done p)
     nil))

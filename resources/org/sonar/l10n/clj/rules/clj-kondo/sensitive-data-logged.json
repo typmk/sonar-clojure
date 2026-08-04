@@ -1,0 +1,30 @@
+{
+ "title": "Credential-shaped value written to a log",
+ "type": "VULNERABILITY",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "20min"
+ },
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "defaultSeverity": "High",
+ "sqKey": "sensitive-data-logged",
+ "scope": "Main",
+ "securityStandards": {
+  "CWE": [
+   532
+  ],
+  "OWASP": [
+   "A2"
+  ]
+ },
+ "code": {
+  "impacts": {
+   "SECURITY": "HIGH"
+  },
+  "attribute": "TRUSTWORTHY"
+ }
+}

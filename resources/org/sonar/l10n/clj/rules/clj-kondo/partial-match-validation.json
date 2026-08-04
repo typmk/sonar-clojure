@@ -1,0 +1,30 @@
+{
+ "title": "Validation uses a partial match",
+ "type": "VULNERABILITY",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "20min"
+ },
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "defaultSeverity": "High",
+ "sqKey": "partial-match-validation",
+ "scope": "Main",
+ "securityStandards": {
+  "CWE": [
+   625
+  ],
+  "OWASP": [
+   "A3"
+  ]
+ },
+ "code": {
+  "impacts": {
+   "SECURITY": "HIGH"
+  },
+  "attribute": "LOGICAL"
+ }
+}

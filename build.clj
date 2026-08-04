@@ -38,6 +38,10 @@
                                 hbt.sonar.security
                                 hbt.sonar.interop
                                 hbt.sonar.concurrency
+                                hbt.sonar.regex
+                                hbt.sonar.tests
+                                hbt.sonar.web
+                                hbt.sonar.access
                                 hbt.sonar.codecov
                                 hbt.sonar.callgraph
                                 hbt.sonar.external

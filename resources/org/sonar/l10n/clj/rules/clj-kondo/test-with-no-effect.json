@@ -1,0 +1,22 @@
+{
+ "title": "Assertion that cannot fail",
+ "type": "BUG",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "10min"
+ },
+ "tags": [
+  "tests"
+ ],
+ "defaultSeverity": "High",
+ "sqKey": "test-with-no-effect",
+ "scope": "Main",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "RELIABILITY": "HIGH"
+  },
+  "attribute": "LOGICAL"
+ }
+}

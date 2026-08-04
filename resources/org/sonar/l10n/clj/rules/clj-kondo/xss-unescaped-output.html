@@ -1,0 +1,9 @@
+<h2>Why is this an issue?</h2>
+<p>hiccup escapes the strings it renders. <code>raw</code> exists to opt out of that, so a <code>raw</code> call on a computed value puts unescaped, possibly attacker-controlled markup into the page.</p>
+<h2>How can I fix it?</h2>
+<p>Render the value normally and let hiccup escape it. If markup really is intended, sanitise it first.</p>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/79.html">CWE-79</a></li>
+  <li><a href="https://cwe.mitre.org/data/definitions/80.html">CWE-80</a></li>
+</ul>

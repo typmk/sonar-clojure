@@ -1,0 +1,22 @@
+{
+ "title": "Test asserts nothing",
+ "type": "BUG",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "10min"
+ },
+ "tags": [
+  "tests"
+ ],
+ "defaultSeverity": "High",
+ "sqKey": "empty-test",
+ "scope": "Main",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "RELIABILITY": "HIGH"
+  },
+  "attribute": "COMPLETE"
+ }
+}

@@ -1,0 +1,10 @@
+<h2>Why is this an issue?</h2>
+<p>A quantified group whose body is also quantified — <code>(a+)+</code>, <code>([a-z]*)*</code> — makes the engine try every way of splitting the input. A short crafted string costs seconds of CPU.</p><p>Clojure regex literals compile to <code>java.util.regex.Pattern</code>, so the exposure is exactly Java's.</p>
+<h2>How can I fix it?</h2>
+<p>Flatten the nesting, or bound the repetition:</p><pre>#"[a-z]+"        ; not #"([a-z]+)+"
+#"[a-z]{1,64}"</pre>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/1333.html">CWE-1333</a></li>
+  <li><a href="https://cwe.mitre.org/data/definitions/400.html">CWE-400</a></li>
+</ul>

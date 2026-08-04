@@ -1,10 +1,31 @@
-{"tags":["cwe", "security"],
- "remediation":{"func":"Constant\/Issue", "constantCost":"30min"},
- "type":"VULNERABILITY",
- "scope":"Main",
- "sqKey":"jndi-injection",
- "title":"JNDI lookup",
- "status":"ready",
- "code":{"impacts":{"SECURITY":"HIGH"}, "attribute":"TRUSTWORTHY"},
- "securityStandards":{"CWE":[74, 502], "OWASP":["A3"]},
- "defaultSeverity":"High"}
+{
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "30min"
+ },
+ "type": "VULNERABILITY",
+ "scope": "Main",
+ "sqKey": "jndi-injection",
+ "title": "JNDI lookup",
+ "status": "ready",
+ "code": {
+  "impacts": {
+   "SECURITY": "HIGH"
+  },
+  "attribute": "TRUSTWORTHY"
+ },
+ "securityStandards": {
+  "CWE": [
+   502,
+   94
+  ],
+  "OWASP": [
+   "A3"
+  ]
+ },
+ "defaultSeverity": "High"
+}

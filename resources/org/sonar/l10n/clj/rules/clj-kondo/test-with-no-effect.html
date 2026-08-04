@@ -1,0 +1,4 @@
+<h2>Why is this an issue?</h2>
+<p><code>(= x)</code> with a single operand is always true, so <code>(is (= x))</code> can never fail.</p>
+<h2>How can I fix it?</h2>
+<pre>(is (= expected actual))</pre>

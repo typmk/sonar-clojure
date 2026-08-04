@@ -1,0 +1,9 @@
+<h2>Why is this an issue?</h2>
+<p>A nil owner means two different things — untenanted and shared by design, or a lookup that failed — and a two-valued test gives both the same branch.</p><p>This is WEB-184: the cross-tenant guard answered a three-valued question with two values, and both answers allowed.</p>
+<h2>How can I fix it?</h2>
+<p>Make the third state representable and deny on it:</p><pre>[:or [:= ::untenanted] :uuid [:= ::unresolved]]</pre>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/285.html">CWE-285</a></li>
+  <li><a href="https://cwe.mitre.org/data/definitions/863.html">CWE-863</a></li>
+</ul>

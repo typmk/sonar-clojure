@@ -1,0 +1,8 @@
+<h2>Why is this an issue?</h2>
+<p>This namespace routes POST/PUT/PATCH/DELETE and names no anti-forgery middleware. Without it a third-party page can make an authenticated browser perform those requests.</p>
+<h2>How can I fix it?</h2>
+<p>Confirm <code>ring.middleware.anti-forgery</code> wraps these routes, wherever the stack is assembled.</p>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/352.html">CWE-352</a></li>
+</ul>

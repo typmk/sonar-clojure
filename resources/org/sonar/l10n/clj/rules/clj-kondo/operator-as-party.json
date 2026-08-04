@@ -1,0 +1,31 @@
+{
+ "title": "Operator access placed on the graph",
+ "type": "VULNERABILITY",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "1h"
+ },
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "defaultSeverity": "High",
+ "sqKey": "operator-as-party",
+ "scope": "Main",
+ "securityStandards": {
+  "CWE": [
+   639,
+   732
+  ],
+  "OWASP": [
+   "A1"
+  ]
+ },
+ "code": {
+  "impacts": {
+   "SECURITY": "HIGH"
+  },
+  "attribute": "TRUSTWORTHY"
+ }
+}

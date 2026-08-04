@@ -1,0 +1,9 @@
+<h2>Why is this an issue?</h2>
+<p><code>re-find</code> succeeds anywhere in the string. A pattern anchored with <code>^</code> and <code>$</code> was written to match a whole value, so handing it to <code>re-find</code> silently weakens it to a substring test.</p>
+<h2>How can I fix it?</h2>
+<pre>(re-matches #"^[a-z0-9-]+$" v)   ; not re-find</pre>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/20.html">CWE-20</a></li>
+  <li><a href="https://cwe.mitre.org/data/definitions/625.html">CWE-625</a></li>
+</ul>

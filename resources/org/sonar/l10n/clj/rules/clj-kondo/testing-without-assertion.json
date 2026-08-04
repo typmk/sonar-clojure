@@ -1,0 +1,22 @@
+{
+ "title": "`testing` block contains no assertion",
+ "type": "BUG",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "5min"
+ },
+ "tags": [
+  "tests"
+ ],
+ "defaultSeverity": "Medium",
+ "sqKey": "testing-without-assertion",
+ "scope": "Main",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "RELIABILITY": "MEDIUM"
+  },
+  "attribute": "COMPLETE"
+ }
+}

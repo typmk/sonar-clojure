@@ -1,0 +1,10 @@
+<h2>Why is this an issue?</h2>
+<p>Without <code>:http-only</code> a session cookie is readable by script; without <code>:secure</code> it travels in clear text.</p>
+<h2>How can I fix it?</h2>
+<pre>{:secure true :http-only true :same-site :strict}</pre>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/1004.html">CWE-1004</a></li>
+  <li><a href="https://cwe.mitre.org/data/definitions/614.html">CWE-614</a></li>
+  <li><a href="https://cwe.mitre.org/data/definitions/311.html">CWE-311</a></li>
+</ul>

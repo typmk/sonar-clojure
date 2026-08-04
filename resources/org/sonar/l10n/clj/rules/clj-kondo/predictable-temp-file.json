@@ -1,10 +1,31 @@
-{"tags":["cwe", "security"],
- "remediation":{"func":"Constant\/Issue", "constantCost":"10min"},
- "type":"VULNERABILITY",
- "scope":"Main",
- "sqKey":"predictable-temp-file",
- "title":"Predictable temporary file",
- "status":"ready",
- "code":{"impacts":{"SECURITY":"MEDIUM"}, "attribute":"TRUSTWORTHY"},
- "securityStandards":{"CWE":[377], "OWASP":["A1"]},
- "defaultSeverity":"Medium"}
+{
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "10min"
+ },
+ "type": "VULNERABILITY",
+ "scope": "Main",
+ "sqKey": "predictable-temp-file",
+ "title": "Predictable temporary file",
+ "status": "ready",
+ "code": {
+  "impacts": {
+   "SECURITY": "MEDIUM"
+  },
+  "attribute": "TRUSTWORTHY"
+ },
+ "securityStandards": {
+  "CWE": [
+   378,
+   379
+  ],
+  "OWASP": [
+   "A1"
+  ]
+ },
+ "defaultSeverity": "Medium"
+}

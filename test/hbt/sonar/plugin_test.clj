@@ -4,7 +4,11 @@
   (:require [clojure.test :refer [deftest is testing]]
             [hbt.sonar.const :as const]
             [hbt.sonar.rules :as rules]
+            [hbt.sonar.access :as access]
             [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.regex :as regex]
+            [hbt.sonar.tests :as tests]
+            [hbt.sonar.web :as web]
             [hbt.sonar.interop :as interop]
             [hbt.sonar.metadata :as metadata]
             [hbt.sonar.security :as security])
@@ -59,8 +63,9 @@
     (is (some? repo) "repository was created")
     (testing "one rule per clj-kondo linter, the catch-all, and the security rules"
       (is (= (+ (count (rules/catalogue)) 1
-                (count (distinct (concat security/rule-keys interop/rule-keys
-                                         concurrency/rule-keys))))
+                (count (distinct (concat security/rule-keys interop/rule-keys concurrency/rule-keys
+                                         regex/rule-keys tests/rule-keys web/rule-keys
+                                         access/rule-keys))))
              (count (.rules repo)))))
     (testing "the catch-all exists, so a newer clj-kondo cannot drop findings"
       (is (contains? keys' const/unknown-rule)))
@@ -86,11 +91,13 @@
         by-key (into {} (map (juxt #(.key %) identity)) (.rules repo))]
     (testing "every rule the detection can raise is registered"
       (is (every? #(contains? by-key %)
-                  (concat security/rule-keys interop/rule-keys concurrency/rule-keys))))
+                  (concat security/rule-keys interop/rule-keys concurrency/rule-keys
+                          regex/rule-keys tests/rule-keys web/rule-keys access/rule-keys))))
     (testing "every one ships a metadata resource pair -- a rule with no
               resource would be an issue Sonar drops on the floor"
       (is (every? #(some? (metadata/load-rule %))
-                  (concat security/rule-keys interop/rule-keys concurrency/rule-keys))))
+                  (concat security/rule-keys interop/rule-keys concurrency/rule-keys
+                          regex/rule-keys tests/rule-keys web/rule-keys access/rule-keys))))
     (testing "and the loader refuses a key that ships none"
       (is (thrown? clojure.lang.ExceptionInfo (metadata/load-rules ["no-such-rule"]))))
     (testing "each carries its CWE, so the finding means something to a reviewer"

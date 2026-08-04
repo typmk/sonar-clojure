@@ -1,0 +1,31 @@
+{
+ "title": "Unescaped value rendered into HTML",
+ "type": "VULNERABILITY",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "30min"
+ },
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "defaultSeverity": "High",
+ "sqKey": "xss-unescaped-output",
+ "scope": "Main",
+ "securityStandards": {
+  "CWE": [
+   79,
+   80
+  ],
+  "OWASP": [
+   "A3"
+  ]
+ },
+ "code": {
+  "impacts": {
+   "SECURITY": "HIGH"
+  },
+  "attribute": "TRUSTWORTHY"
+ }
+}

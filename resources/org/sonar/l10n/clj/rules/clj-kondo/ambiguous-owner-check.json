@@ -1,0 +1,24 @@
+{
+ "title": "Two-valued test on the tenant boundary",
+ "type": "SECURITY_HOTSPOT",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "45min"
+ },
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "defaultSeverity": "High",
+ "sqKey": "ambiguous-owner-check",
+ "scope": "Main",
+ "securityStandards": {
+  "CWE": [
+   639
+  ],
+  "OWASP": [
+   "A1"
+  ]
+ }
+}
