@@ -4,7 +4,8 @@
   Every Sonar ratio -- comment density, duplication density, technical-debt
   ratio -- divides by ncloc. Without these the dashboard reports a project
   with no code and every ratio is undefined."
-  (:require [hbt.sonar.parse :as parse]))
+  (:require [clojure.string :as str]
+            [hbt.sonar.parse :as parse]))
 
 (defn- line-span [{:keys [line end-line]}] (range line (inc end-line)))
 
@@ -37,6 +38,38 @@
      ;; nesting-weighted, as Sonar defines cognitive complexity: a branch
      ;; inside two branches costs three, not one
      :cognitive     (reduce + 0 (map #(inc (:branch-nesting %)) branches))}))
+
+(defn- line-map
+  "Sonar's per-line data format: \"1=1;2=0;3=1\"."
+  [lines all]
+  (->> (sort all)
+       (map #(str % "=" (if (contains? lines %) 1 0)))
+       (str/join ";")))
+
+(defn line-data
+  "The two per-line maps Sonar needs to reason about *which* lines matter.
+
+  `ncloc-data` marks code lines; `executable-lines-data` marks lines that
+  could have been covered. New-code coverage is computed against the
+  executable set, so without it the number the quality gate tests is derived
+  from whatever the coverage report happened to mention."
+  [nodes]
+  (let [leaves (parse/leaves nodes)
+        code   (into #{} (comp (remove :commented?)
+                               (remove #(contains? #{:comment :trivia} (:type %)))
+                               (mapcat line-span))
+                     leaves)
+        ;; A line is executable if a live list form starts on it. A vector of
+        ;; bindings or a bare symbol is code but nothing to execute, and
+        ;; counting it would understate coverage against lines no test could
+        ;; ever hit.
+        exec   (into #{} (comp (remove :commented?)
+                               (filter #(= :list (:tag %)))
+                               (map :line))
+                     nodes)
+        span   (into code exec)]
+    {:ncloc-data      (line-map code span)
+     :executable-data (line-map exec span)}))
 
 (defn measures
   "Measures for a source string, or nil when it does not parse."

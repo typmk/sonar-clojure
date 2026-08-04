@@ -22,6 +22,9 @@
                   :ns-compile '[hbt.sonar.const
                                 hbt.sonar.forms
                                 hbt.sonar.report
+                                hbt.sonar.security
+                                hbt.sonar.junit
+                                hbt.sonar.test-sensor
                                 hbt.sonar.language
                                 hbt.sonar.rules
                                 hbt.sonar.profile

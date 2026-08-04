@@ -8,7 +8,8 @@
             [hbt.sonar.profile]
             [hbt.sonar.rules]
             [hbt.sonar.sensor]
-            [hbt.sonar.source-sensor])
+            [hbt.sonar.source-sensor]
+            [hbt.sonar.test-sensor])
   (:import [org.sonar.api.config PropertyDefinition PropertyDefinition$ConfigScope])
   (:gen-class
    :name hbt.sonar.ClojurePlugin
@@ -37,6 +38,14 @@
                   "'{:output {:format :json :analysis {:locals true}}}' "
                   "> target/clj-kondo-analysis.json")}
 
+   {:key     const/test-report-paths-prop
+    :name    "kaocha JUnit report paths"
+    :default const/default-test-report
+    :doc     (str "Paths to kaocha's JUnit XML. Produce one by adding the "
+                  "kaocha-junit-xml plugin and running: "
+                  "bin/kaocha --plugin kaocha.plugin/junit-xml "
+                  "--junit-xml-file target/junit.xml")}
+
    {:key     const/coverage-paths-prop
     :name    "cloverage lcov paths"
     :default const/default-coverage
@@ -59,7 +68,8 @@
    "hbt.sonar.ClojureQualityProfile"
    "hbt.sonar.KondoSensor"
    "hbt.sonar.ClojureSourceSensor"
-   "hbt.sonar.CloverageSensor"])
+   "hbt.sonar.CloverageSensor"
+   "hbt.sonar.KaochaSensor"])
 
 (defn- load-extension
   "Resolved by name because these are AOT artefacts of sibling namespaces.

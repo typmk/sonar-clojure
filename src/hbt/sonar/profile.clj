@@ -2,7 +2,8 @@
   "The shipped quality profile. Everything clj-kondo does not default to
   :off is active, so the dashboard and a local `clj-kondo --lint` agree."
   (:require [hbt.sonar.const :as const]
-            [hbt.sonar.rules :as rules])
+            [hbt.sonar.rules :as rules]
+            [hbt.sonar.security :as security])
   (:gen-class
    :name hbt.sonar.ClojureQualityProfile
    :implements [org.sonar.api.server.profile.BuiltInQualityProfilesDefinition]))
@@ -14,5 +15,7 @@
             :when (not= :off (:level r))]
       (.activateRule p const/repository-key (:key r)))
     (.activateRule p const/repository-key const/unknown-rule)
+    (doseq [r security/rules]
+      (.activateRule p const/repository-key (:key r)))
     (.done p)
     nil))

@@ -2,9 +2,12 @@
   "The rule catalogue. Generated from clj-kondo's default config at build
   time (see hbt.sonar.gen), so the two cannot drift silently."
   (:require [clojure.edn :as edn]
+            [clojure.string :as string]
             [clojure.java.io :as io]
-            [hbt.sonar.const :as const])
+            [hbt.sonar.const :as const]
+            [hbt.sonar.security :as security])
   (:import [org.sonar.api.rules CleanCodeAttribute RuleType]
+           [org.sonar.api.server.rule RulesDefinition$OwaspTop10 RulesDefinition$OwaspTop10Version]
            [org.sonar.api.issue.impact Severity SoftwareQuality])
   (:gen-class
    :name hbt.sonar.ClojureRulesDefinition
@@ -35,10 +38,46 @@
     ;; profile: what it considers off by default stays off here.
     (.setActivatedByDefault (not= :off (:level r)))))
 
+(defn- security-description [{:keys [doc cwe]}]
+  (str doc "<p>CWE: "
+       (string/join ", "
+         (map #(str "<a href=\"https://cwe.mitre.org/data/definitions/" % ".html\">CWE-" % "</a>") cwe))
+       "</p>"))
+
+(defn- add-security-rule!
+  "Security rules carry their CWE and OWASP category, which is what Sonar's
+  security reports are built from -- so the data is present the day the
+  edition that renders it is licensed, rather than needing a rewrite then.
+
+  A hotspot is a thing to review, not a thing known to be wrong. Sonar
+  reviews the two separately, and mixing them makes both easier to ignore."
+  [repo {:keys [key name hotspot? cwe owasp severity] :as r}]
+  (let [rule (doto (.createRule repo key)
+               (.setName name)
+               (.setHtmlDescription (security-description r))
+               (.setType (if hotspot?
+                           RuleType/SECURITY_HOTSPOT
+                           RuleType/VULNERABILITY))
+               (.setCleanCodeAttribute CleanCodeAttribute/COMPLETE)
+               (.setActivatedByDefault true)
+               (.addTags (into-array String ["security" "cwe"])))]
+    (when (seq cwe)
+      (.addCwe rule (int-array cwe)))
+    (when (seq owasp)
+      (.addOwaspTop10 rule RulesDefinition$OwaspTop10Version/Y2021
+                      (into-array RulesDefinition$OwaspTop10
+                                  (map #(RulesDefinition$OwaspTop10/valueOf %) owasp))))
+    ;; a hotspot has nothing to impact -- it is not yet known to be a defect
+    (when-not hotspot?
+      (.addDefaultImpact rule SoftwareQuality/SECURITY
+                         (Severity/valueOf ^String severity)))
+    rule))
+
 (defn -define [_ ctx]
   (let [repo (-> (.createRepository ctx const/repository-key const/language-key)
                  (.setName "clj-kondo"))]
     (run! #(add-rule! repo %) (catalogue))
+    (run! #(add-security-rule! repo %) security/rules)
     ;; The catch-all. A finding from a clj-kondo newer than this plugin must
     ;; surface as an issue, not vanish between the report and the dashboard.
     (doto (.createRule repo const/unknown-rule)

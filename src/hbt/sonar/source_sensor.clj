@@ -10,9 +10,12 @@
             [hbt.sonar.highlight :as hl]
             [hbt.sonar.metrics :as metrics]
             [hbt.sonar.parse :as parse]
-            [hbt.sonar.report :as report])
+            [hbt.sonar.report :as report]
+            [hbt.sonar.security :as security])
   (:import [java.io File]
            [org.sonar.api.batch.fs InputFile]
+           [org.sonar.api.batch.sensor.issue NewIssue$FlowType]
+           [org.sonar.api.rule RuleKey]
            [org.sonar.api.batch.sensor.highlighting TypeOfText]
            [org.sonar.api.measures CoreMetrics])
   (:gen-class
@@ -20,7 +23,7 @@
    :implements [org.sonar.api.batch.sensor.Sensor]))
 
 (defn -describe [_ d]
-  (.name d "Clojure source measures")
+  (.name d "Clojure source measures and security")
   (.onlyOnLanguage d const/language-key)
   nil)
 
@@ -38,6 +41,42 @@
           :let [v (get ms k)]
           :when v]
     (-> (.newMeasure ctx) (.on f) (.forMetric m) (.withValue (int v)) (.save))))
+
+(defn- save-line-data!
+  "Which lines are code, and which could have been covered. New-code
+  coverage is computed against the executable set, so without this the
+  number the quality gate tests is inferred from whatever the coverage
+  report happened to mention."
+  [ctx ^InputFile f {:keys [ncloc-data executable-data]}]
+  (-> (.newMeasure ctx) (.on f) (.forMetric CoreMetrics/NCLOC_DATA)
+      (.withValue ncloc-data) (.save))
+  (-> (.newMeasure ctx) (.on f) (.forMetric CoreMetrics/EXECUTABLE_LINES_DATA)
+      (.withValue executable-data) (.save)))
+
+(defn- location [issue ^InputFile f {:keys [line col end-line end-col message]}]
+  (-> (.newLocation issue)
+      (.on f)
+      (.at (.newRange f (int line) (int (dec col)) (int end-line) (int (dec end-col))))
+      (.message message)))
+
+(defn- save-security! [ctx ^InputFile f findings]
+  (doseq [{:keys [rule flow] :as finding} findings]
+    (try
+      (let [issue (.newIssue ctx)]
+        (.forRule issue (RuleKey/of const/repository-key rule))
+        (.at issue (location issue f finding))
+        ;; The flow is what makes a taint finding reviewable: it shows where
+        ;; the value came from, not just where it landed.
+        (when (seq flow)
+          (.addFlow issue
+                    (mapv #(location issue f %) flow)
+                    NewIssue$FlowType/DATA
+                    "tainted value"))
+        (.save issue))
+      (catch Exception e
+        ;; A range Sonar rejects must cost one finding, not the file's rest.
+        (println "Clojure: could not save security finding" rule "in"
+                 (str (.filename f)) "--" (.getMessage e))))))
 
 (defn- save-cpd! [ctx ^InputFile f tokens]
   (let [cpd (.onFile (.newCpdTokens ctx) f)]
@@ -98,6 +137,8 @@
       (let [leaves (parse/leaves nodes)
             ms     (metrics/from-nodes nodes)]
         (save-measures! ctx f ms)
+        (save-line-data! ctx f (metrics/line-data nodes))
+        (save-security! ctx f (security/findings nodes))
         (save-cpd! ctx f leaves)
         (save-highlighting! ctx f leaves)
         (save-symbols! ctx f (or (get by-file (str (.path f)))

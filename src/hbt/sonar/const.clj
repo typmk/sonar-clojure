@@ -9,11 +9,13 @@
 (def report-paths-prop "sonar.clojure.kondo.reportPaths")
 (def analysis-paths-prop "sonar.clojure.kondo.analysisPaths")
 (def coverage-paths-prop "sonar.clojure.cloverage.reportPaths")
+(def test-report-paths-prop "sonar.clojure.kaocha.reportPaths")
 
 (def default-suffixes [".clj" ".cljs" ".cljc" ".edn" ".bb"])
 (def default-report "target/clj-kondo.json")
 (def default-analysis "target/clj-kondo-analysis.json")
 (def default-coverage "target/coverage/lcov.info")
+(def default-test-report "target/junit.xml")
 
 ;; A finding whose linter is absent from the generated catalogue lands here
 ;; rather than being dropped. A newer clj-kondo than the plugin was built
