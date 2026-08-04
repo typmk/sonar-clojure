@@ -91,6 +91,34 @@ Without this the plugin still works; `weak-hash-algorithm`, `cipher-ecb-mode`,
 `eval-of-dynamic-value`, `read-string-untrusted`, `shell-command-injection`,
 `sql-string-built` and `reflective-call` simply never fire.
 
+**Taint analysis** — optional, and the only way to get real dataflow.
+
+This plugin follows a value from a known source to a known sink within one
+form, and across clj-kondo's call graph without argument positions. It is not
+a dataflow engine. [opengrep](https://github.com/opengrep/opengrep) is, for
+Clojure, within one file — so its findings import as external issues.
+
+```bash
+opengrep scan --taint-intrafile -f opengrep/clojure-taint.yml \
+  --sarif-output=target/opengrep.sarif src
+```
+```properties
+sonar.clojure.opengrep.reportPaths=target/opengrep.sarif
+```
+
+Two things are not optional. **`--taint-intrafile`**: without it opengrep
+propagates taint through return values only, and a handler passing user input
+into a database helper — the commonest real shape — produces nothing
+(measured). And **a relative `-f` path**: opengrep derives the SARIF rule id
+from where its config was loaded, so an absolute path puts your home directory
+in the rule key. The importer takes the last segment regardless, but the report
+is cleaner if the invocation is.
+
+`opengrep/clojure-taint.yml` ships six rules — SQL, command and code
+injection, XSS, path traversal and SSRF — each carrying its CWE. Its taint is
+**intra-file only**: the same flow split across two namespaces is not found.
+Cross-file analysis is Semgrep's commercial engine, not this one.
+
 **Other analyzers** — optional; unset means not run.
 
 ```properties
@@ -145,8 +173,10 @@ make an unmeasured analysis fail rather than merely inform.
 - **Also** — duplication (literals collapsed, so blocks differing only in
   constants still match), highlighting, and a symbol table from clj-kondo's
   analysis.
-- **External** — splint, clj-holmes, eastwood and nvd-clojure import as
-  external issues; splint's 121 rules are browsable before it has ever run.
+- **External** — splint, clj-holmes, eastwood, nvd-clojure and opengrep import
+  as external issues, from clj-kondo-shaped JSON or SARIF (read by shape, so
+  any SARIF-emitting tool works); splint's 121 rules are browsable before it
+  has ever run.
 - **Its own inputs** — `clj_analysis_completeness` and `incomplete-analysis`,
   above.
 
@@ -160,7 +190,8 @@ switching them on for everyone.
 
 - **Taint tracking is not a taint engine.** It follows a value from a known
   source to a known sink within one form, and across clj-kondo's call graph. It
-  does not track argument positions.
+  does not track argument positions. For real dataflow, import opengrep — and
+  note that it is intra-file only.
 - **No semantic model** in the plugin itself. Hook-detected rules get
   clj-kondo's resolution; plugin-side rules get a concrete syntax tree plus
   the analysis report, with no type inference.

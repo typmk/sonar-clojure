@@ -42,15 +42,28 @@
                            org.sonar.api.issue.impact.Severity/MEDIUM)
         (.save))))
 
-(defn- save-issue! [ctx ^InputFile f {:keys [engine rule message line col end-line end-col severity]}]
-  (let [issue (.newExternalIssue ctx)]
+(defn- save-issue!
+  "The issue's type and software quality come from the ENGINE, not a constant.
+
+  Both were hardcoded to CODE_SMELL and MAINTAINABILITY, so every finding from
+  clj-holmes, nvd-clojure and opengrep -- all three declared SECURITY /
+  VULNERABILITY -- was filed as a maintainability code smell. Worse, the ad-hoc
+  rule's default impact said SECURITY while the issue's impact said
+  MAINTAINABILITY, so the severity a reviewer saw came from whichever of the
+  two Sonar chose to show: measured, an opengrep finding derived as HIGH
+  appeared on the dashboard as MEDIUM."
+  [ctx ^InputFile f {:keys [engine rule message line col end-line end-col severity]}]
+  (let [issue (.newExternalIssue ctx)
+        {:keys [quality type]} (get external/engines engine
+                                    {:quality "MAINTAINABILITY" :type "CODE_SMELL"})]
     (-> issue
         (.engineId engine)
         (.ruleId rule)
-        (.type RuleType/CODE_SMELL)
+        (.type (RuleType/valueOf ^String type))
         (.severity Severity/MAJOR)
-        (.addImpact SoftwareQuality/MAINTAINABILITY (get impact-severity severity
-                                                        org.sonar.api.issue.impact.Severity/MEDIUM))
+        (.addImpact (SoftwareQuality/valueOf ^String quality)
+                    (get impact-severity severity
+                         org.sonar.api.issue.impact.Severity/MEDIUM))
         (.at (-> (.newLocation issue)
                  (.on f)
                  (.at (try (.newRange f (int line) (int (dec col)) (int end-line) (int (dec end-col)))

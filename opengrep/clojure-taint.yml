@@ -1,0 +1,154 @@
+# Taint rules for Clojure, for opengrep.
+#
+# This plugin follows a value from a known source to a known sink within one
+# form, and across clj-kondo's call graph without argument positions. It is not
+# a dataflow engine and will not become one. opengrep is, for Clojure, within
+# one file -- measured: source into a callee's parameter reaching a sink inside
+# that callee is found with --taint-intrafile and missed without it.
+#
+# Run:
+#   opengrep scan --taint-intrafile -f opengrep/clojure-taint.yml \
+#     --sarif-output=target/opengrep.sarif src
+#
+# --taint-intrafile is NOT optional. Without it opengrep propagates taint
+# through return values only, and a handler passing user input into a database
+# helper -- the commonest real shape there is -- produces nothing.
+#
+# Findings import through sonar.clojure.opengrep.reportPaths.
+
+rules:
+  - id: clj-sql-injection
+    languages: [clojure]
+    severity: ERROR
+    mode: taint
+    message: >-
+      Attacker-controlled input reaches a SQL statement. Only the first element
+      of the vector is the statement; pass values as parameters instead.
+    metadata:
+      cwe: ["CWE-89: Improper Neutralization of Special Elements used in an SQL Command"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: HIGH
+    pattern-sources:
+      - pattern: (get-in $REQ [:params ...])
+      - pattern: (get-in $REQ [:body-params ...])
+      - pattern: (get-in $REQ [:query-params ...])
+      - pattern: (:params $REQ)
+      - pattern: (:body $REQ)
+    pattern-sinks:
+      # focus-metavariable narrows the sink to the FIRST vector element. Without
+      # it the whole call is the sink, and a correctly parameterised query --
+      # ["... = ?" term] with the tainted value bound as a parameter -- is
+      # flagged, which is the opposite of the advice. Measured: one false
+      # positive on a two-line safe sample.
+      - patterns:
+          - pattern: ($F $DB [$SQL ...])
+          - metavariable-regex:
+              metavariable: $F
+              regex: ^(jdbc/execute!|jdbc/execute-one!|jdbc/plan|sql/query)$
+          - focus-metavariable: $SQL
+    pattern-sanitizers:
+      - pattern: (jdbc/quoted ...)
+
+  - id: clj-command-injection
+    languages: [clojure]
+    severity: ERROR
+    mode: taint
+    message: Attacker-controlled input reaches a shell invocation.
+    metadata:
+      cwe: ["CWE-78: Improper Neutralization of Special Elements used in an OS Command"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: HIGH
+    pattern-sources:
+      - pattern: (get-in $REQ [:params ...])
+      - pattern: (:params $REQ)
+      - pattern: (System/getenv $X)
+    pattern-sinks:
+      - pattern: (sh ...)
+      - pattern: (shell/sh ...)
+      - pattern: (clojure.java.shell/sh ...)
+      - pattern: (babashka.process/shell ...)
+      - pattern: (process/shell ...)
+
+  - id: clj-code-injection
+    languages: [clojure]
+    severity: ERROR
+    mode: taint
+    message: >-
+      Attacker-controlled input reaches eval or read-string. read-string
+      without EDN semantics evaluates reader tags and is remote code execution.
+    metadata:
+      cwe: ["CWE-94: Improper Control of Generation of Code"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: HIGH
+    pattern-sources:
+      - pattern: (get-in $REQ [:params ...])
+      - pattern: (:params $REQ)
+      - pattern: (:body $REQ)
+      - pattern: (slurp $X)
+    pattern-sinks:
+      - pattern: (eval ...)
+      - pattern: (load-string ...)
+      - pattern: (read-string ...)
+      - pattern: (clojure.core/read-string ...)
+    pattern-sanitizers:
+      # clojure.edn/read-string does not evaluate; it is the fix, not the bug.
+      - pattern: (edn/read-string ...)
+      - pattern: (clojure.edn/read-string ...)
+
+  - id: clj-xss-unescaped
+    languages: [clojure]
+    severity: ERROR
+    mode: taint
+    message: Attacker-controlled input reaches unescaped HTML output.
+    metadata:
+      cwe: ["CWE-79: Improper Neutralization of Input During Web Page Generation"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: MEDIUM
+    pattern-sources:
+      - pattern: (get-in $REQ [:params ...])
+      - pattern: (:params $REQ)
+    pattern-sinks:
+      - pattern: (h/raw ...)
+      - pattern: (hiccup.core/raw ...)
+      - pattern: (hiccup2.core/raw ...)
+      - pattern: (raw-string ...)
+    pattern-sanitizers:
+      - pattern: (hiccup.util/escape-html ...)
+      - pattern: (escape-html ...)
+
+  - id: clj-path-traversal
+    languages: [clojure]
+    severity: ERROR
+    mode: taint
+    message: Attacker-controlled input reaches a filesystem path.
+    metadata:
+      cwe: ["CWE-22: Improper Limitation of a Pathname to a Restricted Directory"]
+      owasp: ["A01:2021 - Broken Access Control"]
+      confidence: MEDIUM
+    pattern-sources:
+      - pattern: (get-in $REQ [:params ...])
+      - pattern: (:params $REQ)
+    pattern-sinks:
+      - pattern: (io/file ...)
+      - pattern: (clojure.java.io/file ...)
+      - pattern: (slurp ...)
+      - pattern: (spit ...)
+
+  - id: clj-ssrf
+    languages: [clojure]
+    severity: ERROR
+    mode: taint
+    message: Attacker-controlled input reaches an outbound HTTP request.
+    metadata:
+      cwe: ["CWE-918: Server-Side Request Forgery (SSRF)"]
+      owasp: ["A10:2021 - Server-Side Request Forgery"]
+      confidence: MEDIUM
+    pattern-sources:
+      - pattern: (get-in $REQ [:params ...])
+      - pattern: (:params $REQ)
+    pattern-sinks:
+      - pattern: (http/get ...)
+      - pattern: (http/post ...)
+      - pattern: (client/get ...)
+      - pattern: (client/post ...)
+      - pattern: (hato.client/get ...)

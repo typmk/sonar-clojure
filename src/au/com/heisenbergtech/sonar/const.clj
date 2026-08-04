@@ -14,6 +14,7 @@
   {"splint"     "sonar.clojure.splint.reportPaths"
    "clj-holmes" "sonar.clojure.cljholmes.reportPaths"
    "eastwood"   "sonar.clojure.eastwood.reportPaths"
-   "nvd"        "sonar.clojure.nvd.reportPaths"})
+   "nvd"        "sonar.clojure.nvd.reportPaths"
+   "opengrep"   "sonar.clojure.opengrep.reportPaths"})
 
 (def unknown-rule "unknown-linter")
