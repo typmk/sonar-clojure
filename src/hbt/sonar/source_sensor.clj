@@ -140,7 +140,7 @@
                    n'))
                n (dictionary/findings (slurp f)))))
    0
-   (report/paths ctx const/analysis-paths-prop const/default-analysis)))
+   (report/for-input ctx :analysis)))
 
 (defn- analysis-symbols
   "The symbol table needs clj-kondo's analysis output. Absent, everything else
@@ -153,7 +153,7 @@
                            "-- symbol navigation disabled for this run")
                   acc)))
           {}
-          (report/paths ctx const/analysis-paths-prop const/default-analysis)))
+          (report/for-input ctx :analysis)))
 
 (defn- cache-key [^InputFile f]
   (str "hbt.sonar.parse:" (.key f) ":" (.md5Hash f)))
@@ -188,7 +188,7 @@
                                     [file (set (keys lines))])))
               acc))
           {}
-          (report/paths ctx const/coverage-paths-prop const/default-coverage)))
+          (report/for-input ctx :coverage)))
 
 (defn- truth-for
   "Match a file against the coverage report's key, which may or may not carry
@@ -240,7 +240,7 @@
     0
     (reduce
      + 0
-     (for [^File f (report/paths ctx const/analysis-paths-prop const/default-analysis)
+     (for [^File f (report/for-input ctx :analysis)
            :when (report/exists? f)]
        (let [fs (callgraph/findings (slurp f) seeds)]
          (doseq [finding fs]

@@ -6,8 +6,7 @@
   keywords, which `hbt.sonar.rules` then translated back through four
   parallel maps -- so adding a quality meant editing two files and nothing
   connected them. Naming the enums here removes the translation."
-  (:require [clojure.data.json :as json]
-            [clojure.edn :as edn]
+  (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.pprint :as pp]))
@@ -81,22 +80,11 @@
           idx (io/file dir "index.edn")]
       (spit idx (pr-str keys))
       (println "wrote" (count keys) "rule keys ->" (str idx)))
-    ;; Provenance. Which clj-kondo produced this catalogue is a fact about the
-    ;; artifact, and until it was written down it lived in a commit message --
-    ;; rank 4, and unable to fail a build. Recorded here, a test can assert it
-    ;; against the declared dependency, so upgrading clj-kondo without
-    ;; regenerating stops being a silent divergence.
-    (let [out (io/file "resources" "hbt" "sonar" "provenance.edn")
-          cwe (json/read-str (slurp (io/file "resources" "hbt" "sonar" "cwe.json")))]
-      (spit out (pr-str {:rule-catalogue
-                         {:source "clj-kondo default config"
-                          :generated-by 'hbt.sonar.gen/generate
-                          :clj-kondo-version (clj-kondo-version)
-                          :rules (count rules)}
-                         :cwe-catalogue
-                         {:source (get cwe "source")
-                          :catalogue (get cwe "catalogue")
-                          :version (get cwe "version")
-                          :date (get cwe "date")
-                          :weaknesses (count (get cwe "weaknesses"))}}))
+    ;; Provenance. The clj-kondo version is the ONE fact that exists only at
+    ;; generation time -- at runtime neither the library nor deps.edn is on
+    ;; the classpath. Everything else about the catalogues is readable from
+    ;; the catalogues, so recording it here would be storing a derivation and
+    ;; inviting the copy to drift from the original.
+    (let [out (io/file "resources" "hbt" "sonar" "provenance.edn")]
+      (spit out (pr-str {:clj-kondo-version (clj-kondo-version)}))
       (println "wrote provenance ->" (str out)))))

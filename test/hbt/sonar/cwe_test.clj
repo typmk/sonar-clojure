@@ -1,6 +1,7 @@
 (ns hbt.sonar.cwe-test
   "The CWE claims are checked against MITRE, not against a reviewer's memory."
   (:require [clojure.edn :as edn]
+            [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
             [hbt.sonar.cwe :as cwe]
             [hbt.sonar.metadata :as metadata]
@@ -47,14 +48,18 @@
       (is (seq (:cwe r))
           (str (:key r) " is a " (:type r) " with no CWE; the claim is unroutable")))))
 
-(deftest the-recorded-provenance-matches-what-is-declared
+(deftest the-recorded-clj-kondo-version-matches-what-is-declared
   (testing "clj-kondo can be upgraded in deps.edn without regenerating the
             catalogue; the two then disagree and nothing says so"
     (let [declared (get-in (edn/read-string (slurp "deps.edn"))
                            [:aliases :gen-rules :extra-deps 'clj-kondo/clj-kondo :mvn/version])]
-      (is (= declared (get-in @provenance/record [:rule-catalogue :clj-kondo-version]))
-          "run `clojure -X:gen-rules` after changing the clj-kondo dependency")))
-  (testing "and the recorded CWE revision is the catalogue actually shipped"
-    (is (= (cwe/version) (get-in @provenance/record [:cwe-catalogue :version])))
-    (is (= (count (get @cwe/catalogue "weaknesses"))
-           (get-in @provenance/record [:cwe-catalogue :weaknesses])))))
+      (is (= declared @provenance/clj-kondo-version)
+          "run `clojure -X:gen-rules` after changing the clj-kondo dependency"))))
+
+(deftest the-summary-reads-its-facts-from-the-artifacts-it-describes
+  (testing "nothing is a stored copy, so nothing can disagree with the original"
+    (let [s (provenance/summary)]
+      (is (str/includes? s (str @provenance/rule-count " rules")))
+      (is (str/includes? s (cwe/version)))
+      (is (= @provenance/rule-count
+             (count (edn/read-string (slurp "resources/hbt/sonar/linters.edn"))))))))

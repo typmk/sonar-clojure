@@ -177,10 +177,17 @@ switching them on for everyone.
 
 Two of this artifact's claims are about the outside world: that its generated
 rules match a particular clj-kondo, and that its CWE mappings were validated
-against a particular MITRE revision. Both are stamped into the jar at
-generation time, asserted by the test suite against `deps.edn` and the shipped
-catalogue, printed to `sonar.log` at plugin load, and shown in SonarQube's
-Marketplace page as the plugin description:
+against a particular MITRE revision.
+
+Only the clj-kondo version is *stored* — it exists solely at generation time,
+when neither the library nor `deps.edn` is reachable from the plugin. The rule
+count is a count of the shipped rules and the CWE revision is a field of the
+shipped catalogue, so both are read from the artifacts they describe rather
+than copied. A stored copy is a thing that can drift; a derived one is not.
+
+The result is asserted by the test suite against `deps.edn`, printed to
+`sonar.log` at plugin load, and shown in SonarQube's Marketplace page as the
+plugin description:
 
 ```
 136 rules generated from clj-kondo 2026.07.24; CWE mappings checked against
@@ -197,7 +204,7 @@ rather than diverging quietly.
 ```bash
 clojure -X:gen-rules     # regenerate the rule catalogue from clj-kondo
 clojure -T:build uber    # -> target/sonar-clojure-plugin-0.1.0.jar
-clojure -M:test          # 99 tests, 361 assertions
+clojure -M:test          # 100 tests, 369 assertions
 ```
 
 The entry point is Java and must stay so; `hbt.sonar.ClojurePluginBootstrap`

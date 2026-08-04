@@ -1,18 +1,13 @@
 (ns build
-  (:require [clojure.edn :as edn]
-            [clojure.tools.build.api :as b]))
+  (:require [clojure.tools.build.api :as b]))
 
-(defn- provenance
-  "The generation record, folded into the plugin description so the catalogue
-  versions are visible in SonarQube's Marketplace page rather than only in a
-  commit message."
+(defn- description
+  "Folded into the plugin description so the catalogue versions show on
+  SonarQube's Marketplace page. Built by the plugin's own provenance code, so
+  the jar cannot describe itself differently from how it reports itself."
   []
-  (let [{:keys [rule-catalogue cwe-catalogue]}
-        (edn/read-string (slurp "resources/hbt/sonar/provenance.edn"))]
-    (str "Indexes Clojure sources and imports clj-kondo findings. "
-         (:rules rule-catalogue) " rules generated from clj-kondo "
-         (:clj-kondo-version rule-catalogue) "; CWE mappings validated against "
-         (:catalogue cwe-catalogue) " v" (:version cwe-catalogue) ".")))
+  (str "Indexes Clojure sources and imports clj-kondo findings. "
+       ((requiring-resolve (quote hbt.sonar.provenance/summary))) "."))
 
 (def plugin-key "clojure")
 (def version "0.1.0")
@@ -104,7 +99,7 @@
                        "Plugin-Name"             "Clojure (clj-kondo)"
                        "Plugin-Version"          version
                        "Plugin-Class"            "hbt.sonar.ClojurePluginBootstrap"
-                       "Plugin-Description"      (provenance)
+                       "Plugin-Description"      (description)
                        "Plugin-License"          "EPL-2.0"
                        "Plugin-OrganizationName" "Heisenberg Technologies"
                        "Plugin-Homepage"         "https://hbtcomputers.com.au"

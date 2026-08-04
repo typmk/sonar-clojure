@@ -7,16 +7,8 @@
 
 (def suffixes-prop "sonar.clj.file.suffixes")
 (def patterns-prop "sonar.clj.file.patterns")
-(def report-paths-prop "sonar.clojure.kondo.reportPaths")
-(def analysis-paths-prop "sonar.clojure.kondo.analysisPaths")
-(def coverage-paths-prop "sonar.clojure.cloverage.reportPaths")
-(def test-report-paths-prop "sonar.clojure.kaocha.reportPaths")
 
 (def default-suffixes [".clj" ".cljs" ".cljc" ".edn" ".bb"])
-(def default-report "target/clj-kondo.json")
-(def default-analysis "target/clj-kondo-analysis.json")
-(def default-coverage "target/coverage/codecov.json")
-(def default-test-report "target/junit.xml")
 
 (def external-report-props
   {"splint"     "sonar.clojure.splint.reportPaths"

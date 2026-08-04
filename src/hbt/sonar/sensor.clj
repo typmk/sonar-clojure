@@ -66,7 +66,7 @@
 
 (defn -execute [_ ctx]
   (let [known (known-rules)]
-    (doseq [^File f (report/paths ctx const/report-paths-prop const/default-report)]
+    (doseq [^File f (report/for-input ctx :kondo)]
       (if (report/exists? f)
         (import-report! ctx known f)
         (println "clj-kondo report not found:" (.getPath f)))))

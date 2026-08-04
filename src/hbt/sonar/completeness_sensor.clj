@@ -20,13 +20,8 @@
   (.onlyOnLanguage d const/language-key)
   nil)
 
-(defn present?
-  "An input counts as present when a configured or default path is on disk."
-  [ctx {:keys [prop default]}]
-  (boolean (some report/exists? (report/paths ctx prop default))))
-
 (defn -execute [_ ctx]
-  (let [{:keys [percent missing] :as report} (completeness/assess (partial present? ctx))]
+  (let [{:keys [percent missing] :as report} (completeness/assess #(report/present? ctx (:id %)))]
     (-> (.newMeasure ctx)
         (.on (.project ctx))
         (.forMetric metrics-def/completeness)

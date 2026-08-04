@@ -3,7 +3,8 @@
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
             [hbt.sonar.completeness :as completeness]
-            [hbt.sonar.metadata :as metadata]))
+            [hbt.sonar.metadata :as metadata]
+            [hbt.sonar.report :as report]))
 
 (deftest a-full-run-is-a-hundred-percent
   (let [r (completeness/assess (constantly true))]
@@ -14,30 +15,32 @@
   (testing "the whole point: no inputs must not read as a clean project"
     (let [r (completeness/assess (constantly false))]
       (is (= 0.0 (:percent r)))
-      (is (= (count completeness/expected) (count (:missing r)))))))
+      (is (= (count report/inputs) (count (:missing r)))))))
 
 (deftest the-percentage-tracks-what-is-present
-  (let [r (completeness/assess #(= :kondo (:key %)))]
+  (let [r (completeness/assess #(= :kondo (:id %)))]
     (is (= 1 (:present r)))
     (is (= 25.0 (:percent r)))))
 
 (deftest the-message-names-the-cost-not-only-the-file
-  (let [m (completeness/message (completeness/assess #(not= :coverage (:key %))))]
+  (let [m (completeness/message (completeness/assess #(not= :coverage (:id %))))]
     (is (str/includes? m "cloverage coverage"))
     (is (str/includes? m "quality gate")
         "a reviewer needs to know what the absence does, not just that it happened")
     (is (not (str/includes? m "clj-kondo findings"))
         "only the missing ones are named")))
 
-(deftest every-input-the-sensors-read-is-listed
-  (testing "an input a sensor reads but completeness does not know about is a
-            silent gap -- exactly the failure this namespace exists to prevent"
-    (let [props (set (map :prop completeness/expected))]
-      (doseq [p ["sonar.clojure.kondo.reportPaths"
-                 "sonar.clojure.kondo.analysisPaths"
-                 "sonar.clojure.cloverage.reportPaths"
-                 "sonar.clojure.kaocha.reportPaths"]]
-        (is (contains? props p))))))
+(deftest the-registry-is-usable-by-everything-that-reads-it
+  (testing "one table serves the property definitions, the sensors and this
+            check; a missing field silently breaks whichever consumer needs it"
+    (is (seq report/inputs))
+    (doseq [{:keys [id prop default name doc label costs]} report/inputs]
+      (is (keyword? id))
+      (is (every? (comp seq str) [prop default name doc label costs])
+          (str id " is missing a field some consumer of the registry needs")))
+    (is (= (count report/inputs) (count (distinct (map :id report/inputs))))))
+  (testing "an unknown id throws rather than resolving to no paths at all"
+    (is (thrown? clojure.lang.ExceptionInfo (report/input :nope)))))
 
 (deftest the-rule-it-raises-is-registered
   (is (contains? (set (metadata/all-keys)) "incomplete-analysis")

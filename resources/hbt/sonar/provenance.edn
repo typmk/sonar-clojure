@@ -1,1 +1,1 @@
-{:rule-catalogue {:source "clj-kondo default config", :generated-by hbt.sonar.gen/generate, :clj-kondo-version "2026.07.24", :rules 136}, :cwe-catalogue {:source "https://cwe.mitre.org/data/xml/cwec_latest.xml.zip", :catalogue "MITRE CWE", :version "4.20", :date "2026-04-30", :weaknesses 969}}
+{:clj-kondo-version "2026.07.24"}

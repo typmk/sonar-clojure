@@ -65,7 +65,7 @@
                          (.getName f) unmatched))))))
 
 (defn -execute [_ ctx]
-  (doseq [^File f (report/paths ctx const/coverage-paths-prop const/default-coverage)]
+  (doseq [^File f (report/for-input ctx :coverage)]
     (if (report/exists? f)
       (import-report! ctx f)
       (println "cloverage report not found:" (.getPath f)

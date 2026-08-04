@@ -5,6 +5,7 @@
             [hbt.sonar.coverage-sensor]
             [hbt.sonar.language]
             [hbt.sonar.profile]
+            [hbt.sonar.report :as report]
             [hbt.sonar.provenance :as provenance]
             [hbt.sonar.rules]
             [hbt.sonar.sensor]
@@ -18,46 +19,20 @@
    :implements [org.sonar.api.Plugin]))
 
 (def ^:private property-specs
-  "Four properties differing only in key, name, default and prose -- so they
-  are a table, not four builder blocks."
-  [{:key     const/suffixes-prop
-    :name    "File suffixes"
-    :default (str/join "," const/default-suffixes)
-    :doc     "Comma-separated file suffixes analysed as Clojure."}
+  "The two file-selection properties, plus one per report in the registry --
+  which is where each report's key, default and prose already live."
+  (concat
+   [{:key     const/suffixes-prop
+     :name    "File suffixes"
+     :default (str/join "," const/default-suffixes)
+     :doc     "Comma-separated file suffixes analysed as Clojure."}
 
-   {:key     const/patterns-prop
-    :name    "File patterns"
-    :default (str/join "," (map #(str "**/*" %) const/default-suffixes))
-    :doc     "Glob patterns analysed as Clojure. Read by the scanner's language detection."}
-
-   {:key     const/report-paths-prop
-    :name    "clj-kondo report paths"
-    :default const/default-report
-    :doc     (str "Paths to clj-kondo JSON reports, relative to the module base. "
-                  "Produce one with: clj-kondo --lint src test "
-                  "--config '{:output {:format :json}}' > target/clj-kondo.json")}
-
-   {:key     const/analysis-paths-prop
-    :name    "clj-kondo analysis paths"
-    :default const/default-analysis
-    :doc     (str "Paths to clj-kondo analysis JSON, which drives symbol navigation. "
-                  "Produce one with: clj-kondo --lint src test --config "
-                  "'{:output {:format :json :analysis {:locals true :keywords true}}}' "
-                  "> target/clj-kondo-analysis.json")}
-
-   {:key     const/test-report-paths-prop
-    :name    "kaocha JUnit report paths"
-    :default const/default-test-report
-    :doc     (str "Paths to kaocha's JUnit XML. Produce one by adding the "
-                  "kaocha-junit-xml plugin and running: "
-                  "bin/kaocha --plugin kaocha.plugin/junit-xml "
-                  "--junit-xml-file target/junit.xml")}
-
-   {:key     const/coverage-paths-prop
-    :name    "cloverage lcov paths"
-    :default const/default-coverage
-    :doc     (str "Paths to cloverage lcov reports. Produce one with: "
-                  "clojure -M:test -m cloverage.coverage --lcov -p src -s test")}])
+    {:key     const/patterns-prop
+     :name    "File patterns"
+     :default (str/join "," (map #(str "**/*" %) const/default-suffixes))
+     :doc     "Glob patterns analysed as Clojure. Read by the scanner's language detection."}]
+   (for [{:keys [prop name default doc]} report/inputs]
+     {:key prop :name name :default default :doc doc})))
 
 (def ^:private external-property-specs
   (for [[engine prop] const/external-report-props]

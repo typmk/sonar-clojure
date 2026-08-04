@@ -9,7 +9,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
-            [hbt.sonar.const :as const]
+            [hbt.sonar.report :as report]
             [hbt.sonar.metrics-def :as metrics-def])
   (:import [java.nio.file Files]
            [java.nio.file.attribute FileAttribute]
@@ -51,7 +51,7 @@
       (is (= 0.0 measure))
       (is (= 1 (count issues)))
       (let [i (first issues)]
-        (is (= const/repository-key (.repository (.ruleKey i))))
+        (is (= "clj-kondo" (.repository (.ruleKey i))))
         (is (= "incomplete-analysis" (.rule (.ruleKey i))))
         (is (instance? org.sonar.api.scanner.fs.InputProject
                        (.inputComponent (.primaryLocation i)))
@@ -70,13 +70,13 @@
   (testing "a project that writes elsewhere is complete, not incomplete"
     (let [{:keys [measure]} (run ["build/kondo.json" "target/clj-kondo-analysis.json"
                                   "target/coverage/codecov.json" "target/junit.xml"]
-                                 {const/report-paths-prop "build/kondo.json"})]
+                                 {(:prop (report/input :kondo)) "build/kondo.json"})]
       (is (= 100.0 measure)))))
 
 (deftest a-configured-path-that-does-not-exist-is-missing
   (testing "pointing at a file that was never written is exactly the case the
             metric must catch -- the property being set proves nothing"
-    (let [{:keys [measure issues]} (run all-four {const/report-paths-prop "build/kondo.json"})]
+    (let [{:keys [measure issues]} (run all-four {(:prop (report/input :kondo)) "build/kondo.json"})]
       (is (= 75.0 measure)
           "the configured path overrides the default; the default file is irrelevant")
       (is (= 1 (count issues))))))
