@@ -1,0 +1,5 @@
+;; clj-kondo does not know that test.check's `defspec` defines a var, so every
+;; property test read as an unresolved symbol -- 8 of this project's 9 findings
+;; were that one gap. Teaching the linter is the fix; suppressing the rule
+;; would have hidden real unresolved symbols too.
+{:lint-as {clojure.test.check.clojure-test/defspec clojure.core/def}}

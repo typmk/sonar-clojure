@@ -1,0 +1,1224 @@
+[{:key "alias-same-as-ns",
+  :name "alias same as ns",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#alias-same-as-ns"}
+ {:key "aliased-namespace-symbol",
+  :name "aliased namespace symbol",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#aliased-namespace-symbol"}
+ {:key "aliased-namespace-var-usage",
+  :name "aliased namespace var usage",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#aliased-namespace-var-usage"}
+ {:key "aliased-referred-var",
+  :name "aliased referred var",
+  :level :info,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "LOW",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#aliased-referred-var"}
+ {:key "await-without-async-fn",
+  :name "await without async fn",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#await-without-async-fn"}
+ {:key "bb.edn-cyclic-task-dependency",
+  :name "bb.edn cyclic task dependency",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#bb.edn-cyclic-task-dependency"}
+ {:key "bb.edn-task-missing-docstring",
+  :name "bb.edn task missing docstring",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#bb.edn-task-missing-docstring"}
+ {:key "bb.edn-undefined-task",
+  :name "bb.edn undefined task",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#bb.edn-undefined-task"}
+ {:key "bb.edn-unexpected-key",
+  :name "bb.edn unexpected key",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#bb.edn-unexpected-key"}
+ {:key "case-duplicate-test",
+  :name "case duplicate test",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#case-duplicate-test"}
+ {:key "case-quoted-test",
+  :name "case quoted test",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#case-quoted-test"}
+ {:key "case-symbol-test",
+  :name "case symbol test",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#case-symbol-test"}
+ {:key "clj-kondo-config",
+  :name "clj kondo config",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#clj-kondo-config"}
+ {:key "cond-else",
+  :name "cond else",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#cond-else"}
+ {:key "conditional-build-up",
+  :name "conditional build up",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#conditional-build-up"}
+ {:key "conflicting-alias",
+  :name "conflicting alias",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#conflicting-alias"}
+ {:key "conflicting-fn-arity",
+  :name "conflicting fn arity",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#conflicting-fn-arity"}
+ {:key "consistent-alias",
+  :name "consistent alias",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#consistent-alias"}
+ {:key "constant-condition",
+  :name "constant condition",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition"}
+ {:key "datalog-syntax",
+  :name "datalog syntax",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#datalog-syntax"}
+ {:key "def-fn",
+  :name "def fn",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#def-fn"}
+ {:key "deprecated-namespace",
+  :name "deprecated namespace",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#deprecated-namespace"}
+ {:key "deprecated-var",
+  :name "deprecated var",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#deprecated-var"}
+ {:key "deps.edn",
+  :name "deps.edn",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#deps.edn"}
+ {:key "destructured-or-always-evaluates",
+  :name "destructured or always evaluates",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#destructured-or-always-evaluates"}
+ {:key "destructured-or-binding-of-same-map",
+  :name "destructured or binding of same map",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#destructured-or-binding-of-same-map"}
+ {:key "discouraged-java-method",
+  :name "discouraged java method",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-java-method"}
+ {:key "discouraged-namespace",
+  :name "discouraged namespace",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-namespace"}
+ {:key "discouraged-tag",
+  :name "discouraged tag",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-tag"}
+ {:key "discouraged-var",
+  :name "discouraged var",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-var"}
+ {:key "do-template",
+  :name "do template",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#do-template"}
+ {:key "docstring-blank",
+  :name "docstring blank",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-blank"}
+ {:key "docstring-leading-trailing-whitespace",
+  :name "docstring leading trailing whitespace",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-leading-trailing-whitespace"}
+ {:key "docstring-no-summary",
+  :name "docstring no summary",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-no-summary"}
+ {:key "duplicate-field",
+  :name "duplicate field",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-field"}
+ {:key "duplicate-key-args",
+  :name "duplicate key args",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-key-args"}
+ {:key "duplicate-map-key",
+  :name "duplicate map key",
+  :level :error,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-map-key"}
+ {:key "duplicate-refer",
+  :name "duplicate refer",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-refer"}
+ {:key "duplicate-require",
+  :name "duplicate require",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-require"}
+ {:key "duplicate-set-key",
+  :name "duplicate set key",
+  :level :error,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-set-key"}
+ {:key "dynamic-var-not-earmuffed",
+  :name "dynamic var not earmuffed",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#dynamic-var-not-earmuffed"}
+ {:key "earmuffed-var-not-dynamic",
+  :name "earmuffed var not dynamic",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#earmuffed-var-not-dynamic"}
+ {:key "equals-expected-position",
+  :name "equals expected position",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#equals-expected-position"}
+ {:key "equals-false",
+  :name "equals false",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#equals-false"}
+ {:key "equals-float",
+  :name "equals float",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#equals-float"}
+ {:key "equals-nil",
+  :name "equals nil",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#equals-nil"}
+ {:key "equals-true",
+  :name "equals true",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#equals-true"}
+ {:key "file",
+  :name "file",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#file"}
+ {:key "format",
+  :name "format",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#format"}
+ {:key "hook",
+  :name "hook",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#hook"}
+ {:key "if-nil-return",
+  :name "if nil return",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#if-nil-return"}
+ {:key "if-x-x-y",
+  :name "if x x y",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#if-x-x-y"}
+ {:key "inline-def",
+  :name "inline def",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#inline-def"}
+ {:key "invalid-arity",
+  :name "invalid arity",
+  :level :error,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#invalid-arity"}
+ {:key "is-message-not-string",
+  :name "is message not string",
+  :level :info,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "LOW",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#is-message-not-string"}
+ {:key "java-static-field-call",
+  :name "java static field call",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#java-static-field-call"}
+ {:key "keyword-binding",
+  :name "keyword binding",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#keyword-binding"}
+ {:key "line-length",
+  :name "line length",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#line-length"}
+ {:key "locking-suspicious-lock",
+  :name "locking suspicious lock",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#locking-suspicious-lock"}
+ {:key "loop-without-recur",
+  :name "loop without recur",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#loop-without-recur"}
+ {:key "main-without-gen-class",
+  :name "main without gen class",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#main-without-gen-class"}
+ {:key "min-clj-kondo-version",
+  :name "min clj kondo version",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#min-clj-kondo-version"}
+ {:key "minus-one",
+  :name "minus one",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#minus-one"}
+ {:key "misplaced-async-metadata",
+  :name "misplaced async metadata",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#misplaced-async-metadata"}
+ {:key "misplaced-docstring",
+  :name "misplaced docstring",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#misplaced-docstring"}
+ {:key "missing-body-in-when",
+  :name "missing body in when",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#missing-body-in-when"}
+ {:key "missing-clause-in-try",
+  :name "missing clause in try",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#missing-clause-in-try"}
+ {:key "missing-docstring",
+  :name "missing docstring",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#missing-docstring"}
+ {:key "missing-else-branch",
+  :name "missing else branch",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#missing-else-branch"}
+ {:key "missing-map-value",
+  :name "missing map value",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#missing-map-value"}
+ {:key "missing-protocol-method",
+  :name "missing protocol method",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#missing-protocol-method"}
+ {:key "missing-protocol-method-arity",
+  :name "missing protocol method arity",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#missing-protocol-method-arity"}
+ {:key "missing-test-assertion",
+  :name "missing test assertion",
+  :level :warning,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#missing-test-assertion"}
+ {:key "multiple-async-in-deftest",
+  :name "multiple async in deftest",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#multiple-async-in-deftest"}
+ {:key "namespace-name-mismatch",
+  :name "namespace name mismatch",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#namespace-name-mismatch"}
+ {:key "non-arg-vec-return-type-hint",
+  :name "non arg vec return type hint",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#non-arg-vec-return-type-hint"}
+ {:key "not-a-function",
+  :name "not a function",
+  :level :error,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#not-a-function"}
+ {:key "not-empty?",
+  :name "not empty?",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#not-empty?"}
+ {:key "not-nil?",
+  :name "not nil?",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#not-nil?"}
+ {:key "plus-one",
+  :name "plus one",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#plus-one"}
+ {:key "private-call",
+  :name "private call",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#private-call"}
+ {:key "protocol-method-arity-mismatch",
+  :name "protocol method arity mismatch",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#protocol-method-arity-mismatch"}
+ {:key "protocol-method-varargs",
+  :name "protocol method varargs",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#protocol-method-varargs"}
+ {:key "redefined-var",
+  :name "redefined var",
+  :level :warning,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redefined-var"}
+ {:key "reduce-without-init",
+  :name "reduce without init",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#reduce-without-init"}
+ {:key "redundant-call",
+  :name "redundant call",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-call"}
+ {:key "redundant-declare",
+  :name "redundant declare",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-declare"}
+ {:key "redundant-do",
+  :name "redundant do",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-do"}
+ {:key "redundant-expression",
+  :name "redundant expression",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-expression"}
+ {:key "redundant-fn-wrapper",
+  :name "redundant fn wrapper",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-fn-wrapper"}
+ {:key "redundant-format",
+  :name "redundant format",
+  :level :info,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "LOW",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-format"}
+ {:key "redundant-ignore",
+  :name "redundant ignore",
+  :level :info,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "LOW",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-ignore"}
+ {:key "redundant-let",
+  :name "redundant let",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-let"}
+ {:key "redundant-let-binding",
+  :name "redundant let binding",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-let-binding"}
+ {:key "redundant-nested-call",
+  :name "redundant nested call",
+  :level :info,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "LOW",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-nested-call"}
+ {:key "redundant-primitive-coercion",
+  :name "redundant primitive coercion",
+  :level :info,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "LOW",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-primitive-coercion"}
+ {:key "redundant-str-call",
+  :name "redundant str call",
+  :level :info,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "LOW",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-str-call"}
+ {:key "refer",
+  :name "refer",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#refer"}
+ {:key "refer-all",
+  :name "refer all",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#refer-all"}
+ {:key "schema-misplaced-return",
+  :name "schema misplaced return",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#schema-misplaced-return"}
+ {:key "self-requiring-namespace",
+  :name "self requiring namespace",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#self-requiring-namespace"}
+ {:key "seq-rest",
+  :name "seq rest",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#seq-rest"}
+ {:key "shadowed-fn-param",
+  :name "shadowed fn param",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#shadowed-fn-param"}
+ {:key "shadowed-var",
+  :name "shadowed var",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#shadowed-var"}
+ {:key "single-key-in",
+  :name "single key in",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#single-key-in"}
+ {:key "single-logical-operand",
+  :name "single logical operand",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#single-logical-operand"}
+ {:key "single-operand-comparison",
+  :name "single operand comparison",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#single-operand-comparison"}
+ {:key "syntax",
+  :name "syntax",
+  :level :error,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#syntax"}
+ {:key "type-mismatch",
+  :name "type mismatch",
+  :level :error,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#type-mismatch"}
+ {:key "unbound-destructuring-default",
+  :name "unbound destructuring default",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unbound-destructuring-default"}
+ {:key "underscore-in-namespace",
+  :name "underscore in namespace",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#underscore-in-namespace"}
+ {:key "unexpected-recur",
+  :name "unexpected recur",
+  :level :error,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unexpected-recur"}
+ {:key "uninitialized-var",
+  :name "uninitialized var",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#uninitialized-var"}
+ {:key "unknown-ns-option",
+  :name "unknown ns option",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unknown-ns-option"}
+ {:key "unknown-require-option",
+  :name "unknown require option",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unknown-require-option"}
+ {:key "unquote-not-syntax-quoted",
+  :name "unquote not syntax quoted",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unquote-not-syntax-quoted"}
+ {:key "unreachable-code",
+  :name "unreachable code",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unreachable-code"}
+ {:key "unresolved-excluded-var",
+  :name "unresolved excluded var",
+  :level :info,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "LOW",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unresolved-excluded-var"}
+ {:key "unresolved-namespace",
+  :name "unresolved namespace",
+  :level :warning,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unresolved-namespace"}
+ {:key "unresolved-protocol-method",
+  :name "unresolved protocol method",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unresolved-protocol-method"}
+ {:key "unresolved-symbol",
+  :name "unresolved symbol",
+  :level :error,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "HIGH",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unresolved-symbol"}
+ {:key "unresolved-var",
+  :name "unresolved var",
+  :level :warning,
+  :quality "RELIABILITY",
+  :attribute "LOGICAL",
+  :type "BUG",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unresolved-var"}
+ {:key "unsorted-imports",
+  :name "unsorted imports",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unsorted-imports"}
+ {:key "unsorted-required-namespaces",
+  :name "unsorted required namespaces",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unsorted-required-namespaces"}
+ {:key "unused-alias",
+  :name "unused alias",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-alias"}
+ {:key "unused-binding",
+  :name "unused binding",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-binding"}
+ {:key "unused-excluded-var",
+  :name "unused excluded var",
+  :level :info,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "LOW",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-excluded-var"}
+ {:key "unused-import",
+  :name "unused import",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-import"}
+ {:key "unused-namespace",
+  :name "unused namespace",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-namespace"}
+ {:key "unused-private-var",
+  :name "unused private var",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-private-var"}
+ {:key "unused-referred-var",
+  :name "unused referred var",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-referred-var"}
+ {:key "unused-value",
+  :name "unused value",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-value"}
+ {:key "use",
+  :name "use",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#use"}
+ {:key "used-underscored-binding",
+  :name "used underscored binding",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#used-underscored-binding"}
+ {:key "var-same-name-except-case",
+  :name "var same name except case",
+  :level :warning,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#var-same-name-except-case"}
+ {:key "warn-on-reflection",
+  :name "warn on reflection",
+  :level :off,
+  :quality "MAINTAINABILITY",
+  :attribute "CLEAR",
+  :type "CODE_SMELL",
+  :severity "MEDIUM",
+  :url
+  "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#warn-on-reflection"}]
