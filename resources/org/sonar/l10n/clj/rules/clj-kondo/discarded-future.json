@@ -1,0 +1,10 @@
+{"tags":["concurrency"],
+ "remediation":{"func":"Constant\/Issue", "constantCost":"10min"},
+ "type":"BUG",
+ "scope":"Main",
+ "sqKey":"discarded-future",
+ "title":"Future whose value is never taken",
+ "status":"ready",
+ "code":{"impacts":{"RELIABILITY":"MEDIUM"}, "attribute":"LOGICAL"},
+ "securityStandards":{},
+ "defaultSeverity":"Medium"}

@@ -3,6 +3,7 @@
   issues backed by ad-hoc rules."
   (:require [hbt.sonar.const :as const]
             [hbt.sonar.external :as external]
+            [hbt.sonar.external-rules :as external-rules]
             [hbt.sonar.report :as report])
   (:import [java.io File]
            [org.sonar.api.batch.fs InputFile]
@@ -62,8 +63,11 @@
     (if (nil? fs)
       (println (format "%s %s: not a recognised report shape -- no findings imported"
                        engine-id (.getName f)))
-      (do
-        (doseq [[e r] (external/rule-ids fs)] (declare-rule! ctx e r))
+      (let [known (set (map :key (external-rules/catalogue engine-id)))]
+        ;; A rule the shipped catalogue already documents needs no ad-hoc
+        ;; declaration -- the repository carries its name and description.
+        (doseq [[e r] (external/rule-ids fs) :when (not (contains? known r))]
+          (declare-rule! ctx e r))
         (let [saved (reduce (fn [n finding]
                               (if-let [in (report/input-file ctx (:filename finding))]
                                 (do (save-issue! ctx in finding) (inc n))

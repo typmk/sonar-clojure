@@ -82,7 +82,7 @@
            (:taints (security/seeds-of-source "(ns a)\n(defn g [req] (:params req))"))))))
 
 (deftest every-rule-emitted-is-a-declared-rule
-  (let [declared (set (map :key security/rules))
+  (let [declared (set security/rule-keys)
         src "(def password \"hunter2hunter2\")
              (eval (read-string (:params req)))
              (sh \"sh\" \"-c\" (slurp u))

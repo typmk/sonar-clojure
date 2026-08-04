@@ -20,67 +20,14 @@
 ;; judge rather than something known to be wrong -- Sonar reviews those
 ;; separately, and mixing the two makes both easier to ignore.
 
-(def rules
-  [{:key "eval-of-dynamic-value"
-    :name "eval must not be called on a computed value"
-    :cwe [95 94] :owasp ["A3"] :severity "HIGH" :quality "SECURITY"
-    :doc "<p><code>eval</code> on anything other than a quoted literal executes whatever the value contains.</p>"}
-
-   {:key "read-string-untrusted"
-    :name "clojure.core/read-string must not read untrusted input"
-    :cwe [502] :owasp ["A8"] :severity "HIGH" :quality "SECURITY"
-    :doc (str "<p><code>clojure.core/read-string</code> honours <code>*read-eval*</code> and "
-              "evaluates <code>#=</code> forms. Use <code>clojure.edn/read-string</code>, which does not.</p>")
-    :fix "<pre>(require '[clojure.edn :as edn])\n(edn/read-string s)</pre>"
-    ;; the one rule whose fix is mechanical, so it ships as a quick fix
-    :quick-fix {:message "Replace with clojure.edn/read-string" :text "edn/read-string"}}
-
-   {:key "shell-command-injection"
-    :name "Shell arguments must not be built from computed values"
-    :cwe [78] :owasp ["A3"] :severity "HIGH" :quality "SECURITY"
-    :doc "<p>A shell argument assembled from a value the caller controls is a command injection.</p>"}
-
-   {:key "sql-string-built"
-    :name "SQL must not be assembled by string concatenation"
-    :cwe [89] :owasp ["A3"] :severity "HIGH" :quality "SECURITY"
-    :doc "<p>Pass parameters as values so the driver binds them, rather than building the statement with <code>str</code> or <code>format</code>.</p>"
-    :fix "<pre>(jdbc/execute! db [\"select * from t where id = ?\" id])</pre>"}
-
-   {:key "hardcoded-credential"
-    :name "Credential must not be hardcoded"
-    :cwe [798 259] :owasp ["A7"] :severity "HIGH" :quality "SECURITY"
-    :doc "<p>A literal bound to a credential-shaped name ships the secret in the artifact and in version control.</p>"}
-
-   {:key "xml-external-entity"
-    :name "XML parsing must disable external entities"
-    :cwe [611] :owasp ["A5"] :severity "HIGH" :quality "SECURITY"
-    :doc "<p>A parser that resolves external entities will fetch attacker-named URLs and read local files.</p>"}
-
-   {:key "interprocedural-taint"
-    :name "Attacker-influenced data reaches a sink through a call chain"
-    :cwe [20] :owasp ["A3"] :severity "MEDIUM" :quality "SECURITY"
-    :doc (str "<p>A function obtains attacker-influenced data and passes it toward a "
-              "dangerous sink through one or more calls.</p>"
-              "<p>This is an over-approximation: it does not track argument positions, "
-              "so a function that both obtains such data and calls a sink is reported "
-              "even when the two are unrelated. Confirm the path before acting.</p>")
-    :fix "<p>Validate or escape the value at the boundary where it enters.</p>"}
-
-   ;; --- hotspots: review required, not defects ---
-   {:key "shell-invocation" :hotspot? true
-    :name "Shell invocation should be reviewed"
-    :cwe [78] :owasp ["A3"] :severity "MEDIUM" :quality "SECURITY"
-    :doc "<p>Shelling out is legitimate; confirm no part of the command is caller-controlled.</p>"}
-
-   {:key "reflective-call" :hotspot? true
-    :name "Reflective invocation should be reviewed"
-    :cwe [470] :owasp ["A8"] :severity "MEDIUM" :quality "SECURITY"
-    :doc "<p><code>resolve</code>, <code>ns-resolve</code> and <code>Class/forName</code> on a computed name select code at runtime.</p>"}
-
-   {:key "permissive-file-permissions" :hotspot? true
-    :name "File permissions should be reviewed"
-    :cwe [732] :owasp ["A1"] :severity "MEDIUM" :quality "SECURITY"
-    :doc "<p>World-readable or world-writable modes on files holding secrets.</p>"}])
+(def rule-keys
+  "Every rule this namespace can raise. Title, severity, CWE, remediation and
+  prose live in org/sonar/l10n/clj/rules/clj-kondo/<key>.{json,html} -- see
+  hbt.sonar.metadata for why."
+  ["eval-of-dynamic-value" "read-string-untrusted" "shell-command-injection"
+   "sql-string-built" "hardcoded-credential" "xml-external-entity"
+   "interprocedural-taint" "shell-invocation" "reflective-call"
+   "permissive-file-permissions"])
 
 ;; ---------------------------------------------------------------------------
 ;; Sources and sinks.

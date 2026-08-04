@@ -32,10 +32,15 @@
                   :ns-compile '[hbt.sonar.const
                                 hbt.sonar.forms
                                 hbt.sonar.report
+                                hbt.sonar.tree
+                                hbt.sonar.metadata
                                 hbt.sonar.security
+                                hbt.sonar.interop
+                                hbt.sonar.concurrency
                                 hbt.sonar.codecov
                                 hbt.sonar.callgraph
                                 hbt.sonar.external
+                                hbt.sonar.external-rules
                                 hbt.sonar.external-sensor
                                 hbt.sonar.junit
                                 hbt.sonar.test-sensor
@@ -71,5 +76,9 @@
                        "Plugin-SourcesUrl"       "https://github.com/hbtweb"
                        ;; Floor, not a tested claim: verified only against
                        ;; SonarQube 26.7 with sonar-plugin-api 13.9.
-                       "Sonar-Version"           "10.0"}})
+                       "Sonar-Version"           "10.0"
+                       ;; Skips the download entirely for projects with no
+                       ;; Clojure in them. sonar-php sets this and defines PHP,
+                       ;; so defining the language you require is not circular.
+                       "Plugin-RequiredForLanguages" "clj"}})
   (println "built" jar-file))

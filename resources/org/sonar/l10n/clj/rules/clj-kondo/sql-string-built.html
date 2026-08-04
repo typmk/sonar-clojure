@@ -1,0 +1,8 @@
+<h2>Why is this an issue?</h2>
+<p>Pass parameters as values so the driver binds them, rather than building the statement with <code>str</code> or <code>format</code>.</p>
+<h2>How can I fix it?</h2>
+<pre>(jdbc/execute! db ["select * from t where id = ?" id])</pre>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/89.html">CWE-89</a></li>
+</ul>

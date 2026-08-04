@@ -1,0 +1,8 @@
+<h2>Why is this an issue?</h2>
+<p>A function obtains attacker-influenced data and passes it toward a dangerous sink through one or more calls.</p><p>This is an over-approximation: it does not track argument positions, so a function that both obtains such data and calls a sink is reported even when the two are unrelated. Confirm the path before acting.</p>
+<h2>How can I fix it?</h2>
+<p>Validate or escape the value at the boundary where it enters.</p>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/20.html">CWE-20</a></li>
+</ul>

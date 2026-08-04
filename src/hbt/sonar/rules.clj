@@ -2,11 +2,11 @@
   "The rule catalogue. Generated from clj-kondo's default config at build
   time (see hbt.sonar.gen), so the two cannot drift silently."
   (:require [clojure.edn :as edn]
-            [clojure.string :as string]
             [clojure.java.io :as io]
             [hbt.sonar.const :as const]
             [hbt.sonar.concurrency :as concurrency]
             [hbt.sonar.interop :as interop]
+            [hbt.sonar.metadata :as metadata]
             [hbt.sonar.security :as security])
   (:import [org.sonar.api.rules CleanCodeAttribute RuleType]
            [org.sonar.api.server.rule RuleDescriptionSection]
@@ -75,44 +75,30 @@
     ;; profile: what it considers off by default stays off here.
     (.setActivatedByDefault (not= :off (:level r)))))
 
-(defn- security-description [{:keys [doc cwe]}]
-  (str doc "<p>CWE: "
-       (string/join ", "
-         (map #(str "<a href=\"https://cwe.mitre.org/data/definitions/" % ".html\">CWE-" % "</a>") cwe))
-       "</p>"))
-
-(defn- add-security-rule!
-  "Security rules carry their CWE and OWASP category, which is what Sonar's
-  security reports are built from -- so the data is present the day the
-  edition that renders it is licensed, rather than needing a rewrite then.
-
-  A hotspot is a thing to review, not a thing known to be wrong. Sonar
-  reviews the two separately, and mixing them makes both easier to ignore."
-  [repo {:keys [key name hotspot? cwe owasp severity fix] :as r}]
-  (let [rule (doto (with-debt! (.createRule repo key) severity)
+(defn- add-authored-rule!
+  "A rule whose metadata ships as a resource pair, in SonarSource's own
+  layout. Prose, severity, CWEs and remediation cost come from the JSON and
+  HTML; nothing about the rule is stated twice."
+  [repo {:keys [key name type html quality severity attribute hotspot?
+                cwe owasp remediation tags]}]
+  (let [rule (doto (.createRule repo key)
                (.setName name)
-               (.setHtmlDescription (security-description r))
-               ;; Structured sections are what Sonar renders as the
-               ;; "why is this an issue" / "how can I fix it" tabs. A single
-               ;; blob of HTML renders as neither.
-               (.addDescriptionSection (section "root_cause" (:doc r)))
-               (.addDescriptionSection
-                 (section "how_to_fix" (or fix "<p>Remove the unsafe call or move the value out of the caller's control.</p>")))
-               (.setType (if hotspot?
-                           RuleType/SECURITY_HOTSPOT
-                           RuleType/VULNERABILITY))
-               (.setCleanCodeAttribute CleanCodeAttribute/COMPLETE)
+               (.setHtmlDescription html)
+               (.addDescriptionSection (section "root_cause" html))
+               (.setType (RuleType/valueOf ^String type))
                (.setActivatedByDefault true)
-               (.addTags (into-array String ["security" "cwe"])))]
-    (when (seq cwe)
-      (.addCwe rule (int-array cwe)))
+               (.addTags (into-array String tags)))]
+    (.setDebtRemediationFunction
+     rule (.constantPerIssue (.debtRemediationFunctions rule) remediation))
+    (when (seq cwe) (.addCwe rule (int-array cwe)))
     (when (seq owasp)
       (.addOwaspTop10 rule RulesDefinition$OwaspTop10Version/Y2021
                       (into-array RulesDefinition$OwaspTop10
                                   (map #(RulesDefinition$OwaspTop10/valueOf %) owasp))))
-    ;; a hotspot has nothing to impact -- it is not yet known to be a defect
+    ;; a hotspot is outside the clean-code model: not yet known to be a defect
     (when-not hotspot?
-      (.addDefaultImpact rule SoftwareQuality/SECURITY
+      (.setCleanCodeAttribute rule (CleanCodeAttribute/valueOf ^String attribute))
+      (.addDefaultImpact rule (SoftwareQuality/valueOf ^String quality)
                          (Severity/valueOf ^String severity)))
     rule))
 
@@ -122,10 +108,9 @@
     (run! #(add-rule! repo %) (catalogue))
     ;; deduped by key: interop registers weak-hash-algorithm once even though
     ;; several classes raise it
-    (run! #(add-security-rule! repo %)
-          (->> (concat security/rules interop/rules concurrency/rules)
-               (reduce (fn [m r] (if (contains? m (:key r)) m (assoc m (:key r) r))) {})
-               vals))
+    (run! #(add-authored-rule! repo %)
+          (metadata/load-rules (concat security/rule-keys interop/rule-keys
+                                       concurrency/rule-keys)))
     ;; The catch-all. A finding from a clj-kondo newer than this plugin must
     ;; surface as an issue, not vanish between the report and the dashboard.
     (doto (.createRule repo const/unknown-rule)

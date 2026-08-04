@@ -1,0 +1,8 @@
+<h2>Why is this an issue?</h2>
+<p>ECB encrypts identical blocks identically, so structure survives encryption.</p>
+<h2>How can I fix it?</h2>
+<pre>(Cipher/getInstance "AES/GCM/NoPadding")</pre>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/327.html">CWE-327</a></li>
+</ul>

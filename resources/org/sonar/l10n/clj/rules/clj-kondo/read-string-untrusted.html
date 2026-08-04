@@ -1,0 +1,9 @@
+<h2>Why is this an issue?</h2>
+<p><code>clojure.core/read-string</code> honours <code>*read-eval*</code> and evaluates <code>#=</code> forms. Use <code>clojure.edn/read-string</code>, which does not.</p>
+<h2>How can I fix it?</h2>
+<pre>(require '[clojure.edn :as edn])
+(edn/read-string s)</pre>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/502.html">CWE-502</a></li>
+</ul>

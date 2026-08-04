@@ -6,6 +6,7 @@
             [hbt.sonar.rules :as rules]
             [hbt.sonar.concurrency :as concurrency]
             [hbt.sonar.interop :as interop]
+            [hbt.sonar.metadata :as metadata]
             [hbt.sonar.security :as security])
   (:import [org.sonar.api.rules RuleType]
            [org.sonar.api Plugin$Context SonarEdition SonarProduct SonarQubeSide SonarRuntime]
@@ -58,8 +59,8 @@
     (is (some? repo) "repository was created")
     (testing "one rule per clj-kondo linter, the catch-all, and the security rules"
       (is (= (+ (count (rules/catalogue)) 1
-                (count (distinct (map :key (concat security/rules interop/rules
-                                                   concurrency/rules)))))
+                (count (distinct (concat security/rule-keys interop/rule-keys
+                                         concurrency/rule-keys))))
              (count (.rules repo)))))
     (testing "the catch-all exists, so a newer clj-kondo cannot drop findings"
       (is (contains? keys' const/unknown-rule)))
@@ -83,14 +84,21 @@
         _    (.define (instantiate "hbt.sonar.ClojureRulesDefinition") ctx)
         repo (.repository ctx const/repository-key)
         by-key (into {} (map (juxt #(.key %) identity)) (.rules repo))]
-    (testing "every security, interop and concurrency rule is registered"
-      (is (every? #(contains? by-key (:key %))
-                  (concat security/rules interop/rules concurrency/rules))))
+    (testing "every rule the detection can raise is registered"
+      (is (every? #(contains? by-key %)
+                  (concat security/rule-keys interop/rule-keys concurrency/rule-keys))))
+    (testing "every one ships a metadata resource pair -- a rule with no
+              resource would be an issue Sonar drops on the floor"
+      (is (every? #(some? (metadata/load-rule %))
+                  (concat security/rule-keys interop/rule-keys concurrency/rule-keys))))
+    (testing "and the loader refuses a key that ships none"
+      (is (thrown? clojure.lang.ExceptionInfo (metadata/load-rules ["no-such-rule"]))))
     (testing "each carries its CWE, so the finding means something to a reviewer"
-      (doseq [r (concat security/rules interop/rules)
-              :let [rule (get by-key (:key r))]]
+      (doseq [k (concat security/rule-keys interop/rule-keys)
+              :let [rule (get by-key k)]
+              :when (seq (:cwe (metadata/load-rule k)))]
         (is (some #(re-find #"cwe:" %) (.securityStandards rule))
-            (str (:key r) " has no CWE"))))
+            (str k " has no CWE"))))
     (testing "injection rules are vulnerabilities; review-me rules are hotspots"
       (is (= RuleType/VULNERABILITY (.type (get by-key "sql-string-built"))))
       (is (= RuleType/SECURITY_HOTSPOT (.type (get by-key "shell-invocation")))))
@@ -112,7 +120,8 @@
                  "hbt.sonar.ClojureSourceSensor"
                  "hbt.sonar.CloverageSensor"
                  "hbt.sonar.KaochaSensor"
-                 "hbt.sonar.ExternalAnalyzerSensor"}
+                 "hbt.sonar.ExternalAnalyzerSensor"
+                 "hbt.sonar.ExternalRulesDefinition"}
                (set (map #(.getName ^Class %) classes)))))
       (testing "one property per report the plugin reads, plus file suffixes"
         (is (= 10 (count props)) "suffixes, patterns, 4 reports, 4 external analyzers")))))

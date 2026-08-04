@@ -1,0 +1,11 @@
+{"tags":["cwe", "security"],
+ "remediation":{"func":"Constant\/Issue", "constantCost":"10min"},
+ "type":"VULNERABILITY",
+ "scope":"Main",
+ "sqKey":"interprocedural-taint",
+ "title":
+ "Attacker-influenced data reaches a sink through a call chain",
+ "status":"ready",
+ "code":{"impacts":{"SECURITY":"MEDIUM"}, "attribute":"TRUSTWORTHY"},
+ "securityStandards":{"CWE":[20], "OWASP":["A3"]},
+ "defaultSeverity":"Medium"}

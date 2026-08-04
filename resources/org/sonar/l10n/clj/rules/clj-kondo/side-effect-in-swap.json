@@ -1,0 +1,10 @@
+{"tags":["concurrency"],
+ "remediation":{"func":"Constant\/Issue", "constantCost":"30min"},
+ "type":"BUG",
+ "scope":"Main",
+ "sqKey":"side-effect-in-swap",
+ "title":"Side effect inside a retrying update",
+ "status":"ready",
+ "code":{"impacts":{"RELIABILITY":"HIGH"}, "attribute":"LOGICAL"},
+ "securityStandards":{},
+ "defaultSeverity":"High"}

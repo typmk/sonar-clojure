@@ -1,0 +1,4 @@
+<h2>Why is this an issue?</h2>
+<p>A <code>future</code> whose result is discarded swallows its exception: the throw is held until someone derefs, and nobody does. The work appears to succeed.</p>
+<h2>How can I fix it?</h2>
+<p>Deref it, or use an executor that reports failures.</p>

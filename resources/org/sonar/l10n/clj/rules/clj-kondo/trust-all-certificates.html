@@ -1,0 +1,9 @@
+<h2>Why is this an issue?</h2>
+<p>A <code>TrustManager</code> that accepts every chain, or a <code>HostnameVerifier</code> that accepts every name, turns TLS into encryption without authentication -- any machine on the path can read and rewrite the traffic.</p>
+<h2>How can I fix it?</h2>
+<p>Trust a pinned CA for the host instead of disabling the check.</p>
+<h2>Resources</h2>
+<ul>
+  <li><a href="https://cwe.mitre.org/data/definitions/295.html">CWE-295</a></li>
+  <li><a href="https://cwe.mitre.org/data/definitions/297.html">CWE-297</a></li>
+</ul>

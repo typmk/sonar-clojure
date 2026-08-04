@@ -1,0 +1,970 @@
+[
+ {
+  "key": "lint/assoc-fn",
+  "name": "`assoc`-ing an update with the same key is hard to read. `update` is known and",
+  "description": "<p>Reported by splint rule <code>lint/assoc-fn</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/body-unquote-splicing",
+  "name": "A macro that nests an `unquote-splicing` in a macro with a `& body` can lead to subtle hard to debug errors. Better to wrap the `unquote-splicing` in a `do` to force it into 'expre",
+  "description": "<p>Reported by splint rule <code>lint/body-unquote-splicing</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/catch-throwable",
+  "name": "Throwable is a superclass of all Errors and Exceptions in Java. Catching Throwable will also catch Errors, which indicate a serious problem that most applications should not try to",
+  "description": "<p>Reported by splint rule <code>lint/catch-throwable</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/defmethod-names",
+  "name": "When defining methods for a multimethod, everything after the dispatch-val is given directly to `fn`. This allows for providing a name to the defmethod function, which will make st",
+  "description": "<p>Reported by splint rule <code>lint/defmethod-names</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/divide-by-one",
+  "name": "Checks for `(/ x 1)`.",
+  "description": "<p>Reported by splint rule <code>lint/divide-by-one</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/dorun-map",
+  "name": "`map` is lazy, which carries a performance and memory cost. `dorun` uses `seq` iteration to realize the entire sequence, returning `nil`. This style of iteration also carries a per",
+  "description": "<p>Reported by splint rule <code>lint/dorun-map</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/dot-class-method",
+  "name": "Using the `Obj/staticMethod` form maps the method call to Clojure's natural function position.",
+  "description": "<p>Reported by splint rule <code>lint/dot-class-method</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/dot-obj-method",
+  "name": "Using the `.method` form maps the method symbol to Clojure's natural function position.",
+  "description": "<p>Reported by splint rule <code>lint/dot-obj-method</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/duplicate-case-test",
+  "name": "It's an error to have duplicate `case` test constants.",
+  "description": "<p>Reported by splint rule <code>lint/duplicate-case-test</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/duplicate-field-name",
+  "name": "`deftype` and `defrecord` will throw errors if you define multiple fields",
+  "description": "<p>Reported by splint rule <code>lint/duplicate-field-name</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/empty-loop-in-fn",
+  "name": "A function is a valid `recur` target, allowing for writing recursive functions directly. No need to nest within a `loop` if both function and loop have no parameters.",
+  "description": "<p>Reported by splint rule <code>lint/empty-loop-in-fn</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/existing-constant",
+  "name": "Java has `PI` and `E` constants built-in, and `clojure.math` exposes them directly. Better to use them instead of poorly approximating them with vars.",
+  "description": "<p>Reported by splint rule <code>lint/existing-constant</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/fn-wrapper",
+  "name": "Avoid wrapping functions in pass-through anonymous function defitions.",
+  "description": "<p>Reported by splint rule <code>lint/fn-wrapper</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/identical-branches",
+  "name": "Returning branches of an `if` or `cond` should not be identical. There's likely a bug in one of the branches. In `cond` branches, only checks consecutive branches as order of check",
+  "description": "<p>Reported by splint rule <code>lint/identical-branches</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/if-else-nil",
+  "name": "Idiomatic `if` defines both branches. `when` returns `nil` in the else branch.",
+  "description": "<p>Reported by splint rule <code>lint/if-else-nil</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/if-let-else-nil",
+  "name": "Idiomatic `if-let` defines both branches. `when-let` returns `nil` in the else branch.",
+  "description": "<p>Reported by splint rule <code>lint/if-let-else-nil</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/if-nil-else",
+  "name": "Idiomatic `if` defines both branches. `when-not` returns `nil` in the truthy branch.",
+  "description": "<p>Reported by splint rule <code>lint/if-nil-else</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/if-not-both",
+  "name": "`if-not` exists, so use it.",
+  "description": "<p>Reported by splint rule <code>lint/if-not-both</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/if-not-do",
+  "name": "`when-not` already defines an implicit `do`. Rely on it.",
+  "description": "<p>Reported by splint rule <code>lint/if-not-do</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/if-not-not",
+  "name": "Two `not`s cancel each other out.",
+  "description": "<p>Reported by splint rule <code>lint/if-not-not</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/if-same-truthy",
+  "name": "`or` exists so use it lol.",
+  "description": "<p>Reported by splint rule <code>lint/if-same-truthy</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/incorrectly-swapped",
+  "name": "It can be necessary to swap two variables. This usually requires an intermediate variable, but with destructuring, Clojure can perform this in a single line. If the destructuring i",
+  "description": "<p>Reported by splint rule <code>lint/incorrectly-swapped</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/into-literal",
+  "name": "`vec` and `set` are succinct and meaningful.",
+  "description": "<p>Reported by splint rule <code>lint/into-literal</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/let-if",
+  "name": "`if-let` exists so use it.",
+  "description": "<p>Reported by splint rule <code>lint/let-if</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/let-when",
+  "name": "`when-let` exists so use it.",
+  "description": "<p>Reported by splint rule <code>lint/let-when</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/locking-object",
+  "name": "Synchronizing on interned objects is really bad. If multiple places lock on the same type of interned objects, those places are competing for locks.",
+  "description": "<p>Reported by splint rule <code>lint/locking-object</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/loop-do",
+  "name": "`loop` has an implicit `do`. Use it.",
+  "description": "<p>Reported by splint rule <code>lint/loop-do</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/loop-empty-when",
+  "name": "Empty loops with nested `when` can be `while`. Doesn't apply if the final expr of the `when` isn't `(recur)`, which includes any nested cases (`let`, etc).",
+  "description": "<p>Reported by splint rule <code>lint/loop-empty-when</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/min-max",
+  "name": "Clamping a value between two numbers requires saying at max of the lower number and a min of the higher number. If the min is lower than the max, then the min",
+  "description": "<p>Reported by splint rule <code>lint/min-max</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/misplaced-type-hint",
+  "name": "In interop scenarios, it can be necessary to add a type hint to mark a function's return type. This can be done by adding metadata to the function's name symbol or to the function'",
+  "description": "<p>Reported by splint rule <code>lint/misplaced-type-hint</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/missing-body-in-when",
+  "name": "`when` calls should have at least 1 expression after the condition.",
+  "description": "<p>Reported by splint rule <code>lint/missing-body-in-when</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/no-catch",
+  "name": "Try without a `catch` (or `finally`) clause is a no-op, and indicates something got changed or broken at some point.",
+  "description": "<p>Reported by splint rule <code>lint/no-catch</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/no-op-assignment",
+  "name": "If the bind is a symbol and the expr is the same symbol, just use the expr directly. (Otherwise, indicates a potential bug.)",
+  "description": "<p>Reported by splint rule <code>lint/no-op-assignment</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/no-target-for-method",
+  "name": "Instance methods require a target instance. If there's none or it's nil, highly likely there's a bug.",
+  "description": "<p>Reported by splint rule <code>lint/no-target-for-method</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/not-empty",
+  "name": "not empty",
+  "description": "<p>Reported by splint rule <code>lint/not-empty</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/prefer-method-values",
+  "name": "Uniform qualified method values are a new syntax for calling into java code. Instead of type hints, methods are qualified with their class (and with the new `:param-tags` aka `^[]`",
+  "description": "<p>Reported by splint rule <code>lint/prefer-method-values</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/prefer-require-over-use",
+  "name": "In the `ns` form prefer `:require :as` over `:require :refer` over `:require :refer :all`. Prefer `:require` over `:use`; the latter form should be considered deprecated for new co",
+  "description": "<p>Reported by splint rule <code>lint/prefer-require-over-use</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/rand-int-one",
+  "name": "`clojure.core/rand-int` generates a float between `0` and `n` (exclusive) and then casts it to an integer. When given `1` (or a number less than `1`), `rand-int` will always return",
+  "description": "<p>Reported by splint rule <code>lint/rand-int-one</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/redundant-call",
+  "name": "A number of core functions take any number of arguments and return the arg if given only one. These calls are effectively no-ops, redundant, so they should be avoided.",
+  "description": "<p>Reported by splint rule <code>lint/redundant-call</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/redundant-str-call",
+  "name": "`clojure.core/str` calls `.toString()` on non-nil input. However, `.toString()` on a string literal returns itself, making it a no-op. Likewise, `clojure.core/format` unconditional",
+  "description": "<p>Reported by splint rule <code>lint/redundant-str-call</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/require-explicit-param-tags",
+  "name": "Uniform qualified method values are a new syntax for calling into java code. They must resolve to a single static or instance method and to help with that, a new metadata syntax ca",
+  "description": "<p>Reported by splint rule <code>lint/require-explicit-param-tags</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/take-repeatedly",
+  "name": "`repeatedly` has an arity for limiting the number of repeats with `take`.",
+  "description": "<p>Reported by splint rule <code>lint/take-repeatedly</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/thread-macro-one-arg",
+  "name": "Threading macros require more effort to understand so only use them with multiple",
+  "description": "<p>Reported by splint rule <code>lint/thread-macro-one-arg</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/try-splicing",
+  "name": "A macro that wraps a splicing unquote in a try-catch or try-finally can lead to subtle hard to debug errors. Better to wrap the splicing unquote in a `do` to force it into 'express",
+  "description": "<p>Reported by splint rule <code>lint/try-splicing</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/underscore-in-namespace",
+  "name": "Due to munging rules, underscores in namespaces can confuse tools and libraries which expect that underscores in class names should be dashes in Clojure.",
+  "description": "<p>Reported by splint rule <code>lint/underscore-in-namespace</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/update-with-swap",
+  "name": "If an atom is stored inside if a map, the atom can be changed using `swap!` within an `update` or `update-in` call. However, `swap!` returns the new value, not the atom itself, so ",
+  "description": "<p>Reported by splint rule <code>lint/update-with-swap</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "lint/warn-on-reflection",
+  "name": "Because we can't (or won't) check for interop, `*warn-on-reflection*` should",
+  "description": "<p>Reported by splint rule <code>lint/warn-on-reflection</code> (lint).</p>",
+  "type": "BUG",
+  "quality": "RELIABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "metrics/fn-length",
+  "name": "Avoid `defn`-defined functions longer than some number (10) of lines of code. Longer functions are harder to read and should be split into smaller-purpose functions that are compos",
+  "description": "<p>Reported by splint rule <code>metrics/fn-length</code> (metrics).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "metrics/parameter-count",
+  "name": "Avoid parameter lists with more than 4 positional parameters.",
+  "description": "<p>Reported by splint rule <code>metrics/parameter-count</code> (metrics).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "naming/conventional-aliases",
+  "name": "Through community and core practices over the years, various core libraries have gained standard or expected aliases. To better align with the community, it's best to use those ali",
+  "description": "<p>Reported by splint rule <code>naming/conventional-aliases</code> (naming).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "naming/conversion-functions",
+  "name": "Use `->` instead of `to` in the names of conversion functions.",
+  "description": "<p>Reported by splint rule <code>naming/conversion-functions</code> (naming).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "naming/lisp-case",
+  "name": "Use lisp-case for function and variable names. (Replacement is generated with [camel-snake-kebab](https://github.com/clj-commons/camel-snake-kebab).)",
+  "description": "<p>Reported by splint rule <code>naming/lisp-case</code> (naming).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "naming/predicate",
+  "name": "Functions that return a boolean should end in a question mark.",
+  "description": "<p>Reported by splint rule <code>naming/predicate</code> (naming).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "naming/record-name",
+  "name": "Records should use PascalCase. (Replacement is generated with [camel-snake-kebab](https://github.com/clj-commons/camel-snake-kebab).)",
+  "description": "<p>Reported by splint rule <code>naming/record-name</code> (naming).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "naming/single-segment-namespace",
+  "name": "Namespaces exist to disambiguate names. Using a single segment namespace puts you in direct conflict with everyone else using single segment namespaces, thus making it more likely ",
+  "description": "<p>Reported by splint rule <code>naming/single-segment-namespace</code> (naming).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "performance/assoc-many",
+  "name": "Assoc takes multiple pairs but relies on `seq` stepping. This is slower than relying on multiple `assoc` invocations.",
+  "description": "<p>Reported by splint rule <code>performance/assoc-many</code> (performance).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "performance/avoid-satisfies",
+  "name": "Avoid use of `satisfies?` as it is extremely slow. Restructure your code to rely on protocols or other polymorphic forms.",
+  "description": "<p>Reported by splint rule <code>performance/avoid-satisfies</code> (performance).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "performance/dot-equals",
+  "name": "`=` is quite generalizable and built to handle immutable data. When using a literal, it can be significantly faster to use the underlying Java method.",
+  "description": "<p>Reported by splint rule <code>performance/dot-equals</code> (performance).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "performance/get-in-literals",
+  "name": "`clojure.core/get-in` is both polymorphic and relies on seq stepping, which has heavy overhead when the listed slots are keyword literals. Faster to call them as functions.",
+  "description": "<p>Reported by splint rule <code>performance/get-in-literals</code> (performance).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "performance/get-keyword",
+  "name": "`clojure.core/get` is polymorphic and overkill if accessing a map with a keyword literal. The fastest is to fall the map itself as a function but that requires a `nil` check, so th",
+  "description": "<p>Reported by splint rule <code>performance/get-keyword</code> (performance).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "performance/into-transducer",
+  "name": "`into` has a 3-arity and a 4-arity form. Both pour the given coll into the new coll but when given a transducer in the 4-arity form, the transducer is efficiently applied in betwee",
+  "description": "<p>Reported by splint rule <code>performance/into-transducer</code> (performance).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "performance/single-literal-merge",
+  "name": "`clojure.core/merge` is inherently slow. Its major benefit is handling nil values. If there is only a single object to merge in and it's a map literal, that benefit is doubly unuse",
+  "description": "<p>Reported by splint rule <code>performance/single-literal-merge</code> (performance).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/apply-str",
+  "name": "Check for round-about `clojure.string/join`.",
+  "description": "<p>Reported by splint rule <code>style/apply-str</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/apply-str-interpose",
+  "name": "Check for round-about `clojure.string/join`.",
+  "description": "<p>Reported by splint rule <code>style/apply-str-interpose</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/apply-str-reverse",
+  "name": "Check for round-about `clojure.string/reverse`.",
+  "description": "<p>Reported by splint rule <code>style/apply-str-reverse</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/assoc-assoc",
+  "name": "Layering `assoc` calls are hard to read. `assoc-in` is known and idiomatic.",
+  "description": "<p>Reported by splint rule <code>style/assoc-assoc</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/cond-else",
+  "name": "It's nice when the default branch is consistent.",
+  "description": "<p>Reported by splint rule <code>style/cond-else</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/conj-vector",
+  "name": "`vector` is succinct and meaningful.",
+  "description": "<p>Reported by splint rule <code>style/conj-vector</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/def-fn",
+  "name": "`(defn [])` is preferable over `(def (fn []))`. Extrapolate to closures too.",
+  "description": "<p>Reported by splint rule <code>style/def-fn</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/defmulti-arglists",
+  "name": "Due to the way multimethods can use any IFn for dispatch, it is rare for a multimethod to have the proper `:arglists` metadata. It is a small thing but adding that can improve inst",
+  "description": "<p>Reported by splint rule <code>style/defmulti-arglists</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/eq-false",
+  "name": "`false?` exists so use it.",
+  "description": "<p>Reported by splint rule <code>style/eq-false</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/eq-nil",
+  "name": "`nil?` exists so use it.",
+  "description": "<p>Reported by splint rule <code>style/eq-nil</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/eq-true",
+  "name": "`true?` exists so use it.",
+  "description": "<p>Reported by splint rule <code>style/eq-true</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/eq-zero",
+  "name": "`zero?` exists so use it.",
+  "description": "<p>Reported by splint rule <code>style/eq-zero</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/filter-complement",
+  "name": "Check for `(filter (complement pred) coll)`.",
+  "description": "<p>Reported by splint rule <code>style/filter-complement</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/filter-vec-filterv",
+  "name": "filterv is preferable for using transients.",
+  "description": "<p>Reported by splint rule <code>style/filter-vec-filterv</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/first-first",
+  "name": "ffirst is succinct and meaningful.",
+  "description": "<p>Reported by splint rule <code>style/first-first</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/first-next",
+  "name": "`fnext` is succinct and meaningful.",
+  "description": "<p>Reported by splint rule <code>style/first-next</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/is-eq-order",
+  "name": "`clojure.test/is` expects `=`-based assertions to put the expected value first.",
+  "description": "<p>Reported by splint rule <code>style/is-eq-order</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/let-do",
+  "name": "`let` has an implicit `do`, so use it.",
+  "description": "<p>Reported by splint rule <code>style/let-do</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/mapcat-apply-apply",
+  "name": "Check for `(apply concat (apply map x y))`.",
+  "description": "<p>Reported by splint rule <code>style/mapcat-apply-apply</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/mapcat-concat-map",
+  "name": "Check for `(apply concat (map x y z))`.",
+  "description": "<p>Reported by splint rule <code>style/mapcat-concat-map</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/minus-one",
+  "name": "Checks for simple -1 that should use `clojure.core/dec`.",
+  "description": "<p>Reported by splint rule <code>style/minus-one</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/minus-zero",
+  "name": "Checks for x - 0.",
+  "description": "<p>Reported by splint rule <code>style/minus-zero</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/multiple-arity-order",
+  "name": "Sort the arities of a function from fewest to most arguments.",
+  "description": "<p>Reported by splint rule <code>style/multiple-arity-order</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/multiply-by-one",
+  "name": "Checks for (* x 1).",
+  "description": "<p>Reported by splint rule <code>style/multiply-by-one</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/multiply-by-zero",
+  "name": "Checks for (* x 0).",
+  "description": "<p>Reported by splint rule <code>style/multiply-by-zero</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/neg-checks",
+  "name": "`neg?` exists so use it.",
+  "description": "<p>Reported by splint rule <code>style/neg-checks</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/nested-addition",
+  "name": "Checks for simple nested additions.",
+  "description": "<p>Reported by splint rule <code>style/nested-addition</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/nested-multiply",
+  "name": "Checks for simple nested multiply.",
+  "description": "<p>Reported by splint rule <code>style/nested-multiply</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/new-object",
+  "name": "`new` special form is discouraged for dot usage.",
+  "description": "<p>Reported by splint rule <code>style/new-object</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/next-first",
+  "name": "`nfirst` is succinct and meaningful.",
+  "description": "<p>Reported by splint rule <code>style/next-first</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/next-next",
+  "name": "`nnext` is succinct and meaningful.",
+  "description": "<p>Reported by splint rule <code>style/next-next</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/not-eq",
+  "name": "`not=` exists, so use it.",
+  "description": "<p>Reported by splint rule <code>style/not-eq</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/not-nil",
+  "name": "not nil",
+  "description": "<p>Reported by splint rule <code>style/not-nil</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/not-some-pred",
+  "name": "not-any? is succinct and meaningful.",
+  "description": "<p>Reported by splint rule <code>style/not-some-pred</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/plus-one",
+  "name": "Checks for simple +1 that should use `clojure.core/inc`.",
+  "description": "<p>Reported by splint rule <code>style/plus-one</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/plus-zero",
+  "name": "Checks for x + 0.",
+  "description": "<p>Reported by splint rule <code>style/plus-zero</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/pos-checks",
+  "name": "`pos?` exists so use it.",
+  "description": "<p>Reported by splint rule <code>style/pos-checks</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/prefer-boolean",
+  "name": "Use `boolean` if you must return `true` or `false` from an expression.",
+  "description": "<p>Reported by splint rule <code>style/prefer-boolean</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/prefer-clj-math",
+  "name": "Prefer clojure.math to interop.",
+  "description": "<p>Reported by splint rule <code>style/prefer-clj-math</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/prefer-clj-string",
+  "name": "Prefer clojure.string to interop.",
+  "description": "<p>Reported by splint rule <code>style/prefer-clj-string</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/prefer-condp",
+  "name": "`cond` checking against the same value in every branch is a code smell.",
+  "description": "<p>Reported by splint rule <code>style/prefer-condp</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/prefer-var-dispatch",
+  "name": "During repl-driven development, one might wish to change the dispatch function of a multimethod. However, once set, the dispatch function cannot be changed without first unmapping ",
+  "description": "<p>Reported by splint rule <code>style/prefer-var-dispatch</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/prefer-vary-meta",
+  "name": "`vary-meta` works like `swap!`, so no need to access and overwrite in two steps.",
+  "description": "<p>Reported by splint rule <code>style/prefer-vary-meta</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/prefixed-libspecs",
+  "name": "`require` supports prefixed libspecs, shared \\",
+  "description": "<p>Reported by splint rule <code>style/prefixed-libspecs</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/reduce-str",
+  "name": "`reduce` calls the provided function on every element in the provided",
+  "description": "<p>Reported by splint rule <code>style/reduce-str</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/redundant-let",
+  "name": "Directly nested lets can be merged into a single let block.",
+  "description": "<p>Reported by splint rule <code>style/redundant-let</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/redundant-nested-call",
+  "name": "Some clojure.core functions and macros take a variable number of args, so there's no need to nest calls. To check non-clojure.core functions, they can be added to the config under ",
+  "description": "<p>Reported by splint rule <code>style/redundant-nested-call</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/redundant-regex-constructor",
+  "name": "Clojure regex literals (#\\",
+  "description": "<p>Reported by splint rule <code>style/redundant-regex-constructor</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/set-literal-as-fn",
+  "name": "Sets can be used as functions and they're converted to static items when",
+  "description": "<p>Reported by splint rule <code>style/set-literal-as-fn</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/single-key-in",
+  "name": "`assoc-in` loops over the args, calling `assoc` for each key. If given a single key,",
+  "description": "<p>Reported by splint rule <code>style/single-key-in</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/tostring",
+  "name": "Convert `(.toString)` to `(str)`.",
+  "description": "<p>Reported by splint rule <code>style/tostring</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/trivial-for",
+  "name": "`for` is a complex and weighty macro. When simply applying a function to each element, better to rely on other built-ins.",
+  "description": "<p>Reported by splint rule <code>style/trivial-for</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/update-in-assoc",
+  "name": "`update-in`-ing an `assoc` with the same key are hard to read. `assoc-in` is known",
+  "description": "<p>Reported by splint rule <code>style/update-in-assoc</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/useless-do",
+  "name": "A single item in a `do` is a no-op. However, it is sometimes necessary to wrap expressions in `do`s to avoid issues, so `do` surrounding `~@something` will be skipped as well as `#",
+  "description": "<p>Reported by splint rule <code>style/useless-do</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/when-do",
+  "name": "`when` already defines an implicit `do`. Rely on it.",
+  "description": "<p>Reported by splint rule <code>style/when-do</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/when-not-call",
+  "name": "`when-not` exists so use it lol.",
+  "description": "<p>Reported by splint rule <code>style/when-not-call</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/when-not-do",
+  "name": "`when-not` already defines an implicit `do`. Rely on it.",
+  "description": "<p>Reported by splint rule <code>style/when-not-do</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/when-not-empty",
+  "name": "when not empty",
+  "description": "<p>Reported by splint rule <code>style/when-not-empty</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ },
+ {
+  "key": "style/when-not-not",
+  "name": "Two `not`s cancel each other out.",
+  "description": "<p>Reported by splint rule <code>style/when-not-not</code> (style).</p>",
+  "type": "CODE_SMELL",
+  "quality": "MAINTAINABILITY",
+  "severity": "MEDIUM"
+ }
+]

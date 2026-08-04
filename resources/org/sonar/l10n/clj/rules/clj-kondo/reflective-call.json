@@ -1,0 +1,9 @@
+{"tags":["cwe", "security"],
+ "remediation":{"func":"Constant\/Issue", "constantCost":"10min"},
+ "type":"SECURITY_HOTSPOT",
+ "scope":"Main",
+ "sqKey":"reflective-call",
+ "title":"Reflective invocation should be reviewed",
+ "status":"ready",
+ "securityStandards":{"CWE":[470], "OWASP":["A8"]},
+ "defaultSeverity":"Medium"}

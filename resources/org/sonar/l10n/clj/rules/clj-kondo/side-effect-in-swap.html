@@ -1,0 +1,5 @@
+<h2>Why is this an issue?</h2>
+<p><code>swap!</code>, <code>alter</code>, <code>commute</code> and <code>swap-vals!</code> retry their function under contention, so any side effect inside it happens more than once -- silently, and only when two threads meet.</p>
+<h2>How can I fix it?</h2>
+<p>Make the update function pure and perform the effect on its result:</p><pre>(let [v (swap! a f)]
+  (notify! v))</pre>

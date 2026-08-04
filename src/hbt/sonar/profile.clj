@@ -17,8 +17,8 @@
             :when (not= :off (:level r))]
       (.activateRule p const/repository-key (:key r)))
     (.activateRule p const/repository-key const/unknown-rule)
-    (doseq [r (distinct (map :key (concat security/rules interop/rules concurrency/rules)))
-            :let [r {:key r}]]
-      (.activateRule p const/repository-key (:key r)))
+    (doseq [k (distinct (concat security/rule-keys interop/rule-keys
+                                concurrency/rule-keys))]
+      (.activateRule p const/repository-key k))
     (.done p)
     nil))

@@ -10,7 +10,8 @@
             [hbt.sonar.sensor]
             [hbt.sonar.source-sensor]
             [hbt.sonar.test-sensor]
-            [hbt.sonar.external-sensor])
+            [hbt.sonar.external-sensor]
+            [hbt.sonar.external-rules])
   (:import [org.sonar.api.config PropertyDefinition PropertyDefinition$ConfigScope])
   (:gen-class
    :name hbt.sonar.ClojurePlugin
@@ -85,7 +86,8 @@
    "hbt.sonar.ClojureSourceSensor"
    "hbt.sonar.CloverageSensor"
    "hbt.sonar.KaochaSensor"
-   "hbt.sonar.ExternalAnalyzerSensor"])
+   "hbt.sonar.ExternalAnalyzerSensor"
+   "hbt.sonar.ExternalRulesDefinition"])
 
 (defn- load-extension
   "Resolved by name because these are AOT artefacts of sibling namespaces.

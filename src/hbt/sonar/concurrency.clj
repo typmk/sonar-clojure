@@ -11,24 +11,7 @@
   machine and only appears under contention."
   (:require [hbt.sonar.tree :as tree]))
 
-(def rules
-  [{:key "side-effect-in-swap"
-    :name "Side effect inside a retrying update"
-    :cwe [] :owasp [] :severity "HIGH" :quality "RELIABILITY"
-    :doc (str "<p><code>swap!</code>, <code>alter</code>, <code>commute</code> and "
-              "<code>swap-vals!</code> retry their function under contention, so any "
-              "side effect inside it happens more than once -- silently, and only "
-              "when two threads meet.</p>")
-    :fix (str "<p>Make the update function pure and perform the effect on its result:</p>"
-              "<pre>(let [v (swap! a f)]\n  (notify! v))</pre>")}
-
-   {:key "discarded-future"
-    :name "Future whose value is never taken"
-    :cwe [] :owasp [] :severity "MEDIUM" :quality "RELIABILITY"
-    :doc (str "<p>A <code>future</code> whose result is discarded swallows its exception: "
-              "the throw is held until someone derefs, and nobody does. The work appears "
-              "to succeed.</p>")
-    :fix "<p>Deref it, or use an executor that reports failures.</p>"}])
+(def rule-keys ["side-effect-in-swap" "discarded-future"])
 
 (def ^:private retrying #{"swap!" "swap-vals!" "alter" "commute" "alter-var-root"})
 

@@ -1,0 +1,10 @@
+{"tags":["cwe", "security"],
+ "remediation":{"func":"Constant\/Issue", "constantCost":"30min"},
+ "type":"VULNERABILITY",
+ "scope":"Main",
+ "sqKey":"sql-string-built",
+ "title":"SQL must not be assembled by string concatenation",
+ "status":"ready",
+ "code":{"impacts":{"SECURITY":"HIGH"}, "attribute":"TRUSTWORTHY"},
+ "securityStandards":{"CWE":[89], "OWASP":["A3"]},
+ "defaultSeverity":"High"}
