@@ -1,0 +1,11 @@
+<h2>Why is this an issue?</h2>
+<p>CLAUDE.md opens with <em>The enemy of progress is inconsistency</em> and carries a <code>Banned &rarr; use</code> table. A word means its entry; the same spelling is not the same thing across layers; one term per concept, no aliases.</p>
+<p>Two names for one concept is how a model drifts: the code stops answering the question the dictionary asks of it, and a reader cannot tell whether a difference in wording marks a difference in meaning.</p>
+<h2>How can I fix it?</h2>
+<p>Use the canonical term. The message names it.</p>
+<pre>:dimension   &rarr; :facet
+:slot        &rarr; :taxon/factor
+:custody     &rarr; :controller | :operator | :key-holder
+:visibility  &rarr; :scope
+:entry       &rarr; :event</pre>
+<p>If the banned term genuinely names something new, the dictionary is what changes -- not the code around it.</p>

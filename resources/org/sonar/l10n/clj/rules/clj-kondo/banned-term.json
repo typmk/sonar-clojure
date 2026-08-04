@@ -1,0 +1,22 @@
+{
+ "title": "Banned term from the project dictionary",
+ "type": "CODE_SMELL",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "5min"
+ },
+ "tags": [
+  "convention"
+ ],
+ "defaultSeverity": "Medium",
+ "sqKey": "banned-term",
+ "scope": "Main",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "MAINTAINABILITY": "MEDIUM"
+  },
+  "attribute": "CONVENTIONAL"
+ }
+}

@@ -41,7 +41,7 @@
     :default const/default-analysis
     :doc     (str "Paths to clj-kondo analysis JSON, which drives symbol navigation. "
                   "Produce one with: clj-kondo --lint src test --config "
-                  "'{:output {:format :json :analysis {:locals true}}}' "
+                  "'{:output {:format :json :analysis {:locals true :keywords true}}}' "
                   "> target/clj-kondo-analysis.json")}
 
    {:key     const/test-report-paths-prop

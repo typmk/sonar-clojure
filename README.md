@@ -8,7 +8,7 @@ SonarQube ships no Clojure support. Without a language claiming these files,
 nothing is indexed and no finding — from this plugin or any other source — can
 attach to them.
 
-**291 rules** · SonarQube 10.0+, verified on 26.7 Community · JRE 17+ · ~7 MB
+**292 rules** · SonarQube 10.0+, verified on 26.7 Community · JRE 17+ · ~7 MB
 
 ---
 
@@ -29,7 +29,7 @@ Defaults work. Set a property only if your build writes elsewhere.
 
 ```bash
 clj-kondo --lint src test --config '{:output {:format :json}}' > target/clj-kondo.json
-clj-kondo --lint src test --config '{:output {:format :json :analysis {:locals true}}}' \
+clj-kondo --lint src test --config '{:output {:format :json :analysis {:locals true :keywords true}}}' \
   > target/clj-kondo-analysis.json
 ```
 ```properties
@@ -81,11 +81,15 @@ reported loudly, never treated as a clean result.
 
 - **Rules** — 136 generated from clj-kondo's own configuration, so an upgrade
   adds rules mechanically and the two cannot drift; a finding from a newer
-  linter files under a catch-all rather than disappearing. 33 hand-written for
+  linter files under a catch-all rather than disappearing. 34 hand-written for
   what clj-kondo does not cover: JDK misuse (crypto, TLS, deserialization,
   JNDI, XXE, certificate validation), injection, credential exposure, ReDoS,
   `clojure.test` quality, and the concurrency hazards immutability does not
   remove. Each carries its CWE and OWASP category, checked against MITRE v4.20.
+- **Project vocabulary** — `banned-term` enforces CLAUDE.md's `Banned → use`
+  table over every keyword clj-kondo resolves. Deliberately narrower than the
+  full table: `:err` is `clojure.java.shell/sh`'s return key, and a rule
+  demanding you rename another library's contract gets switched off.
 - **Measures** — ncloc, comments, functions, classes, statements, cyclomatic
   and cognitive complexity, and the per-line data new-code coverage is computed
   from. Where a coverage report exists the executable set comes from it.
@@ -123,7 +127,7 @@ switching them on for everyone.
 ```bash
 clojure -X:gen-rules     # regenerate the rule catalogue from clj-kondo
 clojure -T:build uber    # -> target/sonar-clojure-plugin-0.1.0.jar
-clojure -M:test          # 80 tests, 259 assertions
+clojure -M:test          # 81 tests, 253 assertions
 ```
 
 The entry point is Java and must stay so; `hbt.sonar.ClojurePluginBootstrap`

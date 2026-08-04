@@ -14,6 +14,7 @@
             [hbt.sonar.report :as report]
             [hbt.sonar.access :as access]
             [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.dictionary :as dictionary]
             [hbt.sonar.regex :as regex]
             [hbt.sonar.tests :as tests]
             [hbt.sonar.web :as web]
@@ -124,6 +125,22 @@
           (.newReference s (int (:line r)) (int (dec (:col r)))
                          (int (:end-line r)) (int (dec (:end-col r))))))
       (.save t))))
+
+(defn- dictionary-findings!
+  "Banned vocabulary, from the same analysis report the symbol table reads.
+  Reported once per file, from one pass, with no parsing of its own."
+  [ctx]
+  (reduce
+   (fn [n ^File f]
+     (if-not (report/exists? f)
+       n
+       (reduce (fn [n' [filename fs]]
+                 (if-let [in (report/input-file ctx filename)]
+                   (do (save-security! ctx in fs) (+ n' (count fs)))
+                   n'))
+               n (dictionary/findings (slurp f)))))
+   0
+   (report/paths ctx const/analysis-paths-prop const/default-analysis)))
 
 (defn- analysis-symbols
   "The symbol table needs clj-kondo's analysis output. Absent, everything else
@@ -243,6 +260,9 @@
     (println (format "Clojure: measured %d files, %d ncloc%s"
                      (count ok) (reduce + 0 (map :ncloc ok))
                      (if (pos? skipped) (format " (%d unchanged, from cache)" skipped) "")))
+    (let [d (dictionary-findings! ctx)]
+      (when (pos? d)
+        (println (format "Clojure: %d banned dictionary terms" d))))
     (let [n (interprocedural! ctx @seeds)]
       (when (pos? n)
         (println (format "Clojure: %d interprocedural taint paths" n))))

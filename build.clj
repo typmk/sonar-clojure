@@ -36,6 +36,7 @@
                                 hbt.sonar.security
                                 hbt.sonar.interop
                                 hbt.sonar.concurrency
+                                hbt.sonar.dictionary
                                 hbt.sonar.regex
                                 hbt.sonar.tests
                                 hbt.sonar.web
