@@ -23,6 +23,10 @@
                                 hbt.sonar.forms
                                 hbt.sonar.report
                                 hbt.sonar.security
+                                hbt.sonar.codecov
+                                hbt.sonar.callgraph
+                                hbt.sonar.external
+                                hbt.sonar.external-sensor
                                 hbt.sonar.junit
                                 hbt.sonar.test-sensor
                                 hbt.sonar.language
@@ -34,8 +38,8 @@
                                 hbt.sonar.highlight
                                 hbt.sonar.analysis
                                 hbt.sonar.lcov
-                                hbt.sonar.source-sensor
                                 hbt.sonar.coverage-sensor
+                                hbt.sonar.source-sensor
                                 hbt.sonar.plugin]}))
 
 (defn uber [_]

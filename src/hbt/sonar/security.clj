@@ -30,7 +30,10 @@
     :name "clojure.core/read-string must not read untrusted input"
     :cwe [502] :owasp ["A8"] :severity "HIGH" :quality "SECURITY"
     :doc (str "<p><code>clojure.core/read-string</code> honours <code>*read-eval*</code> and "
-              "evaluates <code>#=</code> forms. Use <code>clojure.edn/read-string</code>, which does not.</p>")}
+              "evaluates <code>#=</code> forms. Use <code>clojure.edn/read-string</code>, which does not.</p>")
+    :fix "<pre>(require '[clojure.edn :as edn])\n(edn/read-string s)</pre>"
+    ;; the one rule whose fix is mechanical, so it ships as a quick fix
+    :quick-fix {:message "Replace with clojure.edn/read-string" :text "edn/read-string"}}
 
    {:key "shell-command-injection"
     :name "Shell arguments must not be built from computed values"
@@ -40,12 +43,14 @@
    {:key "sql-string-built"
     :name "SQL must not be assembled by string concatenation"
     :cwe [89] :owasp ["A3"] :severity "HIGH" :quality "SECURITY"
-    :doc "<p>Pass parameters as values so the driver binds them, rather than building the statement with <code>str</code> or <code>format</code>.</p>"}
+    :doc "<p>Pass parameters as values so the driver binds them, rather than building the statement with <code>str</code> or <code>format</code>.</p>"
+    :fix "<pre>(jdbc/execute! db [\"select * from t where id = ?\" id])</pre>"}
 
    {:key "weak-hash-algorithm"
     :name "Broken hash algorithm"
     :cwe [327 328] :owasp ["A2"] :severity "HIGH" :quality "SECURITY"
-    :doc "<p>MD5 and SHA-1 are broken for any security purpose. For passwords use a memory-hard KDF, not a hash.</p>"}
+    :doc "<p>MD5 and SHA-1 are broken for any security purpose. For passwords use a memory-hard KDF, not a hash.</p>"
+    :fix "<pre>(MessageDigest/getInstance \"SHA-256\")</pre>"}
 
    {:key "insecure-random"
     :name "java.util.Random is not a secure source of randomness"
@@ -61,6 +66,16 @@
     :name "XML parsing must disable external entities"
     :cwe [611] :owasp ["A5"] :severity "HIGH" :quality "SECURITY"
     :doc "<p>A parser that resolves external entities will fetch attacker-named URLs and read local files.</p>"}
+
+   {:key "interprocedural-taint"
+    :name "Attacker-influenced data reaches a sink through a call chain"
+    :cwe [20] :owasp ["A3"] :severity "MEDIUM" :quality "SECURITY"
+    :doc (str "<p>A function obtains attacker-influenced data and passes it toward a "
+              "dangerous sink through one or more calls.</p>"
+              "<p>This is an over-approximation: it does not track argument positions, "
+              "so a function that both obtains such data and calls a sink is reported "
+              "even when the two are unrelated. Confirm the path before acting.</p>")
+    :fix "<p>Validate or escape the value at the boundary where it enters.</p>"}
 
    ;; --- hotspots: review required, not defects ---
    {:key "shell-invocation" :hotspot? true
@@ -214,9 +229,16 @@
                 (flow l)))
 
      (for [l (lists-headed-by nodes read-string-fns)]
-       (finding "read-string-untrusted" l
-                "clojure.core/read-string evaluates #= forms; use clojure.edn/read-string"
-                (flow l)))
+       (assoc (finding "read-string-untrusted" l
+                       "clojure.core/read-string evaluates #= forms; use clojure.edn/read-string"
+                       (flow l))
+              ;; The head symbol's own span, so the edit replaces the call
+              ;; name and nothing else.
+              :quick-fix {:message "Replace with clojure.edn/read-string"
+                          :text "edn/read-string"
+                          :line (:line l) :col (inc (:col l))
+                          :end-line (:line l)
+                          :end-col (+ (inc (:col l)) (count (:head l)))}))
 
      (for [l (lists-headed-by nodes shell-fns)
            :when (any-dynamic-arg? nodes l)]
@@ -273,6 +295,55 @@
                       (re-find #"\"(0?7[0-7][0-7]|rwxrwxrwx|.......rw.)\"" (:text n)))]
        (finding "permissive-file-permissions" n
                 "world-accessible file mode")))))
+
+(defn- namespace-name
+  "The ns this file declares, or nil."
+  [nodes]
+  (when-let [nsform (first (lists-headed-by nodes #{"ns"}))]
+    (:text (first-argument nodes nsform))))
+
+(defn- enclosing-var
+  "The name of the innermost defn/def enclosing `n`, by position."
+  [nodes n]
+  (->> (lists-headed-by nodes #{"defn" "defn-" "def" "defmacro" "defmethod"})
+       (filter #(and (<= (:line %) (:line n)) (>= (:end-line %) (:line n))))
+       (sort-by #(- (:end-line %) (:line %)))
+       first
+       (#(when % (first-argument nodes %)))
+       :text))
+
+(defn- dangerous-sinks
+  "Sink calls that are actually unsafe, not merely sinks.
+
+  Seeding the interprocedural pass from raw function names was wrong: it
+  flagged `(jdbc/execute! ds [\"... WHERE org_id = ?\" org-id])` -- a
+  correctly parameterised query -- because the name matched. The seeds now
+  use the same predicates the direct rules use, so the two passes agree on
+  what danger is."
+  [nodes]
+  (concat
+   (filter #(dynamic-arg? nodes %) (lists-headed-by nodes eval-fns))
+   (lists-headed-by nodes read-string-fns)
+   (filter #(any-dynamic-arg? nodes %) (lists-headed-by nodes shell-fns))
+   (filter (fn [l] (some #(and (= :list (:tag %)) (contains? build-fns (:head %)))
+                         (children-of nodes l)))
+           (lists-headed-by nodes sql-fns))))
+
+(defn seeds
+  "Which vars in this file directly obtain attacker-influenced data, and
+  which directly hand data to an UNSAFE sink. These seed the interprocedural
+  propagation in hbt.sonar.callgraph."
+  [nodes]
+  (let [nsname (namespace-name nodes)
+        var-of (fn [l] (when-let [v (enclosing-var nodes l)] [nsname v]))]
+    (if-not nsname
+      {:taints #{} :reaches #{}}
+      {:taints  (into #{} (keep var-of) (lists-headed-by nodes sources))
+       :reaches (into #{} (keep var-of) (dangerous-sinks nodes))})))
+
+(defn seeds-of-source [source]
+  (let [{:keys [ok? nodes]} (parse/parse source)]
+    (when ok? (seeds nodes))))
 
 (defn findings-of-source [source]
   (let [{:keys [ok? nodes]} (parse/parse source)]

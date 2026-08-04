@@ -9,7 +9,8 @@
             [hbt.sonar.rules]
             [hbt.sonar.sensor]
             [hbt.sonar.source-sensor]
-            [hbt.sonar.test-sensor])
+            [hbt.sonar.test-sensor]
+            [hbt.sonar.external-sensor])
   (:import [org.sonar.api.config PropertyDefinition PropertyDefinition$ConfigScope])
   (:gen-class
    :name hbt.sonar.ClojurePlugin
@@ -52,6 +53,15 @@
     :doc     (str "Paths to cloverage lcov reports. Produce one with: "
                   "clojure -M:test -m cloverage.coverage --lcov -p src -s test")}])
 
+(def ^:private external-property-specs
+  (for [[engine prop] const/external-report-props]
+    {:key prop
+     :name (str engine " report paths")
+     :default ""
+     :doc (str "Paths to " engine " JSON reports. Findings arrive as external "
+               "issues backed by ad-hoc rules, so configure the rules in "
+               engine "'s own config rather than in a quality profile.")}))
+
 (defn- property [{:keys [key name default doc]}]
   (-> (PropertyDefinition/builder key)
       (.name name)
@@ -69,7 +79,8 @@
    "hbt.sonar.KondoSensor"
    "hbt.sonar.ClojureSourceSensor"
    "hbt.sonar.CloverageSensor"
-   "hbt.sonar.KaochaSensor"])
+   "hbt.sonar.KaochaSensor"
+   "hbt.sonar.ExternalAnalyzerSensor"])
 
 (defn- load-extension
   "Resolved by name because these are AOT artefacts of sibling namespaces.
@@ -85,5 +96,5 @@
 
 (defn -define [_ ctx]
   (.addExtensions ctx (concat (map load-extension extension-classes)
-                              (map property property-specs)))
+                              (map property (concat property-specs external-property-specs))))
   nil)

@@ -49,11 +49,17 @@
 (defn line-data
   "The two per-line maps Sonar needs to reason about *which* lines matter.
 
-  `ncloc-data` marks code lines; `executable-lines-data` marks lines that
-  could have been covered. New-code coverage is computed against the
-  executable set, so without it the number the quality gate tests is derived
-  from whatever the coverage report happened to mention."
-  [nodes]
+  `ncloc-data` marks code lines; `executable-data` marks lines that could
+  have been covered. New-code coverage is computed against the executable
+  set.
+
+  `truth`, when given, is the set of lines the coverage tool actually
+  instrumented, and is used verbatim. The heuristic below is only a fallback
+  for files no coverage report mentions: measured against cloverage on this
+  project it misses 17% of instrumented lines, so it is a guess and the
+  report is not."
+  ([nodes] (line-data nodes nil))
+  ([nodes truth]
   (let [leaves (parse/leaves nodes)
         code   (into #{} (comp (remove :commented?)
                                (remove #(contains? #{:comment :trivia} (:type %)))
@@ -67,9 +73,10 @@
                                (filter #(= :list (:tag %)))
                                (map :line))
                      nodes)
+        exec   (or truth exec)
         span   (into code exec)]
     {:ncloc-data      (line-map code span)
-     :executable-data (line-map exec span)}))
+     :executable-data (line-map exec span)})))
 
 (defn measures
   "Measures for a source string, or nil when it does not parse."

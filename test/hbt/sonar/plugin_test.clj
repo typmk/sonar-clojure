@@ -100,7 +100,8 @@
                  "hbt.sonar.KondoSensor"
                  "hbt.sonar.ClojureSourceSensor"
                  "hbt.sonar.CloverageSensor"
-                 "hbt.sonar.KaochaSensor"}
+                 "hbt.sonar.KaochaSensor"
+                 "hbt.sonar.ExternalAnalyzerSensor"}
                (set (map #(.getName ^Class %) classes)))))
       (testing "one property per report the plugin reads, plus file suffixes"
-        (is (= 5 (count props)))))))
+        (is (= 9 (count props)) "5 built-in reports plus one per external analyzer")))))

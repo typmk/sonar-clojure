@@ -14,8 +14,16 @@
 (def default-suffixes [".clj" ".cljs" ".cljc" ".edn" ".bb"])
 (def default-report "target/clj-kondo.json")
 (def default-analysis "target/clj-kondo-analysis.json")
-(def default-coverage "target/coverage/lcov.info")
+(def default-coverage "target/coverage/codecov.json")
 (def default-test-report "target/junit.xml")
+
+;; One property per external analyzer. No default path: an analyzer nobody
+;; runs must not log a missing report every scan.
+(def external-report-props
+  {"splint"     "sonar.clojure.splint.reportPaths"
+   "clj-holmes" "sonar.clojure.cljholmes.reportPaths"
+   "eastwood"   "sonar.clojure.eastwood.reportPaths"
+   "nvd"        "sonar.clojure.nvd.reportPaths"})
 
 ;; A finding whose linter is absent from the generated catalogue lands here
 ;; rather than being dropped. A newer clj-kondo than the plugin was built

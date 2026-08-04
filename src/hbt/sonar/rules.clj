@@ -7,6 +7,7 @@
             [hbt.sonar.const :as const]
             [hbt.sonar.security :as security])
   (:import [org.sonar.api.rules CleanCodeAttribute RuleType]
+           [org.sonar.api.server.rule RuleDescriptionSection]
            [org.sonar.api.server.rule RulesDefinition$OwaspTop10 RulesDefinition$OwaspTop10Version]
            [org.sonar.api.issue.impact Severity SoftwareQuality])
   (:gen-class
@@ -17,17 +18,38 @@
   (with-open [r (io/reader (io/resource "hbt/sonar/linters.edn"))]
     (edn/read (java.io.PushbackReader. r))))
 
+(def ^:private remediation
+  "Minutes to fix, by impact severity. Without a remediation function every
+  rule costs nothing, `sqale_index` is 0 and the maintainability rating is
+  computed from an empty set -- your PHP project reports 15,384 minutes of
+  debt, Clojure reported none."
+  {"HIGH" "30min" "MEDIUM" "10min" "LOW" "5min"})
+
+(defn- section [key html]
+  (-> (RuleDescriptionSection/builder)
+      (.sectionKey key)
+      (.htmlContent html)
+      (.build)))
+
 (defn- description [{:keys [key url]}]
   (str "<p>clj-kondo linter <code>" key "</code>.</p>"
        "<p>Configure it in <code>.clj-kondo/config.edn</code> under "
        "<code>{:linters {:" key " {:level ...}}}</code>.</p>"
        "<p><a href=\"" url "\">Linter documentation</a></p>"))
 
+(defn- with-debt!
+  "Minutes to fix. Set on the rule, which is where the API keeps it."
+  [rule severity]
+  (.setDebtRemediationFunction
+    rule (.constantPerIssue (.debtRemediationFunctions rule)
+                            (get remediation severity "10min")))
+  rule)
+
 (defn- add-rule!
   "The catalogue names Sonar's enums directly, so this reads them rather than
   translating through a table that would have to be kept in step."
   [repo r]
-  (doto (.createRule repo (:key r))
+  (doto (with-debt! (.createRule repo (:key r)) (:severity r))
     (.setName (:name r))
     (.setHtmlDescription (description r))
     (.setType (RuleType/valueOf ^String (:type r)))
@@ -51,10 +73,16 @@
 
   A hotspot is a thing to review, not a thing known to be wrong. Sonar
   reviews the two separately, and mixing them makes both easier to ignore."
-  [repo {:keys [key name hotspot? cwe owasp severity] :as r}]
-  (let [rule (doto (.createRule repo key)
+  [repo {:keys [key name hotspot? cwe owasp severity fix] :as r}]
+  (let [rule (doto (with-debt! (.createRule repo key) severity)
                (.setName name)
                (.setHtmlDescription (security-description r))
+               ;; Structured sections are what Sonar renders as the
+               ;; "why is this an issue" / "how can I fix it" tabs. A single
+               ;; blob of HTML renders as neither.
+               (.addDescriptionSection (section "root_cause" (:doc r)))
+               (.addDescriptionSection
+                 (section "how_to_fix" (or fix "<p>Remove the unsafe call or move the value out of the caller's control.</p>")))
                (.setType (if hotspot?
                            RuleType/SECURITY_HOTSPOT
                            RuleType/VULNERABILITY))

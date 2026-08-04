@@ -66,6 +66,22 @@
       (is (some? f) "the sink is still reported")
       (is (nil? (:flow f)) "but no flow is invented across the call boundary"))))
 
+(deftest seeds-agree-with-the-direct-rules-about-what-danger-is
+  (testing "a parameterised query is NOT a sink -- it was seeding the
+            interprocedural pass and producing six false paths in lume"
+    (let [s (security/seeds-of-source
+             "(ns a)\n(defn f [org-id]\n  (jdbc/execute! ds [\"select * from t where org = ?\" org-id]))")]
+      (is (empty? (:reaches s)))))
+  (testing "a query built by string concatenation IS"
+    (let [s (security/seeds-of-source
+             "(ns a)\n(defn f [x]\n  (jdbc/query db (str \"select \" x)))")]
+      (is (= #{["a" "f"]} (:reaches s)))))
+  (testing "a shell call with only literal args is not a sink either"
+    (is (empty? (:reaches (security/seeds-of-source "(ns a)\n(defn f [] (sh \"ls\"))")))))
+  (testing "and a source is picked up under its enclosing var"
+    (is (= #{["a" "g"]}
+           (:taints (security/seeds-of-source "(ns a)\n(defn g [req] (:params req))"))))))
+
 (deftest every-rule-emitted-is-a-declared-rule
   (let [declared (set (map :key security/rules))
         src "(def password \"hunter2hunter2\")

@@ -15,7 +15,7 @@
   [ctx prop default]
   (let [base  (.baseDir (.fileSystem ctx))
         given (remove str/blank? (.getStringArray (.config ctx) prop))]
-    (for [p (if (seq given) given [default])]
+    (for [p (if (seq given) given (if default [default] []))]
       (let [f (io/file p)]
         (if (.isAbsolute f) f (io/file base p))))))
 
@@ -24,12 +24,21 @@
 (defn input-file
   "The InputFile for a path named inside a report, or nil.
 
-  Tools emit paths relative to their own working directory while Sonar
-  indexes relative to the module base, so try the relative path first and the
-  base-resolved absolute path second."
+  Three attempts, because the tools disagree about what a path is relative
+  to. cloverage's lcov writes `src/hbt/sonar/x.clj` while its codecov writer
+  drops the source root and writes `hbt/sonar/x.clj`; clj-kondo writes
+  whatever its working directory made it. A path that fails to resolve costs
+  the finding silently, so it is worth trying all three.
+
+  The suffix match is last and requires a path separator boundary, so
+  `a/foo.clj` cannot match `b/megafoo.clj`."
   [ctx ^String filename]
   (let [fs  (.fileSystem ctx)
         ps  (.predicates fs)
         abs (.getAbsolutePath (io/file (.baseDir fs) filename))]
     (or (.inputFile fs (.hasPath ps filename))
-        (.inputFile fs (.hasAbsolutePath ps abs)))))
+        (.inputFile fs (.hasAbsolutePath ps abs))
+        (let [needle (str "/" filename)]
+          (->> (.inputFiles fs (.all ps))
+               (filter #(str/ends-with? (str (.path ^org.sonar.api.batch.fs.InputFile %)) needle))
+               first)))))
