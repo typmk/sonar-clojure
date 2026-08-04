@@ -12,6 +12,13 @@
  "sqKey": "shell-invocation",
  "title": "Shell invocation should be reviewed",
  "status": "ready",
- "securityStandards": {},
+ "securityStandards": {
+  "CWE": [
+   78
+  ],
+  "OWASP": [
+   "A1"
+  ]
+ },
  "defaultSeverity": "Medium"
 }

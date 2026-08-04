@@ -1,0 +1,12 @@
+<h2>Why is this an issue?</h2>
+<p>This analyzer reads reports it does not produce. When one is absent the dashboard does not go blank &mdash; it goes <strong>green</strong>.</p>
+<ul>
+  <li>No clj-kondo report &rarr; zero rule findings, which reads as a clean project.</li>
+  <li>No coverage report &rarr; 0%, which fails the quality gate for a reason that has nothing to do with the tests.</li>
+  <li>No analysis report &rarr; no symbol navigation, no dictionary check, no interprocedural taint.</li>
+  <li>No test report &rarr; no test counts, so coverage becomes the only evidence the code is exercised at all.</li>
+</ul>
+<p>Each sensor already says so on standard output. Nobody reads scanner logs. This issue exists so the question <em>was this measured?</em> can be asked of the dashboard.</p>
+<h2>How can I fix it?</h2>
+<p>Produce the named report in CI, or set the property that points at it. The message lists exactly which inputs were missing and what each absence costs.</p>
+<p>The companion metric <code>clj_analysis_completeness</code> carries the same fact as a percentage, so a quality gate can be made to fail on it rather than merely report it.</p>

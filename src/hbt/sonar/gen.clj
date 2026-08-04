@@ -6,9 +6,20 @@
   keywords, which `hbt.sonar.rules` then translated back through four
   parallel maps -- so adding a quality meant editing two files and nothing
   connected them. Naming the enums here removes the translation."
-  (:require [clojure.java.io :as io]
+  (:require [clojure.data.json :as json]
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.pprint :as pp]))
+
+(defn clj-kondo-version
+  "Read from deps.edn rather than from the loaded library, so the recorded
+  version is the one this repository declares. clj-kondo exposes no version
+  var; its jar name is the only other witness and that is not on the runtime
+  classpath at all."
+  []
+  (get-in (edn/read-string (slurp "deps.edn"))
+          [:aliases :gen-rules :extra-deps 'clj-kondo/clj-kondo :mvn/version]))
 
 (def ^:private quality
   "clj-kondo linter -> the software quality it actually bears on.
@@ -69,4 +80,23 @@
                     sort vec)
           idx (io/file dir "index.edn")]
       (spit idx (pr-str keys))
-      (println "wrote" (count keys) "rule keys ->" (str idx)))))
+      (println "wrote" (count keys) "rule keys ->" (str idx)))
+    ;; Provenance. Which clj-kondo produced this catalogue is a fact about the
+    ;; artifact, and until it was written down it lived in a commit message --
+    ;; rank 4, and unable to fail a build. Recorded here, a test can assert it
+    ;; against the declared dependency, so upgrading clj-kondo without
+    ;; regenerating stops being a silent divergence.
+    (let [out (io/file "resources" "hbt" "sonar" "provenance.edn")
+          cwe (json/read-str (slurp (io/file "resources" "hbt" "sonar" "cwe.json")))]
+      (spit out (pr-str {:rule-catalogue
+                         {:source "clj-kondo default config"
+                          :generated-by 'hbt.sonar.gen/generate
+                          :clj-kondo-version (clj-kondo-version)
+                          :rules (count rules)}
+                         :cwe-catalogue
+                         {:source (get cwe "source")
+                          :catalogue (get cwe "catalogue")
+                          :version (get cwe "version")
+                          :date (get cwe "date")
+                          :weaknesses (count (get cwe "weaknesses"))}}))
+      (println "wrote provenance ->" (str out)))))

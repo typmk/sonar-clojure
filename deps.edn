@@ -21,7 +21,12 @@
   ;; test, so `clojure -T:build compile-clj*` must run first.
   :test
   {:extra-paths ["test" "target/classes"]
+   ;; sonar-plugin-api-impl carries SensorContextTester -- SonarSource's own
+   ;; in-memory SensorContext. A sensor tested only through its helpers is
+   ;; tested on the parts that cannot fail; running it against a real context
+   ;; is what proves a measure and an issue actually arrive.
    :extra-deps  {org.sonarsource.api.plugin/sonar-plugin-api {:mvn/version "13.9.0.4428"}
+                 org.sonarsource.sonarqube/sonar-plugin-api-impl {:mvn/version "10.7.0.96327"}
                  org.clojure/test.check {:mvn/version "1.1.3"}
                  io.github.cognitect-labs/test-runner
                  {:git/tag "v0.5.1" :git/sha "dfb30dd"}}

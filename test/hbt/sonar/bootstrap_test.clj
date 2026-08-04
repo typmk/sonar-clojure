@@ -36,7 +36,7 @@
   (let [ctx (Plugin$Context. (runtime))]
     (.define (bootstrap) ctx)
     (testing "every extension the Clojure side registers arrives"
-      (is (= 9 (count (filter class? (.getExtensions ctx))))))))
+      (is (= 11 (count (filter class? (.getExtensions ctx))))))))
 
 (deftest it-restores-the-context-classloader
   (let [ctx    (Plugin$Context. (runtime))

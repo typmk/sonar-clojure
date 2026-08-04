@@ -15,7 +15,7 @@
  "scope": "Main",
  "securityStandards": {
   "CWE": [
-   269
+   266
   ],
   "OWASP": [
    "A1"

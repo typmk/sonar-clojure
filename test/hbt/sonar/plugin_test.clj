@@ -118,6 +118,8 @@
                  "hbt.sonar.KondoSensor"
                  "hbt.sonar.ClojureSourceSensor"
                  "hbt.sonar.CloverageSensor"
+                 "hbt.sonar.ClojureMetrics"
+                 "hbt.sonar.CompletenessSensor"
                  "hbt.sonar.KaochaSensor"
                  "hbt.sonar.ExternalAnalyzerSensor"
                  "hbt.sonar.ExternalRulesDefinition"}

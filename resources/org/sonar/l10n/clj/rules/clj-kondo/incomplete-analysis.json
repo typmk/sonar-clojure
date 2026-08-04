@@ -1,0 +1,22 @@
+{
+ "title": "Analysis inputs were missing",
+ "type": "BUG",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "15min"
+ },
+ "tags": [
+  "clojure"
+ ],
+ "defaultSeverity": "High",
+ "sqKey": "incomplete-analysis",
+ "scope": "All",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "RELIABILITY": "HIGH"
+  },
+  "attribute": "COMPLETE"
+ }
+}

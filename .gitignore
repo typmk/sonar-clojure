@@ -3,3 +3,7 @@ classes/
 .cpcache/
 .lsp/.cache/
 .clj-kondo/.cache/
+# Installed locally so self-lint fires the security hooks; the canonical
+# copy is clj-kondo/, and a second one is a second source of truth.
+.clj-kondo/hbt/
+.clj-kondo/imports/

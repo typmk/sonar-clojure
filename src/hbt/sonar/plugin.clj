@@ -5,6 +5,7 @@
             [hbt.sonar.coverage-sensor]
             [hbt.sonar.language]
             [hbt.sonar.profile]
+            [hbt.sonar.provenance :as provenance]
             [hbt.sonar.rules]
             [hbt.sonar.sensor]
             [hbt.sonar.source-sensor]
@@ -86,7 +87,9 @@
    "hbt.sonar.CloverageSensor"
    "hbt.sonar.KaochaSensor"
    "hbt.sonar.ExternalAnalyzerSensor"
-   "hbt.sonar.ExternalRulesDefinition"])
+   "hbt.sonar.ExternalRulesDefinition"
+   "hbt.sonar.ClojureMetrics"
+   "hbt.sonar.CompletenessSensor"])
 
 (defn- load-extension
   "Resolved by name because these are AOT artefacts of sibling namespaces.
@@ -101,6 +104,9 @@
                       {:class n} e)))))
 
 (defn -define [_ ctx]
+  ;; Printed once at load, so an operator reading sonar.log can see which
+  ;; catalogues the running plugin was built from without unpacking the jar.
+  (println "sonar-clojure:" (provenance/summary))
   (.addExtensions ctx (concat (map load-extension extension-classes)
                               (map property (concat property-specs external-property-specs))))
   nil)

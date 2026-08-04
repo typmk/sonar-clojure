@@ -8,7 +8,7 @@ SonarQube ships no Clojure support. Without a language claiming these files,
 nothing is indexed and no finding — from this plugin or any other source — can
 attach to them.
 
-**292 rules** · SonarQube 10.0+, verified on 26.7 Community · JRE 17+ · ~7 MB
+**293 rules** · SonarQube 10.0+, verified on 26.7 Community · JRE 17+ · ~7 MB
 
 ---
 
@@ -100,8 +100,15 @@ sonar.clj.file.patterns=**/*.clj,**/*.cljs,**/*.cljc,**/*.edn,**/*.bb
 ```
 
 The plugin reads reports and invokes nothing, so CI lints and tests once and
-both the local gate and the dashboard use that output. A missing report is
-reported loudly, never treated as a clean result.
+both the local gate and the dashboard use that output.
+
+**A missing report is data, not silence.** SonarQube has no native notion of an
+incomplete analysis: a project nobody measured and a project that is clean
+produce the same green dashboard. So the plugin publishes
+`clj_analysis_completeness`, the percentage of the four reports above that were
+present, and raises `incomplete-analysis` on the project naming each missing
+input and what its absence costs. Add a quality-gate condition on the metric to
+make an unmeasured analysis fail rather than merely inform.
 
 ---
 
@@ -117,6 +124,11 @@ reported loudly, never treated as a clean result.
   Ten of the 34 are clj-kondo hooks (see **Security hooks** above); the rest
   are plugin-side, because they match a shape with no call to key on — a
   `reify` of `X509TrustManager`, a credential-shaped `def`, a regex literal.
+  The CWE claims are checked in CI, not by review: MITRE's catalogue ships in
+  the jar, and every mapping must be one MITRE's own `Mapping Notes / Usage`
+  field marks `Allowed` or `Allowed-with-Review`. That check caught three
+  `Discouraged` Class-level mappings (CWE-20, CWE-269, CWE-610) and one
+  security rule asserting no CWE at all.
 - **Project vocabulary** — `banned-term` enforces CLAUDE.md's `Banned → use`
   table over every keyword clj-kondo resolves. Deliberately narrower than the
   full table: `:err` is `clojure.java.shell/sh`'s return key, and a rule
@@ -129,6 +141,8 @@ reported loudly, never treated as a clean result.
   analysis.
 - **External** — splint, clj-holmes, eastwood and nvd-clojure import as
   external issues; splint's 121 rules are browsable before it has ever run.
+- **Its own inputs** — `clj_analysis_completeness` and `incomplete-analysis`,
+  above.
 
 Two rules ship registered but **inactive** — `unscoped-tenant-query` and
 `partial-match-validation` — because their precision does not yet justify
@@ -159,16 +173,37 @@ switching them on for everyone.
 
 ---
 
+## Provenance
+
+Two of this artifact's claims are about the outside world: that its generated
+rules match a particular clj-kondo, and that its CWE mappings were validated
+against a particular MITRE revision. Both are stamped into the jar at
+generation time, asserted by the test suite against `deps.edn` and the shipped
+catalogue, printed to `sonar.log` at plugin load, and shown in SonarQube's
+Marketplace page as the plugin description:
+
+```
+136 rules generated from clj-kondo 2026.07.24; CWE mappings checked against
+MITRE CWE v4.20 (2026-04-30)
+```
+
+Upgrading clj-kondo without re-running `clojure -X:gen-rules` fails the suite
+rather than diverging quietly.
+
+---
+
 ## Build
 
 ```bash
 clojure -X:gen-rules     # regenerate the rule catalogue from clj-kondo
 clojure -T:build uber    # -> target/sonar-clojure-plugin-0.1.0.jar
-clojure -M:test          # 81 tests, 253 assertions
+clojure -M:test          # 99 tests, 361 assertions
 ```
 
 The entry point is Java and must stay so; `hbt.sonar.ClojurePluginBootstrap`
-documents why. Rule metadata is edited in
+documents why. Resources are staged into `target/stage`, never `target/classes`
+— the latter precedes `resources` on the test classpath, so a copy there makes
+the suite validate the last build instead of the source. Rule metadata is edited in
 `resources/org/sonar/l10n/clj/rules/clj-kondo/<key>.{json,html}` — SonarSource's
 own layout — without recompiling.
 
