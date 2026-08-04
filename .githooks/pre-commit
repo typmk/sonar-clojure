@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Lints the Clojure files about to be committed, against this repo's own config.
+#
+# core.hooksPath was already set to .githooks in this clone while .githooks did
+# not exist, so every commit here has been silently unchecked. A hook that
+# cannot find its checker must fail the commit: an unchecked commit is not a
+# passing one, and the failure mode of pretending otherwise is that nobody
+# learns the checker went missing.
+#
+# Arm a fresh clone with:
+#   git config core.hooksPath .githooks
+#
+# Deliberately narrow. It lints staged files and nothing else -- the full
+# suite, the CWE mappings and the packaging assertions belong in CI, where they
+# can take a minute without anyone waiting on them.
+
+set -euo pipefail
+
+staged=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.clj[csx]?$' || true)
+[ -z "$staged" ] && exit 0
+
+if ! command -v clj-kondo >/dev/null 2>&1; then
+  echo "pre-commit: clj-kondo is not on PATH." >&2
+  echo "  Install it, or bypass this once with 'git commit --no-verify' and say so." >&2
+  exit 1
+fi
+
+# shellcheck disable=SC2086
+out=$(clj-kondo --lint $staged --config '{:output {:format :json}}' 2>/dev/null || true)
+
+count=$(printf '%s' "$out" | python3 -c '
+import json,sys
+try: print(len(json.load(sys.stdin).get("findings", [])))
+except Exception: print("unparseable")
+' )
+
+if [ "$count" = "unparseable" ]; then
+  echo "pre-commit: clj-kondo produced output this hook could not read." >&2
+  echo "  Refusing rather than assuming it was clean." >&2
+  exit 1
+fi
+
+if [ "$count" -ne 0 ]; then
+  printf '%s' "$out" | python3 -c '
+import json,sys
+for f in json.load(sys.stdin)["findings"]:
+    print("  %s:%s:%s [%s] %s" % (f["filename"], f["row"], f["col"], f["type"], f["message"]))
+' >&2
+  echo "pre-commit: $count finding(s) in staged files." >&2
+  exit 1
+fi
+
+exit 0

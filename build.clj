@@ -1,5 +1,6 @@
 (ns build
-  (:require [clojure.java.io :as io]
+  (:require [au.com.heisenbergtech.sonar.provenance :as provenance]
+            [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.tools.build.api :as b])
   (:import [java.security MessageDigest]))
@@ -10,7 +11,7 @@
   the jar cannot describe itself differently from how it reports itself."
   []
   (str "Indexes Clojure sources and imports clj-kondo findings. "
-       ((requiring-resolve (quote au.com.heisenbergtech.sonar.provenance/summary))) "."))
+       (provenance/summary) "."))
 
 (def plugin-key "clojure")
 
@@ -139,7 +140,15 @@
                        "Plugin-OrganizationName" "Heisenberg Technologies"
                        "Plugin-Homepage"         "https://hbtcomputers.com.au"
                        "Plugin-SourcesUrl"       "https://github.com/hbtweb/sonar-clojure"
-                       "Sonar-Version"           "10.0"
+                       ;; Compared against the PLUGIN API version, not the
+                       ;; SonarQube version. 10.13 is where
+                       ;; PropertyDefinition$ConfigScope first appears, which
+                       ;; plugin.clj uses -- measured across the published
+                       ;; artifacts, 10.12 lacks it and 10.13 has it.
+                       ;; Declaring 10.0 did not make the plugin work on 10.7;
+                       ;; it made SonarQube accept a plugin that then died with
+                       ;; ClassNotFoundException and took the server down.
+                       "Sonar-Version"           "10.13"
                        "Plugin-RequiredForLanguages" "clj"}})
   (let [sum (sha256 jar-file)
         {:keys [sha dirty?]} (revision)]

@@ -1,0 +1,89 @@
+name: ci
+
+# Everything this repo claims about itself is checked by a machine here, or it
+# is checked by whoever remembers to. The CWE mappings, the rule catalogue's
+# agreement with clj-kondo, the jar's own packaging -- all of it is only worth
+# having because it runs without being asked.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+          clj-kondo: latest
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+          key: cdeps-${{ hashFiles('deps.edn') }}
+          restore-keys: cdeps-
+
+      - name: The rule catalogue matches the clj-kondo that is declared
+        # Regenerating must be a no-op. If it is not, someone upgraded
+        # clj-kondo without regenerating, and the shipped catalogue describes a
+        # linter that is no longer the one being used.
+        run: |
+          clojure -X:gen-rules
+          git diff --exit-code -- resources/ \
+            || { echo "::error::rule catalogue is stale -- run 'clojure -X:gen-rules' and commit"; exit 1; }
+
+      - name: Build
+        run: clojure -T:build uber
+
+      - name: Test
+        # Includes the CWE mappings checked against the shipped MITRE catalogue,
+        # and the packaging assertions read from the jar built above.
+        run: clojure -M:test
+
+      - name: The analyzer passes its own rules
+        run: |
+          clj-kondo --lint src test --config '{:output {:format :json}}' > target/clj-kondo.json || true
+          n=$(jq '.findings | length' target/clj-kondo.json)
+          echo "self-lint findings: $n"
+          [ "$n" -eq 0 ] || { jq -r '.findings[] | "\(.filename):\(.row) \(.message)"' target/clj-kondo.json; exit 1; }
+
+      - name: Coverage
+        run: clojure -M:coverage
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin
+          path: |
+            target/sonar-clojure-plugin-*.jar
+            target/sonar-clojure-plugin-*.jar.sha256
+            target/clj-kondo.json
+            target/coverage/codecov.json
+          if-no-files-found: error
+
+  release-is-tagged-and-clean:
+    # The release gate is itself a claim; a tag build proves it holds rather
+    # than asserting that it would.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - uses: DeLaGuardo/setup-clojure@13.4
+        with: { cli: latest }
+      - run: clojure -T:build release
