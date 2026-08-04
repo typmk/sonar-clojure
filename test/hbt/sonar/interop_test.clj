@@ -30,19 +30,8 @@
       (is (= "java.io.ObjectInputStream" (get i "ObjectInputStream"))))))
 
 (deftest catches-the-jdk-misuse-clojure-inherits
-  (testing "an imported class matches by its simple name"
-    (is (contains? (rules-for (str ns-form "(MessageDigest/getInstance \"MD5\")"))
-                   "weak-hash-algorithm")))
-  (testing "and the same rule fires on the fully-qualified form"
-    (is (contains? (rules-for "(java.security.MessageDigest/getInstance \"SHA-1\")")
-                   "weak-hash-algorithm")))
-  (is (contains? (rules-for (str ns-form "(Cipher/getInstance \"AES/ECB/PKCS5Padding\")"))
-                 "cipher-ecb-mode"))
-  (is (contains? (rules-for (str ns-form "(Cipher/getInstance \"DES/CBC/PKCS5Padding\")"))
-                 "weak-cipher-algorithm"))
-  (is (contains? (rules-for (str ns-form "(SSLContext/getInstance \"TLSv1\")"))
-                 "weak-tls-protocol"))
-  (is (contains? (rules-for (str ns-form "(Random.)")) "insecure-random"))
+  ;; weak-hash, cipher, TLS and insecure-random moved to clj-kondo hooks,
+  ;; which resolve the var instead of matching its name. See hooks_test.
   (is (contains? (rules-for (str ns-form "(ObjectInputStream. in)")) "unsafe-deserialization"))
   (is (contains? (rules-for (str ns-form "(DocumentBuilderFactory/newInstance)"))
                  "xml-external-entity"))
@@ -50,17 +39,8 @@
                  "predictable-temp-file")))
 
 (deftest does-not-fire-on-the-safe-call
-  (testing "the argument decides -- SHA-256 and GCM are fine"
-    (is (empty? (rules-for (str ns-form "(MessageDigest/getInstance \"SHA-256\")"))))
-    (is (empty? (rules-for (str ns-form "(Cipher/getInstance \"AES/GCM/NoPadding\")"))))
-    (is (empty? (rules-for (str ns-form "(SSLContext/getInstance \"TLSv1.3\")")))))
-  (testing "an unimported simple name resolves to nothing rather than guessing"
-    (is (empty? (rules-for "(MessageDigest/getInstance \"MD5\")"))))
-  (testing "the string MD5 in prose is not a finding -- this is why the rule
-            resolves the class instead of matching text"
-    (is (empty? (rules-for (str ns-form "(def doc \"we no longer use MD5 here\")")))))
   (testing "commented-out code is not a finding"
-    (is (empty? (rules-for (str ns-form "#_(MessageDigest/getInstance \"MD5\")"))))))
+    (is (empty? (rules-for (str ns-form "#_(ObjectInputStream. in)"))))))
 
 (deftest a-hardened-xml-parser-is-not-a-finding
   (testing "an untouched factory is a finding"

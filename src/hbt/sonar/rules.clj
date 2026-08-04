@@ -7,6 +7,7 @@
             [hbt.sonar.const :as const]
             [hbt.sonar.access :as access]
             [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.hooks :as hooks]
             [hbt.sonar.regex :as regex]
             [hbt.sonar.tests :as tests]
             [hbt.sonar.web :as web]
@@ -101,7 +102,7 @@
           (metadata/load-rules (concat security/rule-keys interop/rule-keys
                                        concurrency/rule-keys regex/rule-keys
                                        tests/rule-keys web/rule-keys
-                                       access/rule-keys)))
+                                       access/rule-keys hooks/rule-keys)))
     (doto (.createRule repo const/unknown-rule)
       (.setName "Unrecognised clj-kondo linter")
       (.setHtmlDescription

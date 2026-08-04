@@ -71,16 +71,7 @@
   reading. These are two concerns that happen to sit near each other -- WHAT
   to detect, and HOW to describe it -- and they are already correctly
   separated."
-  [{:key "weak-hash-algorithm" :class "java.security.MessageDigest" :member "getInstance"
-    :arg #"(?i)^(MD5|SHA-?1|MD2|MD4)$"}
-   {:key "cipher-ecb-mode" :class "javax.crypto.Cipher" :member "getInstance"
-    :arg #"(?i)/ECB/"}
-   {:key "weak-cipher-algorithm" :class "javax.crypto.Cipher" :member "getInstance"
-    :arg #"(?i)^(DES|DESede|RC2|RC4|Blowfish)(/|$)"}
-   {:key "weak-tls-protocol" :class "javax.net.ssl.SSLContext" :member "getInstance"
-    :arg #"(?i)^(SSL|SSLv2|SSLv3|TLSv1|TLSv1\.1)$"}
-   {:key "insecure-random" :class "java.util.Random" :member :new}
-   {:key "unsafe-deserialization" :class "java.io.ObjectInputStream" :member :new}
+  [{:key "unsafe-deserialization" :class "java.io.ObjectInputStream" :member :new}
    {:key "unsafe-deserialization" :class "java.beans.XMLDecoder" :member :new}
    {:key "jndi-injection" :class "javax.naming.InitialContext" :member "doLookup" :dynamic true}
    {:key "jndi-injection" :class "javax.naming.Context" :member "lookup" :dynamic true}
@@ -201,19 +192,5 @@
                        " -- confirm external entity resolution is disabled"
                        " -- see the rule description"))})))
 
-(def ^:private clojure-rng
-  "clojure.core's RNG, all of which delegate to java.util.Random. Missing
-  these made the rule blind to the idiomatic Clojure token-generation bug --
-  `(apply str (repeatedly 32 #(rand-nth alphabet)))` produced nothing."
-  #{"rand" "rand-int" "rand-nth" "shuffle" "Math/random" "clojure.core/rand"
-    "clojure.core/rand-int" "clojure.core/rand-nth" "clojure.core/shuffle"})
-
-(defn- clojure-rng-findings [nodes]
-  (for [n (tree/lists-headed-by nodes clojure-rng)]
-    {:rule "insecure-random"
-     :line (:line n) :col (:col n) :end-line (:end-line n) :end-col (:end-col n)
-     :message (str (:head n) " delegates to java.util.Random -- confirm nothing an"
-                   " attacker must not guess is derived from it")}))
-
 (defn all-findings [nodes]
-  (concat (findings nodes) (trust-all-findings nodes) (clojure-rng-findings nodes)))
+  (concat (findings nodes) (trust-all-findings nodes)))

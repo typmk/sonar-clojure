@@ -6,6 +6,7 @@
   so the decisions live here where they can be tested, and the sensor keeps
   only the calls that need the container."
   (:require [clojure.data.json :as json]
+            [clojure.string]
             [hbt.sonar.const :as const]))
 
 (defn findings
@@ -22,16 +23,23 @@
                 :end-row  (get f "end-row")
                 :end-col  (get f "end-col")}))))
 
+(defn- normalise
+  "Hook findings arrive as :hbt/weak-hash-algorithm; the Sonar rule key is
+  weak-hash-algorithm. We own that namespace, so strip it."
+  [t]
+  (if (and t (clojure.string/starts-with? t "hbt/")) (subs t 4) t))
+
 (defn classify
   "Pick the rule a finding is filed under. A linter absent from the catalogue
   files under the catch-all with its real name kept in the message, because a
   finding that vanishes is worse than one filed imprecisely."
   [known {:keys [type message]}]
-  (if (contains? known type)
+  (let [type (normalise type)]
+   (if (contains? known type)
     {:rule type :message message :recognised? true}
     {:rule const/unknown-rule
      :message (str "[" type "] " message)
-     :recognised? false}))
+     :recognised? false})))
 
 (defn span
   "clj-kondo positions -> Sonar positions. Lines are 1-based in both; columns

@@ -6,6 +6,7 @@
             [hbt.sonar.rules :as rules]
             [hbt.sonar.access :as access]
             [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.hooks :as hooks]
             [hbt.sonar.regex :as regex]
             [hbt.sonar.tests :as tests]
             [hbt.sonar.web :as web]
@@ -25,7 +26,7 @@
     (doseq [r (metadata/load-rules
                (distinct (concat security/rule-keys interop/rule-keys
                                  concurrency/rule-keys regex/rule-keys
-                                 tests/rule-keys web/rule-keys access/rule-keys)))
+                                 tests/rule-keys web/rule-keys access/rule-keys hooks/rule-keys)))
             :when (:activate? r)]
       (.activateRule p const/repository-key (:key r)))
     (.done p)

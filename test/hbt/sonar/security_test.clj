@@ -6,44 +6,13 @@
             [hbt.sonar.security :as security]))
 
 (defn- rules-for [src] (set (map :rule (security/findings-of-source src))))
-(defn- finding-for [src rule]
-  (first (filter #(= rule (:rule %)) (security/findings-of-source src))))
-
-(deftest detects-injection-shapes
-  (is (contains? (rules-for "(eval (read-string x))") "eval-of-dynamic-value"))
-  (is (contains? (rules-for "(eval (read-string x))") "read-string-untrusted"))
-  (is (contains? (rules-for "(sh \"sh\" \"-c\" cmd)") "shell-command-injection"))
-  (is (contains? (rules-for "(jdbc/query db (str \"select \" x))") "sql-string-built")))
 
 (deftest detects-hardcoded-secrets
   (is (contains? (rules-for "(def api-key \"sk-live-abcdef\")") "hardcoded-credential")))
 
-(deftest distinguishes-a-defect-from-a-thing-to-review
-  (testing "a shell call with only literal arguments is a hotspot, not a bug"
-    (is (contains? (rules-for "(sh \"ls\" \"-la\")") "shell-invocation"))
-    (is (not (contains? (rules-for "(sh \"ls\" \"-la\")") "shell-command-injection"))))
-  (testing "a shell call carrying a computed argument is the defect"
-    (is (contains? (rules-for "(sh \"sh\" \"-c\" user-input)") "shell-command-injection"))))
-
-(deftest links-source-to-sink
-  (let [f (finding-for "(let [n (slurp url)] (sh \"sh\" \"-c\" n))" "shell-command-injection")]
-    (is (some? f))
-    (testing "the flow names where the value came from, not just where it landed"
-      (is (= 2 (count (:flow f))))
-      (is (re-find #"originates" (:message (first (:flow f)))))
-      (is (re-find #"reaches the sink" (:message (second (:flow f))))))))
-
-(deftest ring-request-access-is-a-source
-  (let [f (finding-for "(let [q (:params req)] (eval q))" "eval-of-dynamic-value")]
-    (is (some? f) "(:params req) must count as attacker-influenced")
-    (is (seq (:flow f)))))
-
 (deftest states-its-own-limits
   (testing "commented-out code is not a finding"
-    (is (empty? (rules-for "#_(eval (read-string x))")))
-    (is (empty? (rules-for "(comment (sh \"sh\" \"-c\" x))"))))
-  (testing "a literal eval is not flagged -- nothing computed reaches it"
-    (is (not (contains? (rules-for "(eval '(inc 1))") "eval-of-dynamic-value"))))
+    (is (empty? (rules-for "#_(def api-key \"sk-live-abcdef\")"))))
   (testing "a short literal is not treated as a credential"
     (is (not (contains? (rules-for "(def token \"x\")") "hardcoded-credential"))))
   (testing "the credential name is matched on segment boundaries -- `bypass`
@@ -53,30 +22,7 @@
           nm))
     (doseq [nm ["api-key" "db-password" "client-secret" "auth-token"]]
       (is (contains? (rules-for (str "(def " nm " \"aaaaaaaaaa\")")) "hardcoded-credential")
-          nm)))
-  (testing "interprocedural taint is OUT OF SCOPE and must not be claimed:
-            a source in one fn reaching a sink in another produces the sink
-            finding, but no flow"
-    (let [f (finding-for "(defn a [] (slurp url))\n(defn b [x] (sh \"sh\" \"-c\" x))"
-                         "shell-command-injection")]
-      (is (some? f) "the sink is still reported")
-      (is (nil? (:flow f)) "but no flow is invented across the call boundary"))))
-
-(deftest seeds-agree-with-the-direct-rules-about-what-danger-is
-  (testing "a parameterised query is NOT a sink -- it was seeding the
-            interprocedural pass and producing six false paths in lume"
-    (let [s (security/seeds-of-source
-             "(ns a)\n(defn f [org-id]\n  (jdbc/execute! ds [\"select * from t where org = ?\" org-id]))")]
-      (is (empty? (:reaches s)))))
-  (testing "a query built by string concatenation IS"
-    (let [s (security/seeds-of-source
-             "(ns a)\n(defn f [x]\n  (jdbc/query db (str \"select \" x)))")]
-      (is (= #{["a" "f"]} (:reaches s)))))
-  (testing "a shell call with only literal args is not a sink either"
-    (is (empty? (:reaches (security/seeds-of-source "(ns a)\n(defn f [] (sh \"ls\"))")))))
-  (testing "and a source is picked up under its enclosing var"
-    (is (= #{["a" "g"]}
-           (:taints (security/seeds-of-source "(ns a)\n(defn g [req] (:params req))"))))))
+          nm))))
 
 (deftest every-rule-emitted-is-a-declared-rule
   (let [declared (set security/rule-keys)

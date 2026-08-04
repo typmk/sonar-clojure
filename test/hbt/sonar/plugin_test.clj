@@ -6,6 +6,7 @@
             [hbt.sonar.rules :as rules]
             [hbt.sonar.access :as access]
             [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.hooks :as hooks]
             [hbt.sonar.regex :as regex]
             [hbt.sonar.tests :as tests]
             [hbt.sonar.web :as web]
@@ -65,7 +66,7 @@
       (is (= (+ (count (rules/catalogue)) 1
                 (count (distinct (concat security/rule-keys interop/rule-keys concurrency/rule-keys
                                          regex/rule-keys tests/rule-keys web/rule-keys
-                                         access/rule-keys))))
+                                         access/rule-keys hooks/rule-keys))))
              (count (.rules repo)))))
     (testing "the catch-all exists, so a newer clj-kondo cannot drop findings"
       (is (contains? keys' const/unknown-rule)))
@@ -92,12 +93,12 @@
     (testing "every rule the detection can raise is registered"
       (is (every? #(contains? by-key %)
                   (concat security/rule-keys interop/rule-keys concurrency/rule-keys
-                          regex/rule-keys tests/rule-keys web/rule-keys access/rule-keys))))
+                          regex/rule-keys tests/rule-keys web/rule-keys access/rule-keys hooks/rule-keys))))
     (testing "every one ships a metadata resource pair -- a rule with no
               resource would be an issue Sonar drops on the floor"
       (is (every? #(some? (metadata/load-rule %))
                   (concat security/rule-keys interop/rule-keys concurrency/rule-keys
-                          regex/rule-keys tests/rule-keys web/rule-keys access/rule-keys))))
+                          regex/rule-keys tests/rule-keys web/rule-keys access/rule-keys hooks/rule-keys))))
     (testing "and the loader refuses a key that ships none"
       (is (thrown? clojure.lang.ExceptionInfo (metadata/load-rules ["no-such-rule"]))))
     (testing "each carries its CWE, so the finding means something to a reviewer"

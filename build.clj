@@ -40,6 +40,7 @@
                                 hbt.sonar.tests
                                 hbt.sonar.web
                                 hbt.sonar.access
+                                hbt.sonar.hooks
                                 hbt.sonar.codecov
                                 hbt.sonar.callgraph
                                 hbt.sonar.external
