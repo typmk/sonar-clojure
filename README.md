@@ -57,6 +57,22 @@ bin/kaocha --plugin kaocha.plugin/junit-xml --junit-xml-file target/junit.xml
 sonar.clojure.kaocha.reportPaths=target/junit.xml
 ```
 
+**Security hooks** — required for 10 of the rules.
+
+Ten rules are clj-kondo hooks rather than plugin code, because they need the
+*resolved* var: `next.jdbc/execute!` is a SQL sink, a local function named
+`query` is not. They ship in `clj-kondo/` and are installed by copying, which
+also makes them fire in your editor and at the REPL rather than only at merge.
+
+```bash
+cp -r clj-kondo/. your-project/.clj-kondo/    # merge, do not overwrite
+```
+
+Without this the plugin still works; `weak-hash-algorithm`, `cipher-ecb-mode`,
+`weak-cipher-algorithm`, `weak-tls-protocol`, `insecure-random`,
+`eval-of-dynamic-value`, `read-string-untrusted`, `shell-command-injection`,
+`sql-string-built` and `reflective-call` simply never fire.
+
 **Other analyzers** — optional; unset means not run.
 
 ```properties
@@ -86,6 +102,9 @@ reported loudly, never treated as a clean result.
   JNDI, XXE, certificate validation), injection, credential exposure, ReDoS,
   `clojure.test` quality, and the concurrency hazards immutability does not
   remove. Each carries its CWE and OWASP category, checked against MITRE v4.20.
+  Ten of the 34 are clj-kondo hooks (see **Security hooks** above); the rest
+  are plugin-side, because they match a shape with no call to key on — a
+  `reify` of `X509TrustManager`, a credential-shaped `def`, a regex literal.
 - **Project vocabulary** — `banned-term` enforces CLAUDE.md's `Banned → use`
   table over every keyword clj-kondo resolves. Deliberately narrower than the
   full table: `:err` is `clojure.java.shell/sh`'s return key, and a rule
@@ -109,10 +128,16 @@ switching them on for everyone.
 
 - **Taint tracking is not a taint engine.** It follows a value from a known
   source to a known sink within one form, and across clj-kondo's call graph. It
-  does not track argument positions, so the interprocedural rule
-  over-approximates and says so in its own description.
-- **No semantic model.** A concrete syntax tree plus clj-kondo's analysis. No
-  type inference; no resolution beyond what clj-kondo provides.
+  does not track argument positions.
+- **No semantic model** in the plugin itself. Hook-detected rules get
+  clj-kondo's resolution; plugin-side rules get a concrete syntax tree plus
+  the analysis report, with no type inference.
+- **Hooks cannot see their surroundings.** `callstack` gives the enclosing call
+  *symbols*, already macroexpanded, not their nodes — measured — so a rule
+  needing sibling forms (the XXE hardening check) cannot move to a hook.
+- **`ns-analysis` is a signature index, not a call graph** — measured: var
+  definitions only, no usages or positions. Interprocedural taint therefore
+  runs plugin-side over the analysis report, and over-approximates.
 - **rewrite-clj is stricter than Clojure's reader** in rare cases. An unparseable
   file contributes no measures and raises an analysis error naming itself.
 - **Verified on SonarQube 26.7 only.** The `Sonar-Version: 10.0` floor is a
