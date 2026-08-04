@@ -62,6 +62,23 @@
   (testing "commented-out code is not a finding"
     (is (empty? (rules-for (str ns-form "#_(MessageDigest/getInstance \"MD5\")"))))))
 
+(deftest a-hardened-xml-parser-is-not-a-finding
+  ;; Found by running the plugin against its own source: hbt.sonar.junit
+  ;; disables doctypes and external entities, and was still flagged. The rule
+  ;; exists to find the parser nobody hardened.
+  (testing "an untouched factory is a finding"
+    (is (contains? (rules-for "(ns a (:import [javax.xml.parsers DocumentBuilderFactory]))
+                               (defn f [] (DocumentBuilderFactory/newInstance))")
+                   "xml-external-entity")))
+  (testing "one locked down in the same form is not"
+    (doseq [guard ["(.setFeature f \"http://apache.org/xml/features/disallow-doctype-decl\" true)"
+                   "(.setFeature f javax.xml.XMLConstants/FEATURE_SECURE_PROCESSING true)"
+                   "(.setExpandEntityReferences f false)"]]
+      (is (empty? (rules-for (str "(ns a (:import [javax.xml.parsers DocumentBuilderFactory]))
+                                   (defn f [] (doto (DocumentBuilderFactory/newInstance) "
+                                  guard "))")))
+          guard))))
+
 (deftest catches-disabled-certificate-validation
   (testing "a hand-written TrustManager exists to switch the check off"
     (is (contains? (rules-for "(reify javax.net.ssl.X509TrustManager

@@ -94,6 +94,35 @@
 (def ^:private by-target
   (reduce (fn [m r] (update m [(:class r) (:member r)] (fnil conj []) r)) {} detections))
 
+(def ^:private hardening
+  "Evidence that an XML parser has been locked down. Any one of these in the
+  same top-level form is enough: the point of the rule is to find the parser
+  nobody hardened, not to make people justify the one they did."
+  [#"disallow-doctype-decl"
+   #"FEATURE_SECURE_PROCESSING"
+   #"setExpandEntityReferences"
+   #"external-general-entities"
+   #"SUPPORT_DTD"
+   #"ACCESS_EXTERNAL_DTD"
+   #"setXIncludeAware"])
+
+(defn- enclosing-top-level
+  "The outermost live list containing `n` -- the defn it sits in."
+  [nodes n]
+  (->> nodes
+       (filter #(and (= :list (:tag %))
+                     (<= (:line %) (:line n))
+                     (>= (:end-line %) (:end-line n))))
+       (sort-by :depth)
+       first))
+
+(defn- hardened?
+  "True when the enclosing form shows the parser being locked down."
+  [nodes n]
+  (when-let [form (enclosing-top-level nodes n)]
+    (let [txt (:text form)]
+      (boolean (some #(re-find % txt) hardening)))))
+
 (defn- matches? [nodes lst {:keys [arg]}]
   (or (nil? arg)
       (when-let [s (tree/unquote-string (tree/first-argument nodes lst))]
@@ -128,12 +157,17 @@
           r (concat (get by-target [fq member]) (get by-target [fq :new]))
           :when (and (or (= (:member r) member)
                          (and (= :new (:member r)) (= :new member)))
-                     (matches? nodes n r))]
+                     (matches? nodes n r)
+                     ;; a parser that IS hardened is not a finding
+                     (not (and (= "xml-external-entity" (:key r))
+                               (hardened? nodes n))))]
       {:rule (:key r)
        :line (:line n) :col (:col n)
        :end-line (:end-line n) :end-col (:end-col n)
        :message (str fq (when (string? member) (str "/" member))
-                     " -- see rule description")})))
+                     (if (= "xml-external-entity" (:key r))
+                       " -- confirm external entity resolution is disabled"
+                       " -- see the rule description"))})))
 
 (defn all-findings [nodes]
   (concat (findings nodes) (trust-all-findings nodes)))

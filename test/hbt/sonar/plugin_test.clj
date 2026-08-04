@@ -99,9 +99,13 @@
               :when (seq (:cwe (metadata/load-rule k)))]
         (is (some #(re-find #"cwe:" %) (.securityStandards rule))
             (str k " has no CWE"))))
-    (testing "injection rules are vulnerabilities; review-me rules are hotspots"
+    (testing "injection rules are vulnerabilities; review-me rules are hotspots.
+              The metadata migration flattened four of these to VULNERABILITY
+              because the dedupe took the wrong duplicate first."
       (is (= RuleType/VULNERABILITY (.type (get by-key "sql-string-built"))))
-      (is (= RuleType/SECURITY_HOTSPOT (.type (get by-key "shell-invocation")))))
+      (doseq [k ["shell-invocation" "reflective-call" "permissive-file-permissions"
+                 "xml-external-entity"]]
+        (is (= RuleType/SECURITY_HOTSPOT (.type (get by-key k))) k)))
     (testing "OWASP category is attached, which is what the reports group by"
       (is (some #(re-find #"owaspTop10" %)
                 (.securityStandards (get by-key "sql-string-built")))))))
