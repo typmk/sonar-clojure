@@ -84,11 +84,29 @@ jobs:
           echo "provenance lines: $(docker logs sq 2>&1 | grep -c 'sonar-clojure:')"
 
       - name: Bootstrap a token
+        # Retried, because /api/system/status reporting UP does not mean the
+        # authentication subsystem will accept a call yet: this step failed
+        # once with curl exit 22 on 26.7 while 25.2 and 26.1 passed the same
+        # commit. Sampling a starting server once is a race, not a check.
         run: |
-          curl -sf -u admin:admin -X POST localhost:9000/api/users/change_password \
-            -d "login=admin&previousPassword=admin&password=Sq-Integration-2026"
-          echo "SONAR_TOKEN=$(curl -sf -u admin:Sq-Integration-2026 -X POST \
-            'localhost:9000/api/user_tokens/generate?name=ci' | jq -r .token)" >> $GITHUB_ENV
+          PW=Sq-Integration-2026
+          for _ in $(seq 1 30); do
+            curl -sf -u admin:admin -X POST localhost:9000/api/users/change_password \
+              -d "login=admin&previousPassword=admin&password=$PW" && break
+            # A retry after the change succeeded cannot use the old password,
+            # so treat "the new one already works" as done.
+            curl -sf -u "admin:$PW" localhost:9000/api/authentication/validate \
+              | grep -q '"valid":true' && break
+            sleep 5
+          done
+          for _ in $(seq 1 20); do
+            TOK=$(curl -sf -u "admin:$PW" -X POST \
+              'localhost:9000/api/user_tokens/generate?name=ci' | jq -r '.token // empty')
+            [ -n "$TOK" ] && break
+            sleep 5
+          done
+          [ -n "$TOK" ] || { echo "::error::could not obtain a token"; exit 1; }
+          echo "SONAR_TOKEN=$TOK" >> $GITHUB_ENV
 
       - name: Clojure is a language the server knows about
         run: |
