@@ -99,12 +99,20 @@ jobs:
           docker run --rm --network=host -v "$PWD:/usr/src" \
             -e SONAR_HOST_URL=http://localhost:9000 -e SONAR_TOKEN="$SONAR_TOKEN" \
             sonarsource/sonar-scanner-cli -Dsonar.projectKey=it
-          # Requires a positive number, not merely a non-"0" string: curl -sf
-          # on an error emits an empty body, and an empty body compared as a
-          # string is not "0", which would read as ready.
+          # Two waits, because there are two stores. Measures land in the
+          # database when the Compute Engine task finishes; issues are searched
+          # through Elasticsearch, which settles afterwards. Waiting only on the
+          # measure made the issue assertion flaky -- it passed once and failed
+          # twice on identical inputs.
+          #
+          # Requires a positive number, not merely a non-"0" string: curl -sf on
+          # an error emits an empty body, and an empty body compared as a string
+          # is not "0", which would read as ready.
           timeout 180 bash -c 'until curl -sf -u "'"$SONAR_TOKEN"':" \
             "localhost:9000/api/measures/component?component=it&metricKeys=ncloc" \
             | jq -e ".component.measures[0].value | tonumber > 0" >/dev/null 2>&1; do sleep 5; done'
+          timeout 120 bash -c 'until [ "$(curl -sf -u "'"$SONAR_TOKEN"':" \
+            "localhost:9000/api/ce/component?component=it" | jq -r ".queue | length")" = "0" ]; do sleep 3; done'
 
       - name: Files were indexed, and the missing report was reported
         run: |
@@ -115,10 +123,18 @@ jobs:
           [ "$(m ncloc)" -gt 0 ] || { echo "::error::nothing was indexed as Clojure"; exit 1; }
           [ "$(m clj_analysis_completeness)" = "50.0" ] \
             || { echo "::error::expected 50.0 completeness with 2 of 4 reports present"; exit 1; }
-          curl -sf -u "$SONAR_TOKEN:" \
-            "localhost:9000/api/issues/search?components=it&rules=clj-kondo:incomplete-analysis" \
-            | jq -e '.total == 1' \
-            || { echo "::error::a missing coverage report raised no issue"; exit 1; }
+          # Polled, not sampled once: the issue index settles after the CE task.
+          # The URL is repeated rather than held in a shell function because a
+          # function does not survive into `bash -c`.
+          ISSUES="localhost:9000/api/issues/search?components=it&rules=clj-kondo:incomplete-analysis"
+          export ISSUES SONAR_TOKEN
+          timeout 90 bash -c \
+            'until [ "$(curl -sf -u "$SONAR_TOKEN:" "$ISSUES" | jq -r .total)" != "0" ]; do sleep 3; done' \
+            || true
+          total=$(curl -sf -u "$SONAR_TOKEN:" "$ISSUES" | jq -r '.total')
+          echo "incomplete-analysis issues: $total"
+          [ "$total" = "1" ] \
+            || { echo "::error::expected exactly 1 incomplete-analysis issue, got $total"; exit 1; }
 
       - name: Supplying the report moves the number
         # A check that cannot change its answer is not measuring anything.
