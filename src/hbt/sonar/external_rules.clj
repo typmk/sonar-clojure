@@ -17,7 +17,7 @@
   an ad-hoc rule: the same known/unknown split already used for clj-kondo's
   `unknown-linter`, not a second mechanism."
   (:require [clojure.data.json :as json]
-            [clojure.java.io :as io]
+            [hbt.sonar.classpath :as classpath]
             [hbt.sonar.const :as const]
             [hbt.sonar.external :as external])
   (:import [org.sonar.api.rules CleanCodeAttribute RuleType]
@@ -26,13 +26,10 @@
    :name hbt.sonar.ExternalRulesDefinition
    :implements [org.sonar.api.server.rule.RulesDefinition]))
 
-(defn- own-loader ^ClassLoader [] (.getClassLoader ^Class (class own-loader)))
-
 (defn catalogue
   "The shipped rule list for one engine, or nil when none is shipped."
   [engine-id]
-  (when-let [r (io/resource (str "org/sonar/l10n/clj/rules/external_" engine-id ".json")
-                            (own-loader))]
+  (when-let [r (classpath/resource (str "org/sonar/l10n/clj/rules/external_" engine-id ".json"))]
     (json/read-str (slurp r) :key-fn keyword)))
 
 (defn repository-key [engine-id] (str "external_" engine-id))

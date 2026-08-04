@@ -33,6 +33,7 @@
                                 hbt.sonar.forms
                                 hbt.sonar.report
                                 hbt.sonar.tree
+                                hbt.sonar.classpath
                                 hbt.sonar.metadata
                                 hbt.sonar.security
                                 hbt.sonar.interop

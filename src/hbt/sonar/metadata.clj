@@ -10,27 +10,20 @@
 
   What stays in Clojure is the part that is genuinely code: the detection.
 
-  Resources are resolved through the classloader that defined this namespace,
-  not the thread context classloader -- inside SonarQube's extension
-  container the latter is the web application's and cannot see this jar."
+  Resource resolution itself lives in hbt.sonar.classpath -- see there for
+  why it cannot use the thread context classloader."
   (:require [clojure.data.json :as json]
-            [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [hbt.sonar.classpath :as classpath]))
 
 (def ^:private base "org/sonar/l10n/clj/rules/clj-kondo/")
-
-(defn- own-loader ^ClassLoader []
-  (.getClassLoader ^Class (class own-loader)))
-
-(defn- resource [path]
-  (io/resource path (own-loader)))
 
 (defn load-rule
   "Metadata for one rule key, or nil when it ships no resource."
   [key]
-  (when-let [j (resource (str base key ".json"))]
+  (when-let [j (classpath/resource (str base key ".json"))]
     (let [m (json/read-str (slurp j) :key-fn keyword)
-          html (some-> (resource (str base key ".html")) slurp)]
+          html (some-> (classpath/resource (str base key ".html")) slurp)]
       {:key key
        :name (:title m)
        :type (:type m)

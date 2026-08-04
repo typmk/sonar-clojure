@@ -13,7 +13,8 @@
   not in clj-kondo's defaults. These are the injection and crypto-misuse
   shapes that actually occur in Clojure, each carrying its CWE so the
   findings mean something to a reviewer who does not write Clojure."
-  (:require [hbt.sonar.parse :as parse]))
+  (:require [hbt.sonar.parse :as parse]
+            [hbt.sonar.tree :as tree]))
 
 ;; ---------------------------------------------------------------------------
 ;; Rule catalogue. `:hotspot?` marks a rule that flags something a human must
@@ -61,45 +62,6 @@
 ;; ---------------------------------------------------------------------------
 ;; Detection over the parse tree.
 
-(defn- children-of
-  "Nodes strictly inside `n`, by position -- the flat stream keeps document
-  order, so a node's subtree is the run that starts after it and ends before
-  its close."
-  [nodes n]
-  (->> nodes
-       (filter #(and (> (:line %) (:line n))
-                     (<= (:end-line %) (:end-line n))))
-       (concat (filter #(and (= (:line %) (:line n))
-                             (> (:col %) (:col n))
-                             (<= (:end-line %) (:end-line n)))
-                       nodes))
-       distinct))
-
-(defn- literal?
-  "A value that cannot carry an attacker's payload. A quoted form counts:
-  `(eval '(inc 1))` is the commonest safe use of eval, and flagging it would
-  train people to ignore the rule."
-  [{:keys [type tag]}]
-  (or (contains? #{:string :number :char :regex} type)
-      (contains? #{:quote :syntax-quote} tag)))
-
-(defn- lists-headed-by
-  "Live list nodes whose head symbol is in `heads`."
-  [nodes heads]
-  (filter #(and (= :list (:tag %))
-                (not (:commented? %))
-                (contains? heads (:head %)))
-          nodes))
-
-(defn- first-argument
-  "The node in argument position 1 of a list, or nil."
-  [nodes lst]
-  (->> (children-of nodes lst)
-       (remove #(= :trivia (:type %)))
-       (drop-while #(= (:head lst) (:text %)))
-       (remove #(= (:head lst) (:text %)))
-       first))
-
 (defn- finding [rule node message & [flow]]
   (cond-> {:rule rule
            :line (:line node) :col (:col node)
@@ -110,19 +72,19 @@
 (defn- dynamic-arg?
   "True when a call's first argument is not a literal -- i.e. computed."
   [nodes lst]
-  (let [a (first-argument nodes lst)]
-    (and a (not (literal? a)))))
+  (let [a (tree/first-argument nodes lst)]
+    (and a (not (tree/literal? a)))))
 
 (defn- any-dynamic-arg?
   "True when ANY argument is computed. A shell call is dangerous because of
   the argument that carries the payload, which is rarely the first one --
   `(sh \"sh\" \"-c\" cmd)` is the shape that matters."
   [nodes lst]
-  (->> (children-of nodes lst)
+  (->> (tree/children-of nodes lst)
        (remove #(= :trivia (:type %)))
        (remove #(= (:head lst) (:text %)))
        (filter #(contains? #{:symbol :list} (if (= :list (:tag %)) :list (:type %))))
-       (some #(not (literal? %)))
+       (some #(not (tree/literal? %)))
        boolean))
 
 (defn- tainted-locals
@@ -130,7 +92,7 @@
   The whole of this namespace's dataflow: one hop, same form."
   [nodes]
   (into {}
-        (for [src  (lists-headed-by nodes sources)
+        (for [src  (tree/lists-headed-by nodes sources)
               :let [binding (->> nodes
                                  (filter #(and (= :symbol (:type %))
                                                (= (:line %) (:line src))
@@ -149,7 +111,7 @@
               :message "value originates here"}
              {:line (:line n) :col (:col n) :end-line (:end-line n) :end-col (:end-col n)
               :message "and reaches the sink here"}]))
-        (children-of nodes lst)))
+        (tree/children-of nodes lst)))
 
 (defn findings
   "All security findings for one parsed file."
@@ -157,13 +119,13 @@
   (let [tainted (tainted-locals nodes)
         flow    #(flow-to tainted nodes %)]
     (concat
-     (for [l (lists-headed-by nodes eval-fns)
+     (for [l (tree/lists-headed-by nodes eval-fns)
            :when (dynamic-arg? nodes l)]
        (finding "eval-of-dynamic-value" l
                 (str (:head l) " is called on a computed value, which executes whatever it contains")
                 (flow l)))
 
-     (for [l (lists-headed-by nodes read-string-fns)]
+     (for [l (tree/lists-headed-by nodes read-string-fns)]
        (assoc (finding "read-string-untrusted" l
                        "clojure.core/read-string evaluates #= forms; use clojure.edn/read-string"
                        (flow l))
@@ -175,20 +137,20 @@
                           :end-line (:line l)
                           :end-col (+ (inc (:col l)) (count (:head l)))}))
 
-     (for [l (lists-headed-by nodes shell-fns)
+     (for [l (tree/lists-headed-by nodes shell-fns)
            :when (any-dynamic-arg? nodes l)]
        (finding "shell-command-injection" l
                 "shell argument is built from a computed value"
                 (flow l)))
 
-     (for [l (lists-headed-by nodes shell-fns)
+     (for [l (tree/lists-headed-by nodes shell-fns)
            :when (not (any-dynamic-arg? nodes l))]
        (finding "shell-invocation" l "shell invocation -- confirm no argument is caller-controlled"))
 
      ;; SQL assembled by str/format and handed to a query fn
-     (for [l (lists-headed-by nodes sql-fns)
+     (for [l (tree/lists-headed-by nodes sql-fns)
            :when (some #(and (= :list (:tag %)) (contains? build-fns (:head %)))
-                       (children-of nodes l))]
+                       (tree/children-of nodes l))]
        (finding "sql-string-built" l
                 "SQL statement is assembled by string building; pass parameters as values"
                 (flow l)))
@@ -198,9 +160,9 @@
      ;; than matching "MD5" anywhere a string happens to contain it.
 
      ;; a credential-shaped name bound to a string literal
-     (for [l (lists-headed-by nodes #{"def" "defonce"})
-           :let [nm (first-argument nodes l)
-                 v  (->> (children-of nodes l)
+     (for [l (tree/lists-headed-by nodes #{"def" "defonce"})
+           :let [nm (tree/first-argument nodes l)
+                 v  (->> (tree/children-of nodes l)
                          (remove #(= :trivia (:type %)))
                          (filter #(= :string (:type %)))
                          first)]
@@ -209,11 +171,11 @@
        (finding "hardcoded-credential" v
                 (str "credential-shaped name '" (:text nm) "' is bound to a literal")))
 
-     (for [l (lists-headed-by nodes xml-fns)]
+     (for [l (tree/lists-headed-by nodes xml-fns)]
        (finding "xml-external-entity" l
                 "confirm this parser has external entity resolution disabled"))
 
-     (for [l (lists-headed-by nodes reflect-fns)
+     (for [l (tree/lists-headed-by nodes reflect-fns)
            :when (dynamic-arg? nodes l)]
        (finding "reflective-call" l
                 (str (:head l) " selects code by a computed name")))
@@ -227,17 +189,17 @@
 (defn- namespace-name
   "The ns this file declares, or nil."
   [nodes]
-  (when-let [nsform (first (lists-headed-by nodes #{"ns"}))]
-    (:text (first-argument nodes nsform))))
+  (when-let [nsform (first (tree/lists-headed-by nodes #{"ns"}))]
+    (:text (tree/first-argument nodes nsform))))
 
 (defn- enclosing-var
   "The name of the innermost defn/def enclosing `n`, by position."
   [nodes n]
-  (->> (lists-headed-by nodes #{"defn" "defn-" "def" "defmacro" "defmethod"})
+  (->> (tree/lists-headed-by nodes #{"defn" "defn-" "def" "defmacro" "defmethod"})
        (filter #(and (<= (:line %) (:line n)) (>= (:end-line %) (:line n))))
        (sort-by #(- (:end-line %) (:line %)))
        first
-       (#(when % (first-argument nodes %)))
+       (#(when % (tree/first-argument nodes %)))
        :text))
 
 (defn- dangerous-sinks
@@ -250,12 +212,12 @@
   what danger is."
   [nodes]
   (concat
-   (filter #(dynamic-arg? nodes %) (lists-headed-by nodes eval-fns))
-   (lists-headed-by nodes read-string-fns)
-   (filter #(any-dynamic-arg? nodes %) (lists-headed-by nodes shell-fns))
+   (filter #(dynamic-arg? nodes %) (tree/lists-headed-by nodes eval-fns))
+   (tree/lists-headed-by nodes read-string-fns)
+   (filter #(any-dynamic-arg? nodes %) (tree/lists-headed-by nodes shell-fns))
    (filter (fn [l] (some #(and (= :list (:tag %)) (contains? build-fns (:head %)))
-                         (children-of nodes l)))
-           (lists-headed-by nodes sql-fns))))
+                         (tree/children-of nodes l)))
+           (tree/lists-headed-by nodes sql-fns))))
 
 (defn seeds
   "Which vars in this file directly obtain attacker-influenced data, and
@@ -266,7 +228,7 @@
         var-of (fn [l] (when-let [v (enclosing-var nodes l)] [nsname v]))]
     (if-not nsname
       {:taints #{} :reaches #{}}
-      {:taints  (into #{} (keep var-of) (lists-headed-by nodes sources))
+      {:taints  (into #{} (keep var-of) (tree/lists-headed-by nodes sources))
        :reaches (into #{} (keep var-of) (dangerous-sinks nodes))})))
 
 (defn seeds-of-source [source]

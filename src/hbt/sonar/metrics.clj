@@ -83,6 +83,3 @@
   [source]
   (let [{:keys [ok? nodes]} (parse/parse source)]
     (when ok? (from-nodes nodes))))
-
-(defn measures-of-file [f]
-  (measures (slurp f)))
