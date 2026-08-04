@@ -223,6 +223,46 @@ switching them on for everyone.
 
 ---
 
+## Corpus
+
+`corpus/` holds Clojure files with planted, labelled weaknesses and files that
+look like them and are safe. `manifest.edn` says what each must and must not
+produce; `clojure -M:corpus` scores an engine and exits non-zero on a
+regression. CI runs it.
+
+It exists because every precision failure here was found by accident:
+`redos-vulnerable-regex` scored 0 true positives out of 11 the first time
+anyone measured it, `permissive-file-permissions` fired on 0700 and ignored
+0666, and `empty-test` raised 19 findings against the first suite it met that
+used an assertion helper. In each case a test asserted the rule could fire and
+nothing asserted where it must not.
+
+Current score for `opengrep/clojure-taint.yml`, 24 cases:
+
+```
+TP 13   FN 2   FP 0      recall 86.7%   precision 100.0%
+```
+
+The two misses are recorded rather than removed — a failing case deleted stops
+being evidence, and one that blocks every build gets deleted — so recall says
+what the engine cannot do while the gate catches regressions:
+
+- **Taint does not propagate through `->>`.** A plain pattern matches both the
+  `->>` form and the `get-in` inside it, so this is dataflow through the macro,
+  not pattern matching. `->>` is everywhere in Clojure, which makes it the most
+  consequential gap.
+- **Nested map destructuring cannot be matched at all** — `{{:keys [n]} :params}`
+  matches nothing, in taint mode or plain search. Destructured ring handlers
+  are idiomatic, so a source written that way is invisible.
+
+Writing the corpus after the rules, in the same hour, proves little; the eight
+cases added blind are the ones that carried information. Three of them failed,
+and one was a false positive on correctly sanitised code — the sanitiser list
+named `hiccup.util/escape-html` and bare `escape-html` but not `hu/escape-html`,
+which is how it is actually written.
+
+---
+
 ## Provenance
 
 Two of this artifact's claims are about the outside world: that its generated

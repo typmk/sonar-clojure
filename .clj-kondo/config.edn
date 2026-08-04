@@ -9,4 +9,10 @@
 ;; namespace that did not exist, and clj-kondo errored on every run. CI found
 ;; that on its first execution.
 {:lint-as {clojure.test.check.clojure-test/defspec clojure.core/def}
- :config-paths ["../clj-kondo"]}
+ :config-paths ["../clj-kondo"]
+
+ ;; corpus/cases holds deliberately vulnerable code -- that is the point of it.
+ ;; Excluded here rather than in each caller, because the pre-commit hook, CI
+ ;; and anyone running `clj-kondo --lint .` would each have to remember, and
+ ;; the one who forgets is told the corpus has 34 problems.
+ :output {:exclude-files ["corpus/cases/"]}}

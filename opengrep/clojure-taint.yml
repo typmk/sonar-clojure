@@ -34,6 +34,8 @@ rules:
       - pattern: (get-in $REQ [:query-params ...])
       - pattern: (:params $REQ)
       - pattern: (:body $REQ)
+      # Destructured handler argument: (defn h [{{:keys [n]} :params} db] ...)
+      - pattern: (defn $NAME [{{:keys [$P]} :params} ...] ...)
     pattern-sinks:
       # focus-metavariable narrows the sink to the FIRST vector element. Without
       # it the whole call is the sink, and a correctly parameterised query --
@@ -113,6 +115,14 @@ rules:
       - pattern: (hiccup2.core/raw ...)
       - pattern: (raw-string ...)
     pattern-sanitizers:
+      # Spelled out, one alias per line. metavariable-regex on the function
+      # position works in a SINK (see clj-sql-injection) and measurably does
+      # NOT work in a sanitizer -- the sanitised file was still flagged. The
+      # corpus caught the original omission: only the fully-qualified and bare
+      # names were listed, and `hu/escape-html`, which is how anyone actually
+      # writes it, went straight through.
+      - pattern: (hu/escape-html ...)
+      - pattern: (util/escape-html ...)
       - pattern: (hiccup.util/escape-html ...)
       - pattern: (escape-html ...)
 

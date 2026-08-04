@@ -50,6 +50,13 @@
                  "-p" "src" "-s" "test"
                  "-e" "au.com.heisenbergtech.sonar.(plugin|language|rules|profile|sensor|source-sensor|coverage-sensor|test-sensor|completeness-sensor|external-sensor|external-rules|metrics-def|gen)"]}
 
+  ;; Scores an analyzer against corpus/. Recall AND precision: a rule that
+  ;; fires on everything has perfect recall, and one that never fires has
+  ;; perfect precision.
+  :corpus
+  {:extra-paths ["corpus"]
+   :main-opts   ["-m" "score"]}
+
   ;; src and resources are on the build classpath so the jar's description can
   ;; be produced by the plugin's own provenance code rather than by a second
   ;; copy of the same string. "." carries build.clj itself, which -T supplies

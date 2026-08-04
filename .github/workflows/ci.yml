@@ -60,6 +60,24 @@ jobs:
           echo "self-lint findings: $n"
           [ "$n" -eq 0 ] || { jq -r '.findings[] | "\(.filename):\(.row) \(.message)"' target/clj-kondo.json; exit 1; }
 
+      - name: Install opengrep
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+          echo "$HOME/.opengrep/cli/latest" >> $GITHUB_PATH
+
+      - name: Score the taint ruleset against the corpus
+        # Recall AND precision. Every precision failure in this project was
+        # found by accident before this existed -- redos-vulnerable-regex at
+        # 0/11, permissive-file-permissions inverted, empty-test at 19 false
+        # positives on the first suite it met. Cases the engine is measured not
+        # to catch are marked known-miss: counted in recall, not gated, so a
+        # real regression is what fails here.
+        run: |
+          opengrep scan --quiet --taint-intrafile \
+            -f opengrep/clojure-taint.yml \
+            --sarif-output=target/corpus.sarif corpus/cases
+          clojure -M:corpus target/corpus.sarif
+
       - name: Coverage
         run: clojure -M:coverage
 
@@ -71,6 +89,7 @@ jobs:
             target/sonar-clojure-plugin-*.jar.sha256
             target/clj-kondo.json
             target/coverage/codecov.json
+            target/corpus.sarif
           if-no-files-found: error
 
   release-is-tagged-and-clean:

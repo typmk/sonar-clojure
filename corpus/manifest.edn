@@ -1,0 +1,105 @@
+;; What each case must produce, and must not.
+;;
+;; :expect  rules that MUST fire. Empty means the file is safe and any finding
+;;          against it is a false positive.
+;; :why     the reason this case exists, so a future reader can tell a
+;;          deliberate hard negative from an oversight.
+;; :known-miss  engines measured NOT to catch this, with the reason. Recorded
+;;          rather than deleted: a case removed because a tool fails it stops
+;;          being evidence about the tool.
+
+[{:file "sqli_direct.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "source and sink in one form -- the easiest case there is"}
+
+ {:file "sqli_via_helper.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "taint returns from a helper; needs interprocedural propagation"}
+
+ {:file "sqli_into_callee.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "taint passed INTO a callee whose body holds the sink -- the commonest
+        real shape, and the one that needs --taint-intrafile"}
+
+ {:file "safe_parameterised.clj" :cwe 89 :expect #{}
+  :why "HARD NEGATIVE. The tainted value IS present at the call, bound as a
+        parameter. Distinguishing this from sqli_direct is the whole job; a
+        sink pattern without focus-metavariable flags it"}
+
+ {:file "safe_static_sql.clj" :cwe 89 :expect #{}
+  :why "no user input anywhere"}
+
+ {:file "safe_sql_from_config.clj" :cwe 89 :expect #{}
+  :why "HARD NEGATIVE. The statement is computed rather than literal, which
+        looks like string building, but the source is a private map"}
+
+ {:file "cmdi_direct.clj" :cwe 78 :expect #{"clj-command-injection"}
+  :why "user input concatenated into a shell string"}
+
+ {:file "safe_fixed_command.clj" :cwe 78 :expect #{}
+  :why "a shell call with no attacker-controlled argument is not a finding"}
+
+ {:file "codei_read_string.clj" :cwe 94 :expect #{"clj-code-injection"}
+  :why "read-string evaluates reader tags; with eval it is remote code
+        execution"}
+
+ {:file "safe_edn_read.clj" :cwe 94 :expect #{}
+  :why "HARD NEGATIVE. clojure.edn/read-string does not evaluate. It is the
+        fix, and a rule that flags it teaches people to ignore the rule"}
+
+ {:file "xss_raw.clj" :cwe 79 :expect #{"clj-xss-unescaped"}
+  :why "hiccup's raw exists to bypass escaping"}
+
+ {:file "safe_escaped.clj" :cwe 79 :expect #{}
+  :why "HARD NEGATIVE. escape-html is the sanitiser"}
+
+ {:file "path_traversal.clj" :cwe 22 :expect #{"clj-path-traversal"}
+  :why "a filename from the request reaches io/file"}
+
+ {:file "safe_fixed_path.clj" :cwe 22 :expect #{}
+  :why "constant path"}
+
+ {:file "ssrf.clj" :cwe 918 :expect #{"clj-ssrf"}
+  :why "a URL from the request reaches an outbound client"}
+
+ {:file "safe_fixed_url.clj" :cwe 918 :expect #{}
+  :why "constant URL"}
+
+ ;; --- Idiomatic Clojure the ruleset was NOT written against. These were
+ ;; added blind, to find out what the engine does rather than to confirm what
+ ;; it already did. A corpus written by the same hand as the rules, in the same
+ ;; hour, proves almost nothing; these are the cases that carry information.
+
+ {:file "hard_thread_last.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "->> threading. The sink call never appears in source order"
+  :known-miss
+  {"opengrep" "Taint does not propagate through ->>. Measured: a bare pattern
+               matches both the ->> form and the get-in inside it, so this is
+               dataflow through the macro, not pattern matching. ->> is
+               everywhere in Clojure, which makes this the most consequential
+               gap in the engine for this language."}}
+
+ {:file "hard_destructured.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "the source is an associative destructuring form, not a get-in call"
+  :known-miss
+  {"opengrep" "The pattern language cannot express nested map destructuring:
+               (defn $N [{{:keys [$P]} :params} ...] ...) matches nothing at
+               all, in taint mode or plain search. Destructured ring handlers
+               are idiomatic, so a source written this way is invisible."}}
+
+ {:file "hard_via_map.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "taint stored under a map key and read back out"}
+
+ {:file "hard_via_collection.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "taint put in a vector and taken out with first"}
+
+ {:file "hard_anon_fn.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "taint passed to an immediately-invoked anonymous fn"}
+
+ {:file "hard_when_let.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "binding through when-let"}
+
+ {:file "hard_multi_arity.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "multi-arity defn where one arity delegates to another -- the shape
+        per-arity taint signatures exist for"}
+
+ {:file "hard_safe_sanitised.clj" :cwe 79 :expect #{}
+  :why "HARD NEGATIVE. escape-html is applied to the tainted value before it
+        reaches raw, so the sanitiser must be honoured"}]
