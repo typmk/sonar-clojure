@@ -67,7 +67,19 @@
 (def detections
   "Class, member, and optionally a predicate over the first string argument.
   Nothing else: title, severity, CWE and prose live in
-  org/sonar/l10n/clj/rules/clj-kondo/<key>.{json,html}."
+  org/sonar/l10n/clj/rules/clj-kondo/<key>.{json,html}.
+
+  This table STAYS in code, unlike the metadata. The argument predicates are
+  regular expressions -- programs, not content -- and moving them to JSON
+  would mean either losing reader-syntax validation or inventing a matcher
+  DSL to put it back. The metadata moved because a title, a severity and a
+  CWE are content: reviewable by someone who does not write Clojure, and
+  translatable. A class/member/regex triple is neither.
+
+  Consistency would argue both belong in resources. That is the Occam
+  reading. These are two concerns that happen to sit near each other -- WHAT
+  to detect, and HOW to describe it -- and they are already correctly
+  separated."
   [{:key "weak-hash-algorithm" :class "java.security.MessageDigest" :member "getInstance"
     :arg #"(?i)^(MD5|SHA-?1|MD2|MD4)$"}
    {:key "cipher-ecb-mode" :class "javax.crypto.Cipher" :member "getInstance"
