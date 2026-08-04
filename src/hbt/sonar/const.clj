@@ -5,7 +5,14 @@
 (def repository-key "clj-kondo")
 (def profile-name "Sane")
 
-(def suffixes-prop "sonar.clojure.file.suffixes")
+;; Keyed by the LANGUAGE KEY, not the plugin name. The scanner reads
+;; `sonar.<languageKey>.file.suffixes` / `.file.patterns` from project
+;; settings -- /api/languages/list returns only key and name, for every
+;; language including java and python, so settings are the ONLY channel that
+;; carries suffixes to the scanner. Named `sonar.clojure.*` it was never read
+;; and the scanner claimed no files at all.
+(def suffixes-prop "sonar.clj.file.suffixes")
+(def patterns-prop "sonar.clj.file.patterns")
 (def report-paths-prop "sonar.clojure.kondo.reportPaths")
 (def analysis-paths-prop "sonar.clojure.kondo.analysisPaths")
 (def coverage-paths-prop "sonar.clojure.cloverage.reportPaths")

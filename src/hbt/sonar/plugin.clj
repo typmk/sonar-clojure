@@ -24,6 +24,11 @@
     :default (str/join "," const/default-suffixes)
     :doc     "Comma-separated file suffixes analysed as Clojure."}
 
+   {:key     const/patterns-prop
+    :name    "File patterns"
+    :default (str/join "," (map #(str "**/*" %) const/default-suffixes))
+    :doc     "Glob patterns analysed as Clojure. Read by the scanner's language detection."}
+
    {:key     const/report-paths-prop
     :name    "clj-kondo report paths"
     :default const/default-report

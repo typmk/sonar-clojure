@@ -110,4 +110,4 @@
                  "hbt.sonar.ExternalAnalyzerSensor"}
                (set (map #(.getName ^Class %) classes)))))
       (testing "one property per report the plugin reads, plus file suffixes"
-        (is (= 9 (count props)) "5 built-in reports plus one per external analyzer")))))
+        (is (= 10 (count props)) "suffixes, patterns, 4 reports, 4 external analyzers")))))
