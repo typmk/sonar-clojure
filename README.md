@@ -15,12 +15,18 @@ attach to them.
 ## Install
 
 ```bash
+sha256sum -c sonar-clojure-plugin-0.1.0.jar.sha256                      # verify
 cp sonar-clojure-plugin-0.1.0.jar $SONARQUBE_HOME/extensions/plugins/   # then restart
 curl -s -u "$SONAR_TOKEN:" "$SONAR_URL/api/languages/list" | grep clj   # confirm
 ```
 
 The confirm call needs a token — that endpoint is authenticated, and without
 one it returns an empty body, which reads exactly like a failed install.
+
+SonarQube does not verify a plugin dropped into `extensions/plugins`, so the
+checksum is the integrity check, not a formality. A release also carries a
+detached `.asc` when it was signed; verify it with
+`gpg --verify sonar-clojure-plugin-0.1.0.jar.asc`.
 
 ---
 
@@ -203,11 +209,25 @@ rather than diverging quietly.
 
 ```bash
 clojure -X:gen-rules     # regenerate the rule catalogue from clj-kondo
-clojure -T:build uber    # -> target/sonar-clojure-plugin-0.1.0.jar
-clojure -M:test          # 100 tests, 369 assertions
+clojure -T:build uber    # -> target/sonar-clojure-plugin-0.1.0.jar + .sha256
+clojure -M:test          # 107 tests, 384 assertions (needs the jar)
+clojure -T:build release # the same, gated on a clean tree and a v<version> tag
 ```
 
-The entry point is Java and must stay so; `hbt.sonar.ClojurePluginBootstrap`
+`uber` builds from whatever is on disk, which is right for iterating and wrong
+for anything handed to someone else — the manifest would name a commit that
+does not contain the code in the jar. It stamps `Build-Status: dirty` when that
+happens. `release` refuses it outright, requires an annotated `v<version>` tag
+on HEAD, and GPG-signs the jar when `SONAR_CLOJURE_GPG_KEY` names a key. With
+no key it says so rather than producing an unsigned release that reads as
+signed.
+
+Java packages are `au.com.heisenbergtech.*` (the reverse of
+heisenbergtech.com.au). `org/sonar/l10n/…` is SonarSource's own path and is not
+renamed with them — a test asserts both, because a package rename that misses
+either produces a plugin SonarQube loads and silently ignores.
+
+The entry point is Java and must stay so; `au.com.heisenbergtech.sonar.ClojurePluginBootstrap`
 documents why. Resources are staged into `target/stage`, never `target/classes`
 — the latter precedes `resources` on the test classpath, so a copy there makes
 the suite validate the last build instead of the source. Rule metadata is edited in

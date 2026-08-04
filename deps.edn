@@ -15,7 +15,7 @@
   ;; is generated from its default config so the two cannot drift.
   :gen-rules
   {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.07.24"}}
-   :exec-fn    hbt.sonar.gen/write-linters!}
+   :exec-fn    au.com.heisenbergtech.sonar.gen/write-linters!}
 
   ;; Runs against target/classes: the AOT artefacts are the thing under
   ;; test, so `clojure -T:build compile-clj*` must run first.
@@ -40,7 +40,7 @@
                  cloverage/cloverage {:mvn/version "1.2.4"}}
    :main-opts   ["-m" "cloverage.coverage" "--lcov" "--codecov"
                  "-p" "src" "-s" "test"
-                 "-e" "hbt.sonar.(plugin|language|rules|profile|sensor|source-sensor|coverage-sensor|test-sensor|gen)"]}
+                 "-e" "au.com.heisenbergtech.sonar.(plugin|language|rules|profile|sensor|source-sensor|coverage-sensor|test-sensor|gen)"]}
 
   ;; src and resources are on the build classpath so the jar's description can
   ;; be produced by the plugin's own provenance code rather than by a second

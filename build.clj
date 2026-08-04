@@ -1,5 +1,8 @@
 (ns build
-  (:require [clojure.tools.build.api :as b]))
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]
+            [clojure.tools.build.api :as b])
+  (:import [java.security MessageDigest]))
 
 (defn- description
   "Folded into the plugin description so the catalogue versions show on
@@ -7,10 +10,24 @@
   the jar cannot describe itself differently from how it reports itself."
   []
   (str "Indexes Clojure sources and imports clj-kondo findings. "
-       ((requiring-resolve (quote hbt.sonar.provenance/summary))) "."))
+       ((requiring-resolve (quote au.com.heisenbergtech.sonar.provenance/summary))) "."))
 
 (def plugin-key "clojure")
-(def version "0.1.0")
+
+(def version
+  "The single source of the plugin's version. A release is this string plus a
+  matching `v`-prefixed annotated tag on a clean tree; `release` enforces both
+  rather than trusting that whoever built it remembered."
+  "0.1.0")
+
+(defn- git [& args]
+  (str/trim (or (b/git-process {:git-args (str/join " " args)}) "")))
+
+(defn- revision []
+  (let [sha   (git "rev-parse" "HEAD")
+        dirty (seq (git "status" "--porcelain"))]
+    {:sha sha :dirty? (boolean dirty)}))
+
 (def class-dir "target/classes")
 
 (def stage-dir
@@ -45,44 +62,58 @@
   (b/compile-clj {:basis      (basis)
                   :src-dirs   ["src"]
                   :class-dir  class-dir
-                  :ns-compile '[hbt.sonar.const
-                                hbt.sonar.forms
-                                hbt.sonar.report
-                                hbt.sonar.tree
-                                hbt.sonar.classpath
-                                hbt.sonar.metadata
-                                hbt.sonar.security
-                                hbt.sonar.interop
-                                hbt.sonar.concurrency
-                                hbt.sonar.dictionary
-                                hbt.sonar.regex
-                                hbt.sonar.tests
-                                hbt.sonar.web
-                                hbt.sonar.access
-                                hbt.sonar.hooks
-                                hbt.sonar.codecov
-                                hbt.sonar.callgraph
-                                hbt.sonar.external
-                                hbt.sonar.external-rules
-                                hbt.sonar.external-sensor
-                                hbt.sonar.junit
-                                hbt.sonar.test-sensor
-                                hbt.sonar.language
-                                hbt.sonar.rules
-                                hbt.sonar.profile
-                                hbt.sonar.sensor
-                                hbt.sonar.parse
-                                hbt.sonar.metrics
-                                hbt.sonar.highlight
-                                hbt.sonar.analysis
-                                hbt.sonar.lcov
-                                hbt.sonar.coverage-sensor
-                                hbt.sonar.source-sensor
-                                hbt.sonar.provenance
-                                hbt.sonar.cwe
-                                hbt.sonar.metrics-def
-                                hbt.sonar.completeness-sensor
-                                hbt.sonar.plugin]}))
+                  :ns-compile '[au.com.heisenbergtech.sonar.const
+                                au.com.heisenbergtech.sonar.forms
+                                au.com.heisenbergtech.sonar.report
+                                au.com.heisenbergtech.sonar.tree
+                                au.com.heisenbergtech.sonar.classpath
+                                au.com.heisenbergtech.sonar.metadata
+                                au.com.heisenbergtech.sonar.security
+                                au.com.heisenbergtech.sonar.interop
+                                au.com.heisenbergtech.sonar.concurrency
+                                au.com.heisenbergtech.sonar.dictionary
+                                au.com.heisenbergtech.sonar.regex
+                                au.com.heisenbergtech.sonar.tests
+                                au.com.heisenbergtech.sonar.web
+                                au.com.heisenbergtech.sonar.access
+                                au.com.heisenbergtech.sonar.hooks
+                                au.com.heisenbergtech.sonar.codecov
+                                au.com.heisenbergtech.sonar.callgraph
+                                au.com.heisenbergtech.sonar.external
+                                au.com.heisenbergtech.sonar.external-rules
+                                au.com.heisenbergtech.sonar.external-sensor
+                                au.com.heisenbergtech.sonar.junit
+                                au.com.heisenbergtech.sonar.test-sensor
+                                au.com.heisenbergtech.sonar.language
+                                au.com.heisenbergtech.sonar.rules
+                                au.com.heisenbergtech.sonar.profile
+                                au.com.heisenbergtech.sonar.sensor
+                                au.com.heisenbergtech.sonar.parse
+                                au.com.heisenbergtech.sonar.metrics
+                                au.com.heisenbergtech.sonar.highlight
+                                au.com.heisenbergtech.sonar.analysis
+                                au.com.heisenbergtech.sonar.lcov
+                                au.com.heisenbergtech.sonar.coverage-sensor
+                                au.com.heisenbergtech.sonar.source-sensor
+                                au.com.heisenbergtech.sonar.provenance
+                                au.com.heisenbergtech.sonar.cwe
+                                au.com.heisenbergtech.sonar.metrics-def
+                                au.com.heisenbergtech.sonar.completeness-sensor
+                                au.com.heisenbergtech.sonar.plugin]}))
+
+(defn- sha256
+  "The checksum published beside the jar. SonarQube does not verify plugin
+  signatures for a plugin dropped into extensions/plugins, so integrity at
+  deploy time is whatever the operator can check by hand -- which means it has
+  to be published, not merely computable."
+  [^String path]
+  (let [d (MessageDigest/getInstance "SHA-256")
+        buf (byte-array 65536)]
+    (with-open [in (io/input-stream path)]
+      (loop []
+        (let [n (.read in buf)]
+          (when (pos? n) (.update d buf 0 n) (recur)))))
+    (apply str (map #(format "%02x" %) (.digest d)))))
 
 (defn uber [_]
   (clean nil)
@@ -98,12 +129,55 @@
            :manifest  {"Plugin-Key"              plugin-key
                        "Plugin-Name"             "Clojure (clj-kondo)"
                        "Plugin-Version"          version
-                       "Plugin-Class"            "hbt.sonar.ClojurePluginBootstrap"
+                       "Implementation-Version"  (let [{:keys [sha dirty?]} (revision)]
+                                                   (str version "+" sha (when dirty? ".dirty")))
+                       "Build-Revision"          (:sha (revision))
+                       "Build-Status"            (if (:dirty? (revision)) "dirty" "clean")
+                       "Plugin-Class"            "au.com.heisenbergtech.sonar.ClojurePluginBootstrap"
                        "Plugin-Description"      (description)
                        "Plugin-License"          "EPL-2.0"
                        "Plugin-OrganizationName" "Heisenberg Technologies"
                        "Plugin-Homepage"         "https://hbtcomputers.com.au"
-                       "Plugin-SourcesUrl"       "https://github.com/hbtweb"
+                       "Plugin-SourcesUrl"       "https://github.com/hbtweb/sonar-clojure"
                        "Sonar-Version"           "10.0"
                        "Plugin-RequiredForLanguages" "clj"}})
-  (println "built" jar-file))
+  (let [sum (sha256 jar-file)
+        {:keys [sha dirty?]} (revision)]
+    (spit (str jar-file ".sha256") (str sum "  " (.getName (io/file jar-file)) "\n"))
+    (println "built" jar-file)
+    (println "  version " version "+" sha (if dirty? "(DIRTY TREE)" ""))
+    (println "  sha256  " sum)))
+
+(defn release
+  "A build whose version means something.
+
+  `uber` will happily produce a jar from uncommitted work, which is right for
+  iterating and wrong for anything handed to someone else -- the version in the
+  manifest then names a commit that does not contain the code in the jar. This
+  refuses that: clean tree, and an annotated tag matching the version, before
+  it builds. Then it signs, if a key is configured.
+
+  Signing is GPG detached, not jarsigner: SonarQube does not check plugin
+  signatures, so the value is authenticity for whoever installs it, and a
+  detached .asc is verifiable without unpacking the jar. Set
+  SONAR_CLOJURE_GPG_KEY to the key id. No key, no signature, and it says so --
+  it does not quietly produce an unsigned release that looks signed."
+  [_]
+  (let [{:keys [sha dirty?]} (revision)
+        tag (str "v" version)
+        tagged (git "tag" "--points-at" "HEAD")]
+    (when dirty?
+      (throw (ex-info (str "release refuses a dirty tree: the manifest would name " sha
+                           ", which does not contain the working changes")
+                      {:sha sha})))
+    (when-not (contains? (set (str/split-lines tagged)) tag)
+      (throw (ex-info (str "release requires HEAD to carry the tag " tag
+                           " -- create it with: git tag -a " tag " -m '" tag "'")
+                      {:sha sha :tags tagged :expected tag})))
+    (uber nil)
+    (if-let [key-id (System/getenv "SONAR_CLOJURE_GPG_KEY")]
+      (do (b/process {:command-args ["gpg" "--batch" "--yes" "--local-user" key-id
+                                     "--armor" "--detach-sign" jar-file]})
+          (println "  signed  " (str jar-file ".asc") "with" key-id))
+      (println "  UNSIGNED: set SONAR_CLOJURE_GPG_KEY to a gpg key id to sign this release"))
+    (println "  released" tag "at" sha)))
