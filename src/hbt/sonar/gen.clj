@@ -7,6 +7,7 @@
   parallel maps -- so adding a quality meant editing two files and nothing
   connected them. Naming the enums here removes the translation."
   (:require [clojure.java.io :as io]
+            [clojure.string :as str]
             [clojure.pprint :as pp]))
 
 (def ^:private quality
@@ -58,4 +59,14 @@
     (io/make-parents out)
     (with-open [w (io/writer out)]
       (pp/pprint rules w))
-    (println "wrote" (count rules) "rules ->" (str out))))
+    (println "wrote" (count rules) "rules ->" (str out))
+    ;; The manifest is the rule registry: every metadata resource that ships.
+    (let [dir (io/file "resources" "org" "sonar" "l10n" "clj" "rules" "clj-kondo")
+          keys (->> (file-seq dir)
+                    (map #(.getName ^java.io.File %))
+                    (filter #(str/ends-with? % ".json"))
+                    (map #(subs % 0 (- (count %) 5)))
+                    sort vec)
+          idx (io/file dir "index.edn")]
+      (spit idx (pr-str keys))
+      (println "wrote" (count keys) "rule keys ->" (str idx)))))

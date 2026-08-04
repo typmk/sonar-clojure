@@ -13,6 +13,7 @@
   Resource resolution itself lives in hbt.sonar.classpath -- see there for
   why it cannot use the thread context classloader."
   (:require [clojure.data.json :as json]
+            [clojure.edn :as edn]
             [clojure.string :as str]
             [hbt.sonar.classpath :as classpath]))
 
@@ -41,6 +42,20 @@
        :tags (vec (:tags m))
        :activate? (not (false? (:defaultActivation m)))
        :html (or html "<p>No description shipped.</p>")})))
+
+(def ^:private manifest "org/sonar/l10n/clj/rules/clj-kondo/index.edn")
+
+(defn all-keys
+  "Every rule this plugin registers, read from the shipped manifest.
+
+  Eight namespaces used to each carry a `rule-keys` list, unioned by hand in
+  three more places -- 24 references restating what the resource directory
+  already says. They agreed exactly (33 and 33, no drift either way), which is
+  the signal that one of them was redundant. The resources are the registry;
+  a rule exists because its metadata ships, not because a vector mentions it."
+  []
+  (edn/read-string (slurp (classpath/required-resource
+                           manifest "Run `clojure -X:gen-rules` and rebuild."))))
 
 (defn load-rules
   "Metadata for every key given, failing loudly on one that ships no

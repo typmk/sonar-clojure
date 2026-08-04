@@ -5,15 +5,7 @@
             [hbt.sonar.classpath :as classpath]
             [clojure.java.io :as io]
             [hbt.sonar.const :as const]
-            [hbt.sonar.access :as access]
-            [hbt.sonar.concurrency :as concurrency]
-            [hbt.sonar.hooks :as hooks]
-            [hbt.sonar.regex :as regex]
-            [hbt.sonar.tests :as tests]
-            [hbt.sonar.web :as web]
-            [hbt.sonar.interop :as interop]
-            [hbt.sonar.metadata :as metadata]
-            [hbt.sonar.security :as security])
+            [hbt.sonar.metadata :as metadata])
   (:import [org.sonar.api.rules CleanCodeAttribute RuleType]
            [org.sonar.api.server.rule RuleDescriptionSection]
            [org.sonar.api.server.rule RulesDefinition$OwaspTop10 RulesDefinition$OwaspTop10Version]
@@ -99,10 +91,7 @@
                  (.setName "clj-kondo"))]
     (run! #(add-rule! repo %) (catalogue))
     (run! #(add-authored-rule! repo %)
-          (metadata/load-rules (concat security/rule-keys interop/rule-keys
-                                       concurrency/rule-keys regex/rule-keys
-                                       tests/rule-keys web/rule-keys
-                                       access/rule-keys hooks/rule-keys)))
+          (metadata/load-rules (metadata/all-keys)))
     (doto (.createRule repo const/unknown-rule)
       (.setName "Unrecognised clj-kondo linter")
       (.setHtmlDescription

@@ -82,10 +82,6 @@
    {:key "xml-external-entity" :class "javax.xml.stream.XMLInputFactory" :member "newInstance"}
    {:key "shell-invocation" :class "java.lang.ProcessBuilder" :member :new}])
 
-(def rule-keys
-  "Every rule this namespace can raise, including the shape-matched one."
-  (vec (distinct (conj (mapv :key detections) "trust-all-certificates"))))
-
 (def ^:private by-target
   (reduce (fn [m r] (update m [(:class r) (:member r)] (fnil conj []) r)) {} detections))
 

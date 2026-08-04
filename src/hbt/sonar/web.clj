@@ -12,9 +12,6 @@
   (:require [clojure.string :as str]
             [hbt.sonar.tree :as tree]))
 
-(def rule-keys ["xss-unescaped-output" "csrf-protection-absent"
-                "sensitive-data-logged" "cookie-missing-security-flags"])
-
 (def ^:private raw-html
   "Ways to put a string into a page without hiccup escaping it. Each exists
   precisely to bypass the escaping, which is why each needs a reason."

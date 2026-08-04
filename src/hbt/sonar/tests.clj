@@ -10,8 +10,6 @@
   Scoped to test files by the caller; these shapes are legitimate elsewhere."
   (:require [hbt.sonar.tree :as tree]))
 
-(def rule-keys ["empty-test" "testing-without-assertion" "test-with-no-effect"])
-
 (def ^:private assertions
   "`prop/for-all` is how a defspec asserts. Omitting it reported all fifteen
   of this project's own property tests as asserting nothing."

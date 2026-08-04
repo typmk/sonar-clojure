@@ -18,8 +18,6 @@
   the fastest way to get a security ruleset switched off."
   (:require [hbt.sonar.tree :as tree]))
 
-(def rule-keys ["ambiguous-owner-check" "unscoped-tenant-query" "operator-as-party"])
-
 (def ^:private tenant-word
   "For a QUERY: does it name the scope anywhere. The trailing boundary must
   admit `/`, or `:tenant/id` -- the actual scoping attribute here -- does not

@@ -3,6 +3,7 @@
             [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
+            [hbt.sonar.metadata]
             [hbt.sonar.security :as security]))
 
 (defn- rules-for [src] (set (map :rule (security/findings-of-source src))))
@@ -25,7 +26,7 @@
           nm))))
 
 (deftest every-rule-emitted-is-a-declared-rule
-  (let [declared (set security/rule-keys)
+  (let [declared (set (hbt.sonar.metadata/all-keys))
         src "(def password \"hunter2hunter2\")
              (eval (read-string (:params req)))
              (sh \"sh\" \"-c\" (slurp u))

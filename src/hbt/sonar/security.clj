@@ -13,10 +13,6 @@
   (:require [hbt.sonar.parse :as parse]
             [hbt.sonar.tree :as tree]))
 
-(def rule-keys
-  ["hardcoded-credential" "xml-external-entity" "interprocedural-taint"
-   "shell-invocation" "permissive-file-permissions"])
-
 (def ^:private sources
   "Forms whose result is attacker-influenced. Deliberately small: a false
   source produces a false flow, and a security rule nobody trusts is worse

@@ -12,8 +12,6 @@
   (:require [clojure.string :as str]
             [hbt.sonar.tree :as tree]))
 
-(def rule-keys ["redos-vulnerable-regex" "partial-match-validation"])
-
 (def ^:private brace-nested
   "A brace-bounded repetition inside another: (a{1,9}){1,9}.
 

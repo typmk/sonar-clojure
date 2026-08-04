@@ -11,8 +11,6 @@
   machine and only appears under contention."
   (:require [hbt.sonar.tree :as tree]))
 
-(def rule-keys ["side-effect-in-swap" "discarded-future"])
-
 (def ^:private retrying #{"swap!" "swap-vals!" "alter" "commute" "alter-var-root"})
 
 (def ^:private effectful
