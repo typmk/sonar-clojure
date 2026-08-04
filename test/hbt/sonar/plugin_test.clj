@@ -37,10 +37,16 @@
     (is (= "Clojure" (.getName lang)))
     (testing "defaults cover the four dialects plus edn and bb"
       (is (= [".clj" ".cljs" ".cljc" ".edn" ".bb"] (vec (.getFileSuffixes lang)))))
+    (testing "filename patterns are DERIVED, never stubbed empty -- an empty
+              array makes the scanner claim nothing and skip every sensor,
+              silently"
+      (is (= ["**/*.clj" "**/*.cljs" "**/*.cljc" "**/*.edn" "**/*.bb"]
+             (vec (.filenamePatterns lang)))))
     (testing "and are overridable, which is why the ctor takes Configuration"
       (let [l (instantiate "hbt.sonar.ClojureLanguage"
                            (config {const/suffixes-prop ".clj,.cljc"}))]
-        (is (= [".clj" ".cljc"] (vec (.getFileSuffixes l))))))))
+        (is (= [".clj" ".cljc"] (vec (.getFileSuffixes l))))
+        (is (= ["**/*.clj" "**/*.cljc"] (vec (.filenamePatterns l))))))))
 
 (deftest rules-definition-registers-every-kondo-linter
   (let [ctx  (RulesDefinition$Context.)

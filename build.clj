@@ -12,6 +12,16 @@
 
 (defn- basis [] (b/create-basis {:aliases [:provided]}))
 
+(defn javac*
+  "The bootstrap entry point is Java because loading a gen-class artifact is
+  what triggers Clojure's runtime -- the classloader has to be corrected by
+  something that carries no Clojure static initialiser."
+  [_]
+  (b/javac {:src-dirs  ["java"]
+            :class-dir class-dir
+            :basis     (basis)
+            :javac-opts ["--release" "17"]}))
+
 (defn clean [_] (b/delete {:path "target"}) (b/delete {:path "classes"}))
 
 (defn compile-clj* [_]
@@ -44,6 +54,7 @@
 
 (defn uber [_]
   (clean nil)
+  (javac* nil)
   (compile-clj* nil)
   (b/uber {:class-dir class-dir
            :uber-file jar-file
@@ -52,7 +63,7 @@
            :manifest  {"Plugin-Key"              plugin-key
                        "Plugin-Name"             "Clojure (clj-kondo)"
                        "Plugin-Version"          version
-                       "Plugin-Class"            "hbt.sonar.ClojurePlugin"
+                       "Plugin-Class"            "hbt.sonar.ClojurePluginBootstrap"
                        "Plugin-Description"      "Indexes Clojure sources and imports clj-kondo findings."
                        "Plugin-License"          "AGPL-3.0"
                        "Plugin-OrganizationName" "Heisenberg Technologies"

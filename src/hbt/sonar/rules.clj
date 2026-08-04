@@ -14,8 +14,21 @@
    :name hbt.sonar.ClojureRulesDefinition
    :implements [org.sonar.api.server.rule.RulesDefinition]))
 
+(defn- catalogue-url
+  "clojure.java.io/resource resolves through the THREAD CONTEXT classloader,
+  which inside SonarQube's extension container is the web application's and
+  cannot see this jar -- measured: RulesDefinition.define died on a nil URL
+  and took platform startup with it. Ask the classloader that defined this
+  namespace's own classes instead."
+  []
+  (let [own (.getClassLoader ^Class (class catalogue-url))]
+    (or (io/resource "hbt/sonar/linters.edn" own)
+        (throw (ex-info (str "sonar-clojure: hbt/sonar/linters.edn is missing from the "
+                             "plugin jar. Run `clojure -X:gen-rules` and rebuild.")
+                        {:classloader (str own)})))))
+
 (defn catalogue []
-  (with-open [r (io/reader (io/resource "hbt/sonar/linters.edn"))]
+  (with-open [r (io/reader (catalogue-url))]
     (edn/read (java.io.PushbackReader. r))))
 
 (def ^:private remediation
