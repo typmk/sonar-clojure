@@ -75,3 +75,22 @@
       (let [sum (io/file (str @jar ".sha256"))]
         (is (.isFile sum))
         (is (re-find (re-pattern (.getName ^java.io.File @jar)) (slurp sum)))))))
+
+(deftest the-two-coverage-exclusion-lists-agree
+  (testing "cloverage excludes namespaces; Sonar excludes paths. Two lists for
+            one decision drift, and the symptom is a dashboard that disagrees
+            with the report it was given -- measured once at 52.2% against 73.9%"
+    (let [nses (->> (re-find #"au\.com\.heisenbergtech\.sonar\.\(([^)]+)\)" (slurp "deps.edn"))
+                    second
+                    (#(str/split % #"\|"))
+                    (map #(str/replace % "-" "_"))
+                    set)
+          paths (->> (slurp "sonar-project.properties")
+                     (re-find #"(?s)sonar\.coverage\.exclusions=(.*?)\n\n|(?s)sonar\.coverage\.exclusions=(.*)$")
+                     (drop 1) (some identity)
+                     (re-seq #"sonar/(\w+)\.clj")
+                     (map second) set)]
+      (is (seq nses))
+      (is (= nses paths)
+          (str "only in deps.edn: " (pr-str (remove paths nses))
+               "; only in sonar-project.properties: " (pr-str (remove nses paths)))))))

@@ -2,36 +2,11 @@
 ;; property test read as an unresolved symbol. Teaching the linter is the fix;
 ;; suppressing the rule would have hidden real unresolved symbols too.
 ;;
-;; The security hooks below are this project's own, shipped in clj-kondo/ for
-;; other projects to copy. Dogfooded here.
+;; The security hooks are this project's own, shipped in clj-kondo/ for other
+;; projects to copy. They are referenced here rather than copied in: a copy
+;; under .clj-kondo/ would be a second source of truth, and the copy that was
+;; here before was gitignored -- so a fresh clone had a config naming a hook
+;; namespace that did not exist, and clj-kondo errored on every run. CI found
+;; that on its first execution.
 {:lint-as {clojure.test.check.clojure-test/defspec clojure.core/def}
- :hooks
- {:analyze-call
-  {java.security.MessageDigest/getInstance hbt.security/weak-hash
-   javax.crypto.Cipher/getInstance         hbt.security/cipher
-   javax.net.ssl.SSLContext/getInstance    hbt.security/tls-protocol
-   clojure.core/eval                       hbt.security/eval-call
-   clojure.core/load-string                hbt.security/eval-call
-   clojure.core/read-string                hbt.security/read-string-call
-   clojure.core/resolve                    hbt.security/reflective
-   clojure.core/ns-resolve                 hbt.security/reflective
-   clojure.core/requiring-resolve          hbt.security/reflective
-   clojure.core/rand                       hbt.security/insecure-random
-   clojure.core/rand-int                   hbt.security/insecure-random
-   clojure.core/rand-nth                   hbt.security/insecure-random
-   clojure.core/shuffle                    hbt.security/insecure-random
-   clojure.java.shell/sh                   hbt.security/shell
-   next.jdbc/execute!                      hbt.security/sql
-   next.jdbc/execute-one!                  hbt.security/sql
-   clojure.java.jdbc/query                 hbt.security/sql}}
- :linters
- {:hbt/weak-hash-algorithm     {:level :error}
-  :hbt/cipher-ecb-mode         {:level :error}
-  :hbt/weak-cipher-algorithm   {:level :error}
-  :hbt/weak-tls-protocol       {:level :error}
-  :hbt/eval-of-dynamic-value   {:level :error}
-  :hbt/read-string-untrusted   {:level :error}
-  :hbt/reflective-call         {:level :warning}
-  :hbt/insecure-random         {:level :warning}
-  :hbt/shell-command-injection {:level :error}
-  :hbt/sql-string-built        {:level :error}}}
+ :config-paths ["../clj-kondo"]}

@@ -225,9 +225,9 @@ both compatibility failures above, neither of which any unit test can reach.
 ```bash
 clojure -X:gen-rules     # regenerate the rule catalogue from clj-kondo
 clojure -T:build uber    # -> target/sonar-clojure-plugin-0.1.1.jar + .sha256
-clojure -M:test          # 107 tests, 384 assertions (needs the jar)
+clojure -M:test          # 122 tests, 436 assertions (needs the jar)
 clojure -T:build release # the same, gated on a clean tree and a v<version> tag
-clojure -M:coverage      # 64% forms / 74% lines, measured
+clojure -M:coverage      # 91% forms / 92% lines, measured
 ```
 
 Arm the pre-commit hook in a fresh clone with

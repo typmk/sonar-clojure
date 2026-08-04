@@ -39,9 +39,16 @@
                  org.sonarsource.sonarqube/sonar-plugin-api-impl {:mvn/version "10.7.0.96327"}
                  org.clojure/test.check {:mvn/version "1.1.3"}
                  cloverage/cloverage {:mvn/version "1.2.4"}}
+   ;; Excluded: the namespaces carrying :gen-class. Their tests instantiate the
+   ;; AOT'd class from target/classes while cloverage instruments the source
+   ;; var, so real exercise does not count against them -- completeness-sensor
+   ;; has a full SensorContextTester suite and still measured 6.25%. A wrong
+   ;; number is worse than no number, so they are named here rather than left
+   ;; to look untested. What they do IS covered, by completeness-sensor-test
+   ;; and packaging-test, which read the built jar.
    :main-opts   ["-m" "cloverage.coverage" "--lcov" "--codecov"
                  "-p" "src" "-s" "test"
-                 "-e" "au.com.heisenbergtech.sonar.(plugin|language|rules|profile|sensor|source-sensor|coverage-sensor|test-sensor|gen)"]}
+                 "-e" "au.com.heisenbergtech.sonar.(plugin|language|rules|profile|sensor|source-sensor|coverage-sensor|test-sensor|completeness-sensor|external-sensor|external-rules|metrics-def|gen)"]}
 
   ;; src and resources are on the build classpath so the jar's description can
   ;; be produced by the plugin's own provenance code rather than by a second
