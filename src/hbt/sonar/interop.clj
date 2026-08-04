@@ -91,7 +91,8 @@
    {:key "insecure-random" :class "java.util.Random" :member :new}
    {:key "unsafe-deserialization" :class "java.io.ObjectInputStream" :member :new}
    {:key "unsafe-deserialization" :class "java.beans.XMLDecoder" :member :new}
-   {:key "jndi-injection" :class "javax.naming.InitialContext" :member "doLookup"}
+   {:key "jndi-injection" :class "javax.naming.InitialContext" :member "doLookup" :dynamic true}
+   {:key "jndi-injection" :class "javax.naming.Context" :member "lookup" :dynamic true}
    {:key "predictable-temp-file" :class "java.io.File" :member "createTempFile"}
    {:key "xml-external-entity" :class "javax.xml.parsers.DocumentBuilderFactory" :member "newInstance"}
    {:key "xml-external-entity" :class "javax.xml.parsers.SAXParserFactory" :member "newInstance"}
@@ -106,21 +107,27 @@
 (def ^:private by-target
   (reduce (fn [m r] (update m [(:class r) (:member r)] (fnil conj []) r)) {} detections))
 
-(def ^:private hardening
-  "Evidence that an XML parser has been locked down. Any one of these in the
-  same top-level form is enough: the point of the rule is to find the parser
-  nobody hardened, not to make people justify the one they did."
-  [#"disallow-doctype-decl"
-   #"FEATURE_SECURE_PROCESSING"
-   #"setExpandEntityReferences"
-   #"external-general-entities"
-   #"SUPPORT_DTD"
-   #"ACCESS_EXTERNAL_DTD"
-   #"setXIncludeAware"])
+(def ^:private hardening-calls
+  "Setter -> the literal that means \"locked down\". Checked as CALLS with
+  their argument, never as text in the enclosing form: the previous version
+  regex-matched the form's raw source, so a `;; TODO disallow-doctype-decl`
+  comment silenced the rule, and so did setting the very same feature to
+  false. A comment must never disable a security finding."
+  {".setXIncludeAware"          "false"
+   ".setExpandEntityReferences" "false"})
 
-(defn- enclosing-top-level
-  "The outermost live list containing `n` -- the defn it sits in."
-  [nodes n]
+(def ^:private hardening-features
+  "Feature URI fragment -> the value that hardens it."
+  {"disallow-doctype-decl"        "true"
+   "FEATURE_SECURE_PROCESSING"    "true"
+   "external-general-entities"    "false"
+   "external-parameter-entities"  "false"
+   "load-external-dtd"            "false"
+   "ACCESS_EXTERNAL_DTD"          ""
+   "ACCESS_EXTERNAL_STYLESHEET"   ""
+   "SUPPORT_DTD"                  "false"})
+
+(defn- enclosing-top-level [nodes n]
   (->> nodes
        (filter #(and (= :list (:tag %))
                      (<= (:line %) (:line n))
@@ -128,17 +135,41 @@
        (sort-by :depth)
        first))
 
+(defn- hardening-call?
+  "True when this call is a parser lock-down with the right polarity."
+  [nodes n]
+  (when (= :list (:tag n))
+    (let [args (tree/arguments nodes n)
+          head (:head n)]
+      (cond
+        (contains? hardening-calls head)
+        (= (get hardening-calls head) (:text (last args)))
+
+        (contains? #{".setFeature" ".setProperty" ".setAttribute"} head)
+        (let [[k v] (take-last 2 args)
+              key-text (or (tree/unquote-string k) (:text k) "")]
+          (boolean (some (fn [[frag want]]
+                           (and (str/includes? key-text frag)
+                                (or (= want "") (= want (:text v)))))
+                         hardening-features)))
+
+        :else false))))
+
 (defn- hardened?
-  "True when the enclosing form shows the parser being locked down."
+  "True when the enclosing form contains a real hardening CALL."
   [nodes n]
   (when-let [form (enclosing-top-level nodes n)]
-    (let [txt (:text form)]
-      (boolean (some #(re-find % txt) hardening)))))
+    (boolean (some #(hardening-call? nodes %) (tree/children-of nodes form)))))
 
-(defn- matches? [nodes lst {:keys [arg]}]
-  (or (nil? arg)
-      (when-let [s (tree/unquote-string (tree/first-argument nodes lst))]
-        (boolean (re-find arg s)))))
+(defn- matches? [nodes lst {:keys [arg dynamic]}]
+  (and (if dynamic
+         ;; the weakness needs a name the caller can influence; a compile-time
+         ;; constant lookup is not it
+         (let [a (tree/first-argument nodes lst)] (and a (not (tree/literal? a))))
+         true)
+       (or (nil? arg)
+           (when-let [s (tree/unquote-string (tree/first-argument nodes lst))]
+             (boolean (re-find arg s))))))
 
 (def ^:private trust-types
   #{"X509TrustManager" "TrustManager" "X509ExtendedTrustManager" "HostnameVerifier"
@@ -166,7 +197,8 @@
           :let [[cls member] (tree/head-parts (:head n))
                 fq (resolve-class imported cls)]
           :when fq
-          r (concat (get by-target [fq member]) (get by-target [fq :new]))
+          r (distinct (concat (get by-target [fq member])
+                              (when-not (= :new member) (get by-target [fq :new]))))
           :when (and (or (= (:member r) member)
                          (and (= :new (:member r)) (= :new member)))
                      (matches? nodes n r)
@@ -181,5 +213,19 @@
                        " -- confirm external entity resolution is disabled"
                        " -- see the rule description"))})))
 
+(def ^:private clojure-rng
+  "clojure.core's RNG, all of which delegate to java.util.Random. Missing
+  these made the rule blind to the idiomatic Clojure token-generation bug --
+  `(apply str (repeatedly 32 #(rand-nth alphabet)))` produced nothing."
+  #{"rand" "rand-int" "rand-nth" "shuffle" "Math/random" "clojure.core/rand"
+    "clojure.core/rand-int" "clojure.core/rand-nth" "clojure.core/shuffle"})
+
+(defn- clojure-rng-findings [nodes]
+  (for [n (tree/lists-headed-by nodes clojure-rng)]
+    {:rule "insecure-random"
+     :line (:line n) :col (:col n) :end-line (:end-line n) :end-col (:end-col n)
+     :message (str (:head n) " delegates to java.util.Random -- confirm nothing an"
+                   " attacker must not guess is derived from it")}))
+
 (defn all-findings [nodes]
-  (concat (findings nodes) (trust-all-findings nodes)))
+  (concat (findings nodes) (trust-all-findings nodes) (clojure-rng-findings nodes)))

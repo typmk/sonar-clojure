@@ -74,13 +74,13 @@
   layout. Prose, severity, CWEs and remediation cost come from the JSON and
   HTML; nothing about the rule is stated twice."
   [repo {:keys [key name type html quality severity attribute hotspot?
-                cwe owasp remediation tags]}]
+                cwe owasp remediation tags activate?]}]
   (let [rule (doto (.createRule repo key)
                (.setName name)
                (.setHtmlDescription html)
                (.addDescriptionSection (section "root_cause" html))
                (.setType (RuleType/valueOf ^String type))
-               (.setActivatedByDefault true)
+               (.setActivatedByDefault (boolean activate?))
                (.addTags (into-array String tags)))]
     (.setDebtRemediationFunction
      rule (.constantPerIssue (.debtRemediationFunctions rule) remediation))

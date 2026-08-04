@@ -1,6 +1,6 @@
 {
  "title": "Operator access placed on the graph",
- "type": "VULNERABILITY",
+ "type": "SECURITY_HOTSPOT",
  "status": "ready",
  "remediation": {
   "func": "Constant/Issue",
@@ -15,17 +15,10 @@
  "scope": "Main",
  "securityStandards": {
   "CWE": [
-   639,
-   732
+   269
   ],
   "OWASP": [
    "A1"
   ]
- },
- "code": {
-  "impacts": {
-   "SECURITY": "HIGH"
-  },
-  "attribute": "TRUSTWORTHY"
  }
 }

@@ -14,7 +14,7 @@
  "status": "ready",
  "securityStandards": {
   "CWE": [
-   276
+   732
   ],
   "OWASP": [
    "A1"

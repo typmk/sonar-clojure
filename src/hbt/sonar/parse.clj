@@ -53,17 +53,24 @@
        :end-line (:end-row m) :end-col (:end-col m)})))
 
 (defn- walk
-  [node depth commented? branch-depth acc]
+  [node depth commented? quoted? branch-depth acc]
   (let [tag    (n/tag node)
         inner? (n/inner? node)
         p      (pos node)
         text   (n/string node)
-        list?  (= :list tag)
+        ;; `#(...)` is a call form too. Treating only :list as one made every
+        ;; rule blind to anything inside an anonymous fn -- 259 of them in the
+        ;; four Clojure repos.
+        list?  (contains? #{:list :fn} tag)
         head   (when list? (head-text node))
         ;; `(comment ...)` and `#_form` are commented-out code, not code
         commented?' (or commented?
                         (= :uneval tag)
                         (and list? (= "comment" head)))
+        ;; Inside a quoted form nothing is invoked. `(pull ?e [*])` in a
+        ;; datalog vector is a clause, not a call, and reading it as one made
+        ;; correctly tenant-scoped queries look unscoped.
+        quoted?'    (or quoted? (contains? #{:quote :syntax-quote} tag))
         branch?     (and list? (contains? forms/branch head))
         acc' (if p
                (conj! acc (assoc p
@@ -73,6 +80,7 @@
                                  :text text
                                  :depth depth
                                  :commented? commented?'
+                                 :quoted? quoted?'
                                  :head head
                                  :branch? branch?
                                  :function? (and list? (contains? forms/function head))
@@ -80,7 +88,8 @@
                                  :branch-nesting branch-depth))
                acc)]
     (if inner?
-      (reduce (fn [a c] (walk c (inc depth) commented?' (cond-> branch-depth branch? inc) a))
+      (reduce (fn [a c] (walk c (inc depth) commented?' quoted?'
+                              (cond-> branch-depth branch? inc) a))
               acc' (n/children node))
       acc')))
 
@@ -93,7 +102,7 @@
   [source]
   (try
     {:ok? true
-     :nodes (persistent! (walk (p/parse-string-all source) 0 false 0 (transient [])))}
+     :nodes (persistent! (walk (p/parse-string-all source) 0 false false 0 (transient [])))}
     (catch Exception e
       {:ok? false :error (.getMessage e)})))
 

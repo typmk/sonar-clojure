@@ -1,9 +1,17 @@
-{"tags":["cwe", "security"],
- "remediation":{"func":"Constant\/Issue", "constantCost":"10min"},
- "type":"SECURITY_HOTSPOT",
- "scope":"Main",
- "sqKey":"shell-invocation",
- "title":"Shell invocation should be reviewed",
- "status":"ready",
- "securityStandards":{"CWE":[78], "OWASP":["A3"]},
- "defaultSeverity":"Medium"}
+{
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "10min"
+ },
+ "type": "SECURITY_HOTSPOT",
+ "scope": "Main",
+ "sqKey": "shell-invocation",
+ "title": "Shell invocation should be reviewed",
+ "status": "ready",
+ "securityStandards": {},
+ "defaultSeverity": "Medium"
+}

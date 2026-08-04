@@ -20,5 +20,6 @@
   "OWASP": [
    "A1"
   ]
- }
+ },
+ "defaultActivation": false
 }

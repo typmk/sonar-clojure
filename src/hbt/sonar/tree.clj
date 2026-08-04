@@ -25,11 +25,19 @@
                      (<= (:end-line %) (:end-line n))))
        distinct))
 
+(def call-tags
+  "Forms that invoke: a list, and an anonymous-fn literal."
+  #{:list :fn})
+
 (defn lists-headed-by
-  "Live list nodes whose head symbol is in `heads`."
+  "Live, unquoted call forms whose head symbol is in `heads`.
+
+  Quoted forms are excluded: nothing inside `'[...]` is invoked, so a datalog
+  clause is not a function call."
   [nodes heads]
-  (filter #(and (= :list (:tag %))
+  (filter #(and (contains? call-tags (:tag %))
                 (not (:commented? %))
+                (not (:quoted? %))
                 (contains? heads (:head %)))
           nodes))
 

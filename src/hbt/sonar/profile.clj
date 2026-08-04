@@ -2,6 +2,7 @@
   "The shipped quality profile. Everything clj-kondo does not default to
   :off is active, so the dashboard and a local `clj-kondo --lint` agree."
   (:require [hbt.sonar.const :as const]
+            [hbt.sonar.metadata :as metadata]
             [hbt.sonar.rules :as rules]
             [hbt.sonar.access :as access]
             [hbt.sonar.concurrency :as concurrency]
@@ -21,9 +22,11 @@
             :when (not= :off (:level r))]
       (.activateRule p const/repository-key (:key r)))
     (.activateRule p const/repository-key const/unknown-rule)
-    (doseq [k (distinct (concat security/rule-keys interop/rule-keys
-                                concurrency/rule-keys regex/rule-keys
-                                tests/rule-keys web/rule-keys access/rule-keys))]
-      (.activateRule p const/repository-key k))
+    (doseq [r (metadata/load-rules
+               (distinct (concat security/rule-keys interop/rule-keys
+                                 concurrency/rule-keys regex/rule-keys
+                                 tests/rule-keys web/rule-keys access/rule-keys)))
+            :when (:activate? r)]
+      (.activateRule p const/repository-key (:key r)))
     (.done p)
     nil))

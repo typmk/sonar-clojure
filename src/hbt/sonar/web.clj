@@ -48,8 +48,15 @@
    ;; A namespace that routes state-changing methods and never mentions
    ;; anti-forgery. File-scoped on purpose: middleware is usually assembled
    ;; somewhere other than the route it protects, so this is a hotspot.
-   (let [all (str/join " " (map :text (filter #(= :keyword (:type %)) nodes)))
-         methods (some #(str/includes? all %) state-changing)
+   ;; Establish this is a web namespace FIRST. Without it the method keyword
+   ;; means nothing: measured over lume+sur, 8 of 10 findings were malli enums,
+   ;; permission-verb sets and OUTBOUND http client calls.
+   (let [web-ns? (some (fn [n] (and (= :symbol (:type n))
+                                    (re-find #"(?i)(^|[./])(ring|reitit|compojure|muuntaja|handler|routes|middleware)([./]|$)"
+                                             (:text n))))
+                       nodes)
+         all (str/join " " (map :text (filter #(= :keyword (:type %)) nodes)))
+         methods (and web-ns? (some #(str/includes? all %) state-changing))
          guarded (some (fn [n] (and (= :symbol (:type n))
                                     (re-find #"(?i)anti-forgery|csrf" (:text n))))
                        nodes)]

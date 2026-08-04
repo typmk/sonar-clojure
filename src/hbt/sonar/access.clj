@@ -16,13 +16,15 @@
   Everything here is a hotspot rather than a vulnerability. The shapes are
   strong signals, not proofs, and a wrong accusation about authorisation is
   the fastest way to get a security ruleset switched off."
-  (:require [clojure.string :as str]
-            [hbt.sonar.tree :as tree]))
+  (:require [hbt.sonar.tree :as tree]))
 
 (def rule-keys ["ambiguous-owner-check" "unscoped-tenant-query" "operator-as-party"])
 
 (def ^:private tenant-word
-  #"(?i)(^|[-_*/:.])(owner|org-id|orgid|tenant|tenant-id|party-uuid)([-_*?!]|$)")
+  "For a QUERY: does it name the scope anywhere. The trailing boundary must
+  admit `/`, or `:tenant/id` -- the actual scoping attribute here -- does not
+  match and correctly scoped queries read as unscoped."
+  #"(?i)(^|[-_*/:.])(owner|org|org-id|orgid|tenant|tenant-id|party-uuid)([-_*?!/]|$)")
 
 (def ^:private two-valued #{"if" "when" "when-not" "if-not" "nil?" "some?" "if-let" "when-let"})
 
@@ -33,6 +35,21 @@
   "Named in CLAUDE.md's `Banned -> use` table: operator access is an
   off-graph staff fact, never a party attribute."
   #{":party/platform-role" ":party/operator" ":party/staff-role" ":party/is-operator"})
+
+(def ^:private denial
+  #"(?i)^(throw|ex-info|deny|denied|forbidden|unauthorized|unauthorised|abort|reject)")
+
+(defn- denies?
+  "True when this branch, or the form containing it, can refuse. An
+  authorisation check that cannot deny is not an authorisation check."
+  [nodes n]
+  (let [encl (->> nodes
+                  (filter #(and (contains? tree/call-tags (:tag %))
+                                (<= (:line %) (:line n))
+                                (>= (:end-line %) (:end-line n))))
+                  (sort-by :depth) first)]
+    (boolean (some #(and (:text %) (re-find denial (:text %)))
+                   (tree/children-of nodes (or encl n))))))
 
 (defn- mentions? [nodes n re]
   (boolean (some #(and (:text %) (re-find re (:text %)))
@@ -45,7 +62,12 @@
    ;; two must not share a branch.
    (for [l (tree/lists-headed-by nodes two-valued)
          :let [a (tree/first-argument nodes l)]
-         :when (and a (mentions? nodes a tenant-word))]
+         ;; The condition must concern the tenant boundary AND the form must be
+         ;; able to DENY. That second half is what distinguishes an
+         ;; authorisation decision from presence-of-context plumbing -- matching
+         ;; the word alone gave 24% precision, with eleven findings in one file
+         ;; that authorises nothing.
+         :when (and a (mentions? nodes a tenant-word) (denies? nodes l))]
      {:rule "ambiguous-owner-check"
       :line (:line l) :col (:col l) :end-line (:end-line l) :end-col (:end-col l)
       :message (str "two-valued test on the tenant boundary: nil owner means both"
@@ -53,12 +75,24 @@
 
    ;; A query against owned data that never names the owner. Datomic and SQL
    ;; alike: the scope has to be IN the query, not applied to its results.
-   (for [l (tree/lists-headed-by nodes query-fns)
-         :when (not (mentions? nodes l tenant-word))]
-     {:rule "unscoped-tenant-query"
-      :line (:line l) :col (:col l) :end-line (:end-line l) :end-col (:end-col l)
-      :message (str (:head l) " names no owner or tenant -- confirm the scope is in the"
-                    " query and not applied afterwards")})
+   ;; A protocol method named `pull` in a defrecord/extend-type body is a
+   ;; definition, not a query.
+   (let [defining (into #{} (mapcat #(map :text (tree/children-of nodes %)))
+                        (tree/lists-headed-by nodes #{"defrecord" "deftype" "extend-type"
+                                                      "extend-protocol" "reify" "defprotocol"}))]
+     (for [l (tree/lists-headed-by nodes query-fns)
+           :when (not (mentions? nodes l tenant-word))
+           :when (not (and (contains? defining (:head l))
+                           (some #(and (contains? #{:list} (:tag %))
+                                       (<= (:line %) (:line l))
+                                       (>= (:end-line %) (:end-line l))
+                                       (contains? #{"defrecord" "deftype" "extend-type"
+                                                    "extend-protocol" "defprotocol"} (:head %)))
+                                 nodes)))]
+       {:rule "unscoped-tenant-query"
+        :line (:line l) :col (:col l) :end-line (:end-line l) :end-col (:end-col l)
+        :message (str (:head l) " names no owner or tenant -- confirm the scope is in the"
+                      " query and not applied afterwards")}))
 
    ;; "Party to none is enforced by absence, not a flag."
    (for [n nodes

@@ -14,16 +14,22 @@
 
 (def rule-keys ["redos-vulnerable-regex" "partial-match-validation"])
 
-(def ^:private nested-quantifier
-  "A quantified group whose body is itself quantified: (a+)+, (a*)*, ([a-z]+)*.
-  The classic super-linear shape -- the engine retries every split of the
-  inner match against every split of the outer."
-  #"\((?:\?:)?[^()]*[+*][^()]*\)\s*[+*]")
+(def ^:private brace-nested
+  "A brace-bounded repetition inside another: (a{1,9}){1,9}.
 
-(def ^:private quantified-alternation
-  "(a|a)* and friends: overlapping alternatives under a quantifier give the
-  engine an exponential number of equivalent paths to try."
-  #"\((?:\?:)?[^()|]+\|[^()|]+\)\s*[+*]")
+  This is the shape MEASURED exponential on JDK 25 -- 38ms at n=20, 3.26s at
+  n=32. The JDK memoises its Loop node, which is what `(a+)+` compiles to, so
+  the textbook nested-plus shape is LINEAR on a modern JVM. Curly nodes are
+  not memoised, and this is what remains.
+
+  The previous version of this rule flagged eleven patterns, of which zero
+  were measurably super-linear, and missed this one."
+  #"\((?:\?:)?[^()]*\{\d+,\d*\}[^()]*\)\s*\{\d+,\d*\}")
+
+(def ^:private nested-quantifier-unmemoised
+  "A quantified group whose body is quantified AND which contains a nested
+  group, defeating the JDK's memoisation: ((a+))+."
+  #"\((?:\?:)?[^)]*\([^()]*[+*][^()]*\)[^(]*\)\s*[+*]")
 
 (defn- pattern-text
   "The source between the delimiters of a #\"...\" literal."
@@ -32,8 +38,11 @@
     (subs text 2 (max 2 (dec (count text))))))
 
 (defn- redos? [p]
-  (boolean (or (re-find nested-quantifier p)
-               (re-find quantified-alternation p))))
+  ;; The alternation heuristic was deleted: it required only "two branches
+  ;; under a quantifier" and never overlap, so (a|b)* and (foo|bar)+ -- both
+  ;; measured linear -- were reported as High vulnerabilities.
+  (boolean (or (re-find brace-nested p)
+               (re-find nested-quantifier-unmemoised p))))
 
 (def ^:private validating
   "Calls whose result decides whether input is acceptable. `re-find` succeeds

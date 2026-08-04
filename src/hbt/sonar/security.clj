@@ -160,12 +160,19 @@
      ;; than matching "MD5" anywhere a string happens to contain it.
 
      ;; a credential-shaped name bound to a string literal
+     ;; The def's VALUE, not its docstring. Taking the first string child made
+     ;; `(def api-key "read from the environment" (System/getenv ...))` a
+     ;; hardcoded credential.
      (for [l (tree/lists-headed-by nodes #{"def" "defonce"})
-           :let [nm (tree/first-argument nodes l)
-                 v  (->> (tree/children-of nodes l)
-                         (remove #(= :trivia (:type %)))
-                         (filter #(= :string (:type %)))
-                         first)]
+           :let [args (tree/arguments nodes l)
+                 nm   (first args)
+                 ;; (def n "value")      -> the string IS the value
+                 ;; (def n "doc" value)   -> the string is the docstring
+                 v    (let [lst (last args)]
+                        (when (and (= :string (:type lst))
+                                   (or (= 2 (count args))
+                                       (not= lst (second args))))
+                          lst))]
            :when (and nm v (re-find credential-name (:text nm))
                       (> (count (:text v)) 6))]
        (finding "hardcoded-credential" v
@@ -180,11 +187,24 @@
        (finding "reflective-call" l
                 (str (:head l) " selects code by a computed name")))
 
-     (for [n nodes
-           :when (and (= :string (:type n)) (not (:commented? n))
-                      (re-find #"\"(0?7[0-7][0-7]|rwxrwxrwx|.......rw.)\"" (:text n)))]
-       (finding "permissive-file-permissions" n
-                "world-accessible file mode")))))
+     ;; World-accessible means the OTHERS digit carries a bit, which is the
+      ;; LAST octal digit -- not the first. The previous pattern required a
+      ;; leading 7, so "0700" (owner-only) fired and "0666" did not.
+      (for [n nodes
+            :when (= :string (:type n))
+            :when (not (:commented? n))
+            :let [s (tree/unquote-string n)]
+            :when (and s
+                       (or (when-let [m (re-matches #"0?([0-7])([0-7])([0-7])" s)]
+                             (let [others (parse-long (nth m 3))]
+                               (pos? (bit-and others 2r011))))
+                           ;; symbolic: others' write or read bit set
+                           (re-matches #"[-dlbcps][-r][-w][-xsS][-r][-w][-xsS][-r][-w][-xtT]" s)
+                           (re-matches #"[-r][-w][-xsS][-r][-w][-xsS][-r][-w][-xtT]" s)))
+            :when (or (not (re-matches #"[0-7]{3,4}" s))
+                      (pos? (bit-and (parse-long (str (last s))) 2r011)))]
+        (finding "permissive-file-permissions" n
+                 (str "mode " s " grants access to others"))))))
 
 (defn- namespace-name
   "The ns this file declares, or nil."

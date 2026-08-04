@@ -7,21 +7,14 @@
   "func": "Constant/Issue",
   "constantCost": "10min"
  },
- "type": "VULNERABILITY",
+ "type": "SECURITY_HOTSPOT",
  "scope": "Main",
  "sqKey": "insecure-random",
  "title": "java.util.Random is predictable",
  "status": "ready",
- "code": {
-  "impacts": {
-   "SECURITY": "MEDIUM"
-  },
-  "attribute": "TRUSTWORTHY"
- },
  "securityStandards": {
   "CWE": [
-   338,
-   1241
+   338
   ],
   "OWASP": [
    "A2"
