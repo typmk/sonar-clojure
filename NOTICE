@@ -1,0 +1,62 @@
+sonar-clojure
+Copyright (c) 2026 Heisenberg Technologies
+
+This product is licensed under the Eclipse Public License 2.0.
+See the LICENSE file for the full terms.
+
+
+THIRD-PARTY SOFTWARE REDISTRIBUTED IN THE PLUGIN JAR
+────────────────────────────────────────────────────
+
+The plugin jar is self-contained: SonarQube loads it in an isolated
+classloader, so the Clojure runtime and its libraries are shaded into the
+artifact rather than resolved at runtime. Each is redistributed unmodified.
+
+  Clojure                       Eclipse Public License 1.0
+  https://clojure.org           Copyright (c) Rich Hickey
+
+  org.clojure/data.json         Eclipse Public License 1.0
+  https://github.com/clojure/data.json
+
+  rewrite-clj                   The MIT License
+  https://github.com/clj-commons/rewrite-clj
+
+EPL-1.0 and EPL-2.0 are the same licence family; EPL-1.0 §7 permits
+redistribution under a later version. The MIT License is permissive and
+imposes no condition beyond attribution, which this file provides.
+
+
+THIRD-PARTY SOFTWARE NOT REDISTRIBUTED
+──────────────────────────────────────
+
+  sonar-plugin-api              GNU LGPL 3.0
+  https://github.com/SonarSource/sonar-plugin-api
+
+    Compiled against, never shipped. The plugin jar contains no
+    org/sonar/api classes; SonarQube supplies them to the plugin
+    classloader at runtime. This is the ordinary plugin arrangement
+    LGPL §4 contemplates, and creates no obligation on this work.
+
+  clj-kondo                     Eclipse Public License 1.0
+  https://github.com/clj-kondo/clj-kondo
+
+    A BUILD-time dependency only. The rule catalogue in
+    resources/hbt/sonar/linters.edn is generated from clj-kondo's default
+    configuration by `clojure -X:gen-rules`; no clj-kondo code is shipped.
+    At analysis time the plugin reads a report clj-kondo produced, and
+    invokes nothing.
+
+
+DERIVED DATA
+────────────
+
+  resources/org/sonar/l10n/clj/rules/external_splint.json
+
+    Rule identifiers and titles extracted from splint 1.24.0
+    (https://github.com/NoahTheDuke/splint), Mozilla Public License 2.0.
+    Identifiers and short titles only, so that splint's rules are
+    browsable in the SonarQube Rules UI. No splint source is included.
+
+  Rule descriptions reference CWE identifiers from the Common Weakness
+  Enumeration (https://cwe.mitre.org), CWE v4.20. CWE is a trademark of
+  The MITRE Corporation.

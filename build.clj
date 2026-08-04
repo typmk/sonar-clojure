@@ -62,6 +62,8 @@
 
 (defn uber [_]
   (clean nil)
+  (b/copy-file {:src "LICENSE" :target (str class-dir "/META-INF/LICENSE")})
+  (b/copy-file {:src "NOTICE" :target (str class-dir "/META-INF/NOTICE")})
   (javac* nil)
   (compile-clj* nil)
   (b/uber {:class-dir class-dir
@@ -73,7 +75,7 @@
                        "Plugin-Version"          version
                        "Plugin-Class"            "hbt.sonar.ClojurePluginBootstrap"
                        "Plugin-Description"      "Indexes Clojure sources and imports clj-kondo findings."
-                       "Plugin-License"          "AGPL-3.0"
+                       "Plugin-License"          "EPL-2.0"
                        "Plugin-OrganizationName" "Heisenberg Technologies"
                        "Plugin-Homepage"         "https://hbtcomputers.com.au"
                        "Plugin-SourcesUrl"       "https://github.com/hbtweb"

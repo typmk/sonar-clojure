@@ -193,7 +193,16 @@ CWEs, remediation costs and prose are edited there, without recompiling.
 
 ## Licence
 
-AGPL-3.0, as declared in the plugin manifest.
+**Eclipse Public License 2.0.** Full text in [LICENSE](LICENSE); attribution
+for redistributed components in [NOTICE](NOTICE).
 
-> **Note:** no `LICENSE` file is present in this repository. One must be added
-> before external distribution.
+EPL because the jar bundles the Clojure runtime, which is EPL-1.0 — the same
+licence family, so there is no compatibility question. It is also what the
+Clojure ecosystem uses, and weak enough (file-level copyleft) to be adopted
+without a legal review.
+
+`sonar-plugin-api` is LGPL-3.0, which is what SonarSource's own analyzers use.
+It is a *provided* dependency: the plugin jar contains no `org/sonar/api`
+classes and SonarQube supplies them at runtime, so no LGPL obligation attaches
+to this work. Licensing this plugin LGPL to match its peers would have created
+a genuine conflict with the EPL-1.0 runtime it ships.
