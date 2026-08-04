@@ -46,17 +46,6 @@
     :doc "<p>Pass parameters as values so the driver binds them, rather than building the statement with <code>str</code> or <code>format</code>.</p>"
     :fix "<pre>(jdbc/execute! db [\"select * from t where id = ?\" id])</pre>"}
 
-   {:key "weak-hash-algorithm"
-    :name "Broken hash algorithm"
-    :cwe [327 328] :owasp ["A2"] :severity "HIGH" :quality "SECURITY"
-    :doc "<p>MD5 and SHA-1 are broken for any security purpose. For passwords use a memory-hard KDF, not a hash.</p>"
-    :fix "<pre>(MessageDigest/getInstance \"SHA-256\")</pre>"}
-
-   {:key "insecure-random"
-    :name "java.util.Random is not a secure source of randomness"
-    :cwe [338 330] :owasp ["A2"] :severity "MEDIUM" :quality "SECURITY"
-    :doc "<p><code>java.util.Random</code> and <code>rand</code> are predictable. Use <code>java.security.SecureRandom</code> for anything a attacker must not guess.</p>"}
-
    {:key "hardcoded-credential"
     :name "Credential must not be hardcoded"
     :cwe [798 259] :owasp ["A7"] :severity "HIGH" :quality "SECURITY"
@@ -121,7 +110,6 @@
   security rule nobody reads."
   #"(?i)(^|[-_*/.])(passwords?|passwds?|secrets?|api[-_]?keys?|tokens?|credentials?|private[-_]?keys?|access[-_]?keys?|client[-_]?secrets?)([-_*?!]|$)")
 
-(def ^:private weak-hash #"(?i)\"(MD5|SHA-?1|MD2|MD4)\"")
 
 ;; ---------------------------------------------------------------------------
 ;; Detection over the parse tree.
@@ -258,16 +246,9 @@
                 "SQL statement is assembled by string building; pass parameters as values"
                 (flow l)))
 
-     (for [n nodes
-           :when (and (= :string (:type n)) (not (:commented? n))
-                      (re-find weak-hash (:text n)))]
-       (finding "weak-hash-algorithm" n
-                (str "broken hash algorithm " (:text n))))
-
-     (for [n nodes
-           :when (and (= :symbol (:type n)) (not (:commented? n))
-                      (contains? #{"java.util.Random." "java.util.Random" "Random."} (:text n)))]
-       (finding "insecure-random" n "java.util.Random is predictable; use java.security.SecureRandom"))
+     ;; weak-hash-algorithm and insecure-random moved to hbt.sonar.interop,
+     ;; which resolves the actual class through the ns form's :import rather
+     ;; than matching "MD5" anywhere a string happens to contain it.
 
      ;; a credential-shaped name bound to a string literal
      (for [l (lists-headed-by nodes #{"def" "defonce"})

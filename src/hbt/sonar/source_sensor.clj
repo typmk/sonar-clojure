@@ -12,6 +12,8 @@
             [hbt.sonar.metrics :as metrics]
             [hbt.sonar.parse :as parse]
             [hbt.sonar.report :as report]
+            [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.interop :as interop]
             [hbt.sonar.security :as security]
             [hbt.sonar.coverage-sensor :as coverage]
             [hbt.sonar.callgraph :as callgraph])
@@ -202,7 +204,9 @@
         (swap! seeds #(merge-with into % (security/seeds nodes)))
         (save-measures! ctx f ms)
         (save-line-data! ctx f (metrics/line-data nodes (truth-for truth-by-path f)))
-        (save-security! ctx f (security/findings nodes))
+        (save-security! ctx f (concat (security/findings nodes)
+                                      (interop/all-findings nodes)
+                                      (concurrency/findings nodes)))
         (save-cpd! ctx f leaves)
         (save-highlighting! ctx f leaves)
         (save-symbols! ctx f (or (get by-file (str (.path f)))

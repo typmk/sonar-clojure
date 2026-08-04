@@ -5,6 +5,8 @@
             [clojure.string :as string]
             [clojure.java.io :as io]
             [hbt.sonar.const :as const]
+            [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.interop :as interop]
             [hbt.sonar.security :as security])
   (:import [org.sonar.api.rules CleanCodeAttribute RuleType]
            [org.sonar.api.server.rule RuleDescriptionSection]
@@ -118,7 +120,12 @@
   (let [repo (-> (.createRepository ctx const/repository-key const/language-key)
                  (.setName "clj-kondo"))]
     (run! #(add-rule! repo %) (catalogue))
-    (run! #(add-security-rule! repo %) security/rules)
+    ;; deduped by key: interop registers weak-hash-algorithm once even though
+    ;; several classes raise it
+    (run! #(add-security-rule! repo %)
+          (->> (concat security/rules interop/rules concurrency/rules)
+               (reduce (fn [m r] (if (contains? m (:key r)) m (assoc m (:key r) r))) {})
+               vals))
     ;; The catch-all. A finding from a clj-kondo newer than this plugin must
     ;; surface as an issue, not vanish between the report and the dashboard.
     (doto (.createRule repo const/unknown-rule)

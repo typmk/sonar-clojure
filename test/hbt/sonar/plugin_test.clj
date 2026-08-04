@@ -4,6 +4,8 @@
   (:require [clojure.test :refer [deftest is testing]]
             [hbt.sonar.const :as const]
             [hbt.sonar.rules :as rules]
+            [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.interop :as interop]
             [hbt.sonar.security :as security])
   (:import [org.sonar.api.rules RuleType]
            [org.sonar.api Plugin$Context SonarEdition SonarProduct SonarQubeSide SonarRuntime]
@@ -55,7 +57,9 @@
         keys' (set (map #(.key %) (.rules repo)))]
     (is (some? repo) "repository was created")
     (testing "one rule per clj-kondo linter, the catch-all, and the security rules"
-      (is (= (+ (count (rules/catalogue)) 1 (count security/rules))
+      (is (= (+ (count (rules/catalogue)) 1
+                (count (distinct (map :key (concat security/rules interop/rules
+                                                   concurrency/rules)))))
              (count (.rules repo)))))
     (testing "the catch-all exists, so a newer clj-kondo cannot drop findings"
       (is (contains? keys' const/unknown-rule)))
@@ -79,10 +83,11 @@
         _    (.define (instantiate "hbt.sonar.ClojureRulesDefinition") ctx)
         repo (.repository ctx const/repository-key)
         by-key (into {} (map (juxt #(.key %) identity)) (.rules repo))]
-    (testing "every security rule is registered"
-      (is (every? #(contains? by-key (:key %)) security/rules)))
+    (testing "every security, interop and concurrency rule is registered"
+      (is (every? #(contains? by-key (:key %))
+                  (concat security/rules interop/rules concurrency/rules))))
     (testing "each carries its CWE, so the finding means something to a reviewer"
-      (doseq [r security/rules
+      (doseq [r (concat security/rules interop/rules)
               :let [rule (get by-key (:key r))]]
         (is (some #(re-find #"cwe:" %) (.securityStandards rule))
             (str (:key r) " has no CWE"))))

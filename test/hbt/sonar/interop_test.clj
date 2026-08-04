@@ -1,0 +1,96 @@
+(ns hbt.sonar.interop-test
+  (:require [clojure.test :refer [deftest is testing]]
+            [clojure.test.check.clojure-test :refer [defspec]]
+            [clojure.test.check.generators :as gen]
+            [clojure.test.check.properties :as prop]
+            [hbt.sonar.concurrency :as concurrency]
+            [hbt.sonar.interop :as interop]
+            [hbt.sonar.parse :as parse]))
+
+(defn- nodes [s] (:nodes (parse/parse s)))
+(defn- rules-for [s] (set (map :rule (interop/all-findings (nodes s)))))
+(defn- conc-for [s] (set (map :rule (concurrency/findings (nodes s)))))
+
+(def ^:private ns-form
+  "(ns app
+     (:import [java.security MessageDigest]
+              [javax.crypto Cipher]
+              [javax.net.ssl SSLContext]
+              [javax.xml.parsers DocumentBuilderFactory]
+              java.util.Random
+              java.io.ObjectInputStream))\n")
+
+(deftest resolves-imports-both-ways
+  (let [i (interop/imports (nodes ns-form))]
+    (testing "[package Class Class] form"
+      (is (= "java.security.MessageDigest" (get i "MessageDigest")))
+      (is (= "javax.crypto.Cipher" (get i "Cipher"))))
+    (testing "bare fully-qualified symbol"
+      (is (= "java.util.Random" (get i "Random")))
+      (is (= "java.io.ObjectInputStream" (get i "ObjectInputStream"))))))
+
+(deftest catches-the-jdk-misuse-clojure-inherits
+  (testing "an imported class matches by its simple name"
+    (is (contains? (rules-for (str ns-form "(MessageDigest/getInstance \"MD5\")"))
+                   "weak-hash-algorithm")))
+  (testing "and the same rule fires on the fully-qualified form"
+    (is (contains? (rules-for "(java.security.MessageDigest/getInstance \"SHA-1\")")
+                   "weak-hash-algorithm")))
+  (is (contains? (rules-for (str ns-form "(Cipher/getInstance \"AES/ECB/PKCS5Padding\")"))
+                 "cipher-ecb-mode"))
+  (is (contains? (rules-for (str ns-form "(Cipher/getInstance \"DES/CBC/PKCS5Padding\")"))
+                 "weak-cipher-algorithm"))
+  (is (contains? (rules-for (str ns-form "(SSLContext/getInstance \"TLSv1\")"))
+                 "weak-tls-protocol"))
+  (is (contains? (rules-for (str ns-form "(Random.)")) "insecure-random"))
+  (is (contains? (rules-for (str ns-form "(ObjectInputStream. in)")) "unsafe-deserialization"))
+  (is (contains? (rules-for (str ns-form "(DocumentBuilderFactory/newInstance)"))
+                 "xml-external-entity"))
+  (is (contains? (rules-for "(java.io.File/createTempFile \"a\" \"b\")")
+                 "predictable-temp-file")))
+
+(deftest does-not-fire-on-the-safe-call
+  (testing "the argument decides -- SHA-256 and GCM are fine"
+    (is (empty? (rules-for (str ns-form "(MessageDigest/getInstance \"SHA-256\")"))))
+    (is (empty? (rules-for (str ns-form "(Cipher/getInstance \"AES/GCM/NoPadding\")"))))
+    (is (empty? (rules-for (str ns-form "(SSLContext/getInstance \"TLSv1.3\")")))))
+  (testing "an unimported simple name resolves to nothing rather than guessing"
+    (is (empty? (rules-for "(MessageDigest/getInstance \"MD5\")"))))
+  (testing "the string MD5 in prose is not a finding -- this is why the rule
+            resolves the class instead of matching text"
+    (is (empty? (rules-for (str ns-form "(def doc \"we no longer use MD5 here\")")))))
+  (testing "commented-out code is not a finding"
+    (is (empty? (rules-for (str ns-form "#_(MessageDigest/getInstance \"MD5\")"))))))
+
+(deftest catches-disabled-certificate-validation
+  (testing "a hand-written TrustManager exists to switch the check off"
+    (is (contains? (rules-for "(reify javax.net.ssl.X509TrustManager
+                                 (checkServerTrusted [_ _ _] nil))")
+                   "trust-all-certificates"))
+    (is (contains? (rules-for "(proxy [javax.net.ssl.HostnameVerifier] []
+                                 (verify [_ _] true))")
+                   "trust-all-certificates")))
+  (testing "an unrelated reify is not a finding"
+    (is (empty? (rules-for "(reify java.lang.Runnable (run [_] nil))")))))
+
+(deftest concurrency-rules-target-what-clojure-actually-gets-wrong
+  (testing "a side effect inside a retrying update can happen twice"
+    (is (contains? (conc-for "(swap! a (fn [v] (println v) (inc v)))") "side-effect-in-swap"))
+    (is (contains? (conc-for "(alter r (fn [v] (send agt f) v))") "side-effect-in-swap")))
+  (testing "a pure update is not flagged -- that is the whole point of swap!"
+    (is (empty? (conc-for "(swap! a inc)")))
+    (is (empty? (conc-for "(swap! a (fn [v] (assoc v :k 1)))"))))
+  (testing "a future used as a statement swallows its exception"
+    (is (contains? (conc-for "(do (future (risky!)) :ok)") "discarded-future")))
+  (testing "a future whose value is taken is fine"
+    (is (empty? (conc-for "(let [f (future (risky!))] @f)")))))
+
+(defspec interop-never-throws 300
+  (prop/for-all [s gen/string]
+    (let [{:keys [ok? nodes]} (parse/parse s)]
+      (or (not ok?) (seq? (interop/all-findings nodes)) (vector? (interop/all-findings nodes))))))
+
+(defspec concurrency-never-throws 300
+  (prop/for-all [s gen/string]
+    (let [{:keys [ok? nodes]} (parse/parse s)]
+      (or (not ok?) (some? (seq (concurrency/findings nodes))) true))))

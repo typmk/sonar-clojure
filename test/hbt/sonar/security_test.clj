@@ -15,10 +15,9 @@
   (is (contains? (rules-for "(sh \"sh\" \"-c\" cmd)") "shell-command-injection"))
   (is (contains? (rules-for "(jdbc/query db (str \"select \" x))") "sql-string-built")))
 
-(deftest detects-crypto-and-secret-misuse
-  (is (contains? (rules-for "(MessageDigest/getInstance \"MD5\")") "weak-hash-algorithm"))
-  (is (contains? (rules-for "(MessageDigest/getInstance \"SHA-1\")") "weak-hash-algorithm"))
-  (is (contains? (rules-for "(java.util.Random.)") "insecure-random"))
+(deftest detects-hardcoded-secrets
+  ;; weak-hash-algorithm and insecure-random live in hbt.sonar.interop now:
+  ;; resolving the class beats matching the string "MD5" wherever it appears.
   (is (contains? (rules-for "(def api-key \"sk-live-abcdef\")") "hardcoded-credential")))
 
 (deftest distinguishes-a-defect-from-a-thing-to-review
