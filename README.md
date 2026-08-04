@@ -15,8 +15,8 @@ attach to them.
 ## Install
 
 ```bash
-sha256sum -c sonar-clojure-plugin-0.1.0.jar.sha256                      # verify
-cp sonar-clojure-plugin-0.1.0.jar $SONARQUBE_HOME/extensions/plugins/   # then restart
+sha256sum -c sonar-clojure-plugin-0.1.1.jar.sha256                      # verify
+cp sonar-clojure-plugin-0.1.1.jar $SONARQUBE_HOME/extensions/plugins/   # then restart
 curl -s -u "$SONAR_TOKEN:" "$SONAR_URL/api/languages/list" | grep clj   # confirm
 ```
 
@@ -26,7 +26,7 @@ one it returns an empty body, which reads exactly like a failed install.
 SonarQube does not verify a plugin dropped into `extensions/plugins`, so the
 checksum is the integrity check, not a formality. A release also carries a
 detached `.asc` when it was signed; verify it with
-`gpg --verify sonar-clojure-plugin-0.1.0.jar.asc`.
+`gpg --verify sonar-clojure-plugin-0.1.1.jar.asc`.
 
 ---
 
@@ -224,7 +224,7 @@ both compatibility failures above, neither of which any unit test can reach.
 
 ```bash
 clojure -X:gen-rules     # regenerate the rule catalogue from clj-kondo
-clojure -T:build uber    # -> target/sonar-clojure-plugin-0.1.0.jar + .sha256
+clojure -T:build uber    # -> target/sonar-clojure-plugin-0.1.1.jar + .sha256
 clojure -M:test          # 107 tests, 384 assertions (needs the jar)
 clojure -T:build release # the same, gated on a clean tree and a v<version> tag
 clojure -M:coverage      # 64% forms / 74% lines, measured
