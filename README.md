@@ -16,8 +16,11 @@ attach to them.
 
 ```bash
 cp sonar-clojure-plugin-0.1.0.jar $SONARQUBE_HOME/extensions/plugins/   # then restart
-curl -s "$SONAR_URL/api/languages/list" | grep clj                      # confirm
+curl -s -u "$SONAR_TOKEN:" "$SONAR_URL/api/languages/list" | grep clj   # confirm
 ```
+
+The confirm call needs a token — that endpoint is authenticated, and without
+one it returns an empty body, which reads exactly like a failed install.
 
 ---
 
@@ -41,8 +44,17 @@ sonar.clojure.kondo.analysisPaths=target/clj-kondo-analysis.json
 partially covered line as fully covered; measured here, that overstated 22 of
 451 lines.
 
+cloverage is not a tool you have; add an alias for it.
+
+```clojure
+;; deps.edn
+{:aliases {:coverage {:extra-paths ["test"]
+                      :extra-deps {cloverage/cloverage {:mvn/version "1.2.4"}}
+                      :main-opts ["-m" "cloverage.coverage" "--codecov"
+                                  "-p" "src" "-s" "test"]}}}
+```
 ```bash
-clojure -M:coverage --codecov -p src -s test
+clojure -M:coverage
 ```
 ```properties
 sonar.clojure.cloverage.reportPaths=target/coverage/codecov.json
