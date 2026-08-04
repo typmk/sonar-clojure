@@ -51,6 +51,32 @@ rules:
     pattern-sanitizers:
       - pattern: (jdbc/quoted ...)
 
+  - id: clj-datalog-query-built
+    languages: [clojure]
+    severity: ERROR
+    mode: taint
+    message: >-
+      Attacker-controlled input is built into a Datalog query. Pass values
+      through :in and the query arguments instead of constructing the query.
+    metadata:
+      cwe: ["CWE-943: Improper Neutralization of Special Elements in Data Query Logic"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: HIGH
+    pattern-sources:
+      - pattern: (get-in $REQ [:params ...])
+      - pattern: (:params $REQ)
+      - pattern: (:body $REQ)
+    pattern-sinks:
+      # The QUERY position only. A tainted value passed after the db is an
+      # :in argument, which is the correct way to use one -- the same
+      # distinction as a bound SQL parameter.
+      - patterns:
+          - pattern: ($F $Q $DB ...)
+          - metavariable-regex:
+              metavariable: $F
+              regex: ^(d/q|datomic/q|datomic.api/q|d/pull|d/transact)$
+          - focus-metavariable: $Q
+
   - id: clj-command-injection
     languages: [clojure]
     severity: ERROR

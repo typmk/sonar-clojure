@@ -87,10 +87,18 @@
     (for [caller paths
           :when (not (and (contains? (set taints) caller)
                           (contains? (set reaches) caller)))
+          ;; ONE site is enough, and requiring two silently discarded the
+          ;; shape this pass exists for. When a var reads the request itself
+          ;; and hands the value to a function in another namespace that
+          ;; sinks it, the only tracked call site is the call into that
+          ;; function -- the source is clojure.core/get-in, which is never a
+          ;; project var and so never appears in the closure. Measured: a
+          ;; handler and a db namespace, seeds correct, call graph correct,
+          ;; and zero findings.
           :let [sites (call-sites graph caller
                                   (into (:taints closed) (:reaches closed)))
                 [a b] (take 2 sites)]
-          :when (and a b)]
+          :when a]
       {:rule "interprocedural-taint"
        :caller caller
        :filename (:filename a)
@@ -98,7 +106,11 @@
        :end-line (:end-line a) :end-col (:end-col a)
        :message (format "%s/%s obtains attacker-influenced data and passes it toward a sink"
                         (first caller) (second caller))
-       :flow [{:line (:line a) :col (:col a) :end-line (:end-line a) :end-col (:end-col a)
-               :message "attacker-influenced value obtained here"}
-              {:line (:line b) :col (:col b) :end-line (:end-line b) :end-col (:end-col b)
-               :message "and passed toward a sink here"}]})))
+       :flow (cond-> [{:line (:line a) :col (:col a)
+                       :end-line (:end-line a) :end-col (:end-col a)
+                       :message (if b
+                                  "attacker-influenced value obtained here"
+                                  "attacker-influenced value passed toward a sink here")}]
+               b (conj {:line (:line b) :col (:col b)
+                        :end-line (:end-line b) :end-col (:end-col b)
+                        :message "and passed toward a sink here"}))})))

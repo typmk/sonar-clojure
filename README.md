@@ -237,13 +237,22 @@ anyone measured it, `permissive-file-permissions` fired on 0700 and ignored
 used an assertion helper. In each case a test asserted the rule could fire and
 nothing asserted where it must not.
 
-Current score for `opengrep/clojure-taint.yml`, 24 cases:
+Two engines are scored, and their union — because neither is the answer alone.
+opengrep sees within a file; this plugin's `callgraph` pass sees across them,
+over clj-kondo's whole-project analysis. Measured across lume, sur and forma:
+**26 files hold a source and 46 hold a sink, and only 4 hold both**, so an
+intra-file engine can examine 4 files out of 181 there. 29 cases:
 
 ```
-TP 13   FN 2   FP 0      recall 86.7%   precision 100.0%
+opengrep    TP 15  FN 3  FP 0    recall 83.3%   precision 100.0%
+callgraph   TP  3  FN 15 FP 0    recall 16.7%   precision 100.0%
+both        TP 16  FN 2  FP 0    recall 88.9%   precision 100.0%
 ```
 
-The two misses are recorded rather than removed — a failing case deleted stops
+The callgraph's 16.7% is not a defect: it only reports paths that cross a
+function boundary, which is one case in six here and most cases in real code.
+
+The two remaining misses are recorded rather than removed — a failing case deleted stops
 being evidence, and one that blocks every build gets deleted — so recall says
 what the engine cannot do while the gate catches regressions:
 
@@ -254,6 +263,9 @@ what the engine cannot do while the gate catches regressions:
 - **Nested map destructuring cannot be matched at all** — `{{:keys [n]} :params}`
   matches nothing, in taint mode or plain search. Destructured ring handlers
   are idiomatic, so a source written that way is invisible.
+
+Neither is caught by the callgraph either: it models var-to-var flow, not
+value flow inside a function.
 
 Writing the corpus after the rules, in the same hour, proves little; the eight
 cases added blind are the ones that carried information. Three of them failed,

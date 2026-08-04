@@ -15,18 +15,45 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [au.com.heisenbergtech.sonar.external :as external]))
+            [au.com.heisenbergtech.sonar.callgraph :as callgraph]
+            [au.com.heisenbergtech.sonar.external :as external]
+            [au.com.heisenbergtech.sonar.security :as security]))
 
 (defn- manifest [] (edn/read-string (slurp (io/file "corpus" "manifest.edn"))))
 
-(defn- by-file
-  "SARIF -> {basename #{rule ...}}. Basenames, because the scanner is run from
-  the project root and the paths in the report are relative to it."
-  [sarif-path]
+(defn- key-for
+  "Manifest keys are paths relative to corpus/cases, so a case in a
+  subdirectory keeps its directory. Matching on basename alone would make
+  xfile/handler.clj and handler.clj the same case."
+  [path]
+  (let [p (str/replace path #"^.*corpus/cases/" "")]
+    (if (str/includes? p "/") p (last (str/split p #"/")))))
+
+(defn- tally [findings]
   (reduce (fn [acc {:keys [filename rule]}]
-            (update acc (last (str/split filename #"/")) (fnil conj #{}) rule))
-          {}
-          (external/findings "opengrep" (slurp sarif-path))))
+            (update acc (key-for filename) (fnil conj #{}) rule))
+          {} findings))
+
+(defn- opengrep-findings [sarif-path]
+  (tally (external/findings "opengrep" (slurp sarif-path))))
+
+(defn- callgraph-findings
+  "This plugin's own interprocedural pass, over clj-kondo's whole-project
+  analysis. It is the only engine here that crosses a file boundary, which is
+  the shape that dominates real code -- measured across lume, sur and forma,
+  26 files hold a source and 46 hold a sink while only 4 hold both.
+
+  Seeded from the same per-file scan the sensor uses, so this measures what
+  actually ships rather than a bench rig."
+  [analysis-path]
+  (let [files (->> (file-seq (io/file "corpus" "cases"))
+                   (filter #(str/ends-with? (.getName %) ".clj")))
+        direct (reduce (fn [acc f]
+                         (let [s (security/seeds-of-source (slurp f))]
+                           {:taints (into (:taints acc) (:taints s))
+                            :reaches (into (:reaches acc) (:reaches s))}))
+                       {:taints #{} :reaches #{}} files)]
+    (tally (callgraph/findings (slurp analysis-path) direct))))
 
 (defn score
   "engine defaults to opengrep; :known-miss entries for that engine are still
@@ -36,14 +63,37 @@
   every build gets deleted. Recording the miss keeps the number honest and the
   gate useful: recall says what the engine cannot do, regressions say whether
   it got worse."
-  ([sarif-path] (score sarif-path "opengrep"))
-  ([sarif-path engine]
-  (let [found (by-file sarif-path)
+  ([report] (score report "opengrep"))
+  ([report engine]
+  ;; Rule-level for opengrep, whose vocabulary the manifest is written in;
+  ;; file-level for anything else. The callgraph reports one rule --
+  ;; `interprocedural-taint` -- for every weakness class, so comparing its rule
+  ;; names against clj-sql-injection would score it 0 for finding exactly the
+  ;; thing it was built to find. Different engines name the same weakness
+  ;; differently, and the question being asked is whether the file was caught.
+  (let [rule-level? (= engine "opengrep")
+        found (case engine
+                "opengrep"  (opengrep-findings report)
+                "callgraph" (callgraph-findings report)
+                ;; The union. Neither engine is the answer on its own:
+                ;; opengrep sees within a file and this plugin's callgraph
+                ;; sees across them, and real code needs both -- measured
+                ;; across lume, sur and forma, 26 files hold a source and 46
+                ;; hold a sink while only 4 hold both.
+                "both" (merge-with into
+                                   (opengrep-findings (str report ".sarif"))
+                                   (callgraph-findings (str report ".json"))))
         rows  (for [{:keys [file expect cwe why known-miss]} (manifest)
                     :let [got (get found file #{})
-                          tp  (count (filter got expect))
-                          fn' (count (remove got expect))
-                          fp  (count (remove expect got))
+                          tp  (if rule-level?
+                                (count (filter got expect))
+                                (if (and (seq expect) (seq got)) (count expect) 0))
+                          fn' (if rule-level?
+                                (count (remove got expect))
+                                (if (and (seq expect) (empty? got)) (count expect) 0))
+                          fp  (if rule-level?
+                                (count (remove expect got))
+                                (if (and (empty? expect) (seq got)) (count got) 0))
                           known (get known-miss engine)]]
                 {:file file :cwe cwe :why why :expect expect :got got
                  :known known
@@ -60,12 +110,17 @@
      :known (count (filter :known rows))
      :failed (remove :ok? rows)})))
 
-(defn -main [& [sarif-path]]
-  (let [path (or sarif-path "target/corpus.sarif")]
-    (when-not (.isFile (io/file path))
-      (println "no report at" path "-- run opengrep first; see corpus/README.md")
-      (System/exit 2))
-    (let [{:keys [rows tp fp recall precision cases failed] :as s} (score path)
+(defn -main [& [report engine]]
+  (let [engine (or engine "opengrep")
+        path (or report (if (= engine "callgraph")
+                          "target/corpus-analysis.json"
+                          "target/corpus.sarif"))]
+    (doseq [needed (if (= engine "both") [(str path ".sarif") (str path ".json")] [path])]
+      (when-not (.isFile (io/file needed))
+        (println "no report at" needed "-- see corpus/README.md")
+        (System/exit 2)))
+    (println "engine:" engine)
+    (let [{:keys [rows tp fp recall precision cases failed] :as s} (score path engine)
           misses (:fn s)]
       (println (format "%-28s %-22s %s" "CASE" "EXPECTED" "GOT"))
       (doseq [{:keys [file expect got ok? known]} rows]

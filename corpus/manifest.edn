@@ -70,7 +70,10 @@
  {:file "hard_thread_last.clj" :cwe 89 :expect #{"clj-sql-injection"}
   :why "->> threading. The sink call never appears in source order"
   :known-miss
-  {"opengrep" "Taint does not propagate through ->>. Measured: a bare pattern
+  {"both" "Neither engine. See opengrep below; the callgraph pass models
+           var-to-var flow, not value flow inside a function, so a threading
+           macro is outside what it can see either."
+   "opengrep" "Taint does not propagate through ->>. Measured: a bare pattern
                matches both the ->> form and the get-in inside it, so this is
                dataflow through the macro, not pattern matching. ->> is
                everywhere in Clojure, which makes this the most consequential
@@ -79,7 +82,10 @@
  {:file "hard_destructured.clj" :cwe 89 :expect #{"clj-sql-injection"}
   :why "the source is an associative destructuring form, not a get-in call"
   :known-miss
-  {"opengrep" "The pattern language cannot express nested map destructuring:
+  {"both" "Neither engine. See opengrep below; the callgraph pass seeds from
+           the same per-file scan, whose source detection is head-matched and
+           so misses the destructured binding too."
+   "opengrep" "The pattern language cannot express nested map destructuring:
                (defn $N [{{:keys [$P]} :params} ...] ...) matches nothing at
                all, in taint mode or plain search. Destructured ring handlers
                are idiomatic, so a source written this way is invisible."}}
@@ -102,4 +108,36 @@
 
  {:file "hard_safe_sanitised.clj" :cwe 79 :expect #{}
   :why "HARD NEGATIVE. escape-html is applied to the tainted value before it
-        reaches raw, so the sanitiser must be honoured"}]
+        reaches raw, so the sanitiser must be honoured"}
+ ;; --- Datomic. Measured 2026-08-04 across lume, sur and forma: 148 d/q and
+ ;; 54 d/transact against 48 jdbc/execute. The dominant data path in this
+ ;; organisation's Clojure had no taint rule at all until these.
+
+ {:file "datomic_query_built.clj" :cwe 943
+  :expect #{"clj-datalog-query-built" "clj-code-injection"}
+  :why "the QUERY is built from request input. Both rules are correct here:
+        the query is assembled by string building and then read back with
+        read-string, which is two weaknesses in one line"}
+
+ {:file "safe_datomic_param.clj" :cwe 943 :expect #{}
+  :why "HARD NEGATIVE. The tainted value is passed as an :in argument, which
+        is the correct way to use a Datalog query -- the same distinction as a
+        bound SQL parameter, and the same trap"}
+
+ {:file "safe_datomic_literal.clj" :cwe 943 :expect #{}
+  :why "a quoted literal query with no user input"}
+
+ ;; --- Cross-file. The shape that actually dominates: measured across lume,
+ ;; sur and forma, 26 files hold a source and 46 hold a sink, and only 4 hold
+ ;; both. An intra-file engine can examine 4 files out of 181 here, so these
+ ;; cases are the difference between a tool that applies and one that does not.
+
+ {:file "xfile/handler.clj" :cwe 89 :expect #{"clj-sql-injection"}
+  :why "source in corpus.xfile.handler, sink in corpus.xfile.db. This is what
+        a real handler-plus-persistence split looks like"
+  :known-miss
+  {"opengrep" "Intra-file only. Cross-file dataflow is Semgrep's commercial
+               engine; the CE fork does not have it, measured."}}
+
+ {:file "xfile/safe_handler.clj" :cwe 89 :expect #{}
+  :why "same call, constant query"}]

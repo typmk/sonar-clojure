@@ -28,6 +28,12 @@
 (def ^:private sql-fns         #{"query" "execute!" "jdbc/query" "jdbc/execute!"
                                  "sql/query" "db/query" "execute-one!"})
 (def ^:private build-fns       #{"str" "format" "clojure.core/str" "clojure.core/format"})
+(def ^:private datalog-fns
+  "Datomic is the dominant sink in this organisation's Clojure -- measured
+  2026-08-04 across lume, sur and forma: 148 `d/q` and 54 `d/transact` against
+  48 `jdbc/execute`. Seeding only the SQL names left the most-used data path
+  with no interprocedural coverage at all."
+  #{"d/q" "datomic/q" "datomic.api/q" "d/pull" "d/transact" "d/transact-async"})
 (def ^:private xml-fns         #{"clojure.data.xml/parse" "xml/parse" "parse-str" "xml/parse-str"})
 
 (def ^:private credential-name
@@ -131,6 +137,79 @@
                          (tree/children-of nodes l)))
            (tree/lists-headed-by nodes sql-fns))))
 
+;; Datalog is deliberately NOT seeded here. The SQL heuristic -- a `str` inside
+;; the call means the statement is being assembled -- does not transfer: a
+;; Datomic transaction is a data structure, and computed values inside it are
+;; normal. Measured: seeding it flagged `revoke-jti!`, whose only sin is
+;; `(str jti)` to coerce a token id, and fifteen others like it.
+;;
+;; The risky Datalog shape is that the QUERY ITSELF is computed, which needs
+;; the argument position to state. `clj-datalog-query-built` in
+;; opengrep/clojure-taint.yml expresses it exactly, with focus-metavariable on
+;; the query position; this pass has no argument positions and so cannot.
+
+(defn- get-in-sources
+  "`(get-in req [:params :n])` is how request data is most often read, and it
+  never matched: `sources` are matched as CALL HEADS, and here the source
+  keyword sits inside a path vector. Measured -- across lume, sur and forma
+  there are 8 of these and 35 of the `(:params req)` form the head match does
+  catch, so a third of the real sources were invisible, and with them every
+  interprocedural path that started at one."
+  [nodes]
+  (for [l (tree/lists-headed-by nodes #{"get-in" "get"})
+        :when (some #(and (= :keyword (:type %)) (contains? sources (:text %)))
+                    (tree/children-of nodes l))]
+    l))
+
+(defn- statement-arg
+  "The position that holds the statement, which differs by call shape.
+
+  jdbc and friends take `[sql & params]`, so the statement is the first
+  element of the vector. Datalog takes the query as its first argument
+  directly. Reading the wrong position is how a correctly parameterised call
+  gets flagged."
+  [nodes l]
+  (if (contains? datalog-fns (:head l))
+    (first (tree/arguments nodes l))
+    (when-let [v (first (filter #(= :vector (:tag %)) (tree/children-of nodes l)))]
+      (first (filter #(= (inc (:depth v)) (:depth %)) (tree/children-of nodes v))))))
+
+(defn- fixed?
+  "A value that cannot carry taint: a literal, or anything quoted. A quoted
+  Datalog query is data, not a computation -- treating a quoted [:find ...] as
+  non-literal seeded every correctly written query as a sink."
+  [nodes n]
+  (or (tree/literal? n)
+      (:quoted? n)
+      (= :quote (:tag n))
+      (some #(or (:quoted? %) (= :quote (:tag %)))
+            (tree/children-of nodes n))))
+
+(defn- reaching-sinks
+  "SQL calls whose statement is a bare symbol -- a string that arrived from
+  somewhere else.
+
+  Narrower than it first was, and the narrowing is measured. Seeding on any
+  non-literal statement, plus Datalog, produced 57 interprocedural findings
+  across lume, sur and forma; the two sampled by hand were a route builder and
+  an audit-log helper recording a client IP. In a Datomic codebase a query is
+  DATA, and building one from a map is idiomatic and safe -- so `(d/q query
+  db)` is not evidence of anything, and treating it as a sink accuses most of
+  the data layer.
+
+  A SQL statement is a string. A string statement handed in from elsewhere is
+  the cross-file injection shape, and a bare symbol is what that looks like at
+  the sink. `dangerous-sinks` still covers the case where the building happens
+  in the same form, including for Datalog.
+
+  Without argument-position tracking this pass cannot afford a loose sink set:
+  it would report any var that reads a request and calls any data function."
+  [nodes]
+  (for [l (tree/lists-headed-by nodes sql-fns)
+        :let [a (statement-arg nodes l)]
+        :when (and a (= :symbol (:type a)) (not (fixed? nodes a)))]
+    l))
+
 (defn seeds
   "Which vars directly obtain attacker-influenced data, and which hand data to
   an UNSAFE sink. These seed au.com.heisenbergtech.sonar.callgraph."
@@ -139,8 +218,12 @@
         var-of (fn [l] (when-let [v (enclosing-var nodes l)] [nsname v]))]
     (if-not nsname
       {:taints #{} :reaches #{}}
-      {:taints  (into #{} (keep var-of) (tree/lists-headed-by nodes sources))
-       :reaches (into #{} (keep var-of) (dangerous-sinks nodes))})))
+      {:taints  (into #{} (keep var-of)
+                      (concat (tree/lists-headed-by nodes sources)
+                              (get-in-sources nodes)))
+       :reaches (into #{} (keep var-of)
+                      (concat (dangerous-sinks nodes)
+                              (reaching-sinks nodes)))})))
 
 (defn seeds-of-source [source]
   (let [{:keys [ok? nodes]} (parse/parse source)]
