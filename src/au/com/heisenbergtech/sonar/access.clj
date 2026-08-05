@@ -27,7 +27,40 @@
 (def ^:private two-valued #{"if" "when" "when-not" "if-not" "nil?" "some?" "if-let" "when-let"})
 
 (def ^:private query-fns
-  #{"d/q" "datomic/q" "q" "jdbc/execute!" "jdbc/query" "sql/query" "execute!" "pull" "d/pull"})
+  "Scans. `pull` and `d/pull` are deliberately absent: a pull takes an entity
+  id the caller already holds, so it is not an unscoped search -- the tenancy
+  question belongs where that id came from. They were 40 of 124 findings on
+  lume, sur and forma, and not one of them was a scan."
+  #{"d/q" "datomic/q" "q" "jdbc/execute!" "jdbc/query" "sql/query" "execute!"})
+
+(def ^:private shared-attr-ns
+  "Attribute namespaces the dictionary defines as SHARED rather than
+  org-scoped: the taxonomy and compat layer classifies and relates product
+  DEFINITIONS, and is the same for every tenant. A query touching only these
+  has no tenant to name.
+
+  Measured across lume, sur and forma: std 25, db 25, conn 13 and taxon 12
+  attribute mentions among the findings -- the reference layer was the single
+  largest false-positive class, and counting rows in a shared taxonomy is not
+  a tenancy bug.
+
+  Closed list, and the check is inverted against it: a query mentioning
+  anything NOT in here is still flagged, so a new tenanted attribute is
+  covered by default and only the shared layer has to be enumerated."
+  #{"taxon" "std" "conn" "line" "function" "facet" "measurement" "model"
+    "compat" "db" "datomic" "attr" "schema"})
+
+(defn- only-shared?
+  "True when every namespaced attribute the query names is in the shared
+  layer -- and false when it names none at all, because a query with no
+  attributes says nothing either way and the safer reading is to keep it."
+  [nodes l]
+  (let [ks (for [k (tree/children-of nodes l)
+                 :when (= :keyword (:type k))
+                 :let [m (re-find #"^:([^/]+)/" (str (:text k)))]
+                 :when m]
+             (second m))]
+    (and (seq ks) (every? shared-attr-ns ks))))
 
 (def ^:private banned-operator-attrs
   "Named in CLAUDE.md's `Banned -> use` table: operator access is an
@@ -68,6 +101,7 @@
                                                       "extend-protocol" "reify" "defprotocol"}))]
      (for [l (tree/lists-headed-by nodes query-fns)
            :when (not (mentions? nodes l tenant-word))
+           :when (not (only-shared? nodes l))
            :when (not (and (contains? defining (:head l))
                            (some #(and (contains? #{:list} (:tag %))
                                        (<= (:line %) (:line l))

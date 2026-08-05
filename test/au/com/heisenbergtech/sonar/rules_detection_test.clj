@@ -170,3 +170,24 @@
     (is (empty? (rules interop/findings "(defn look [n] (.lookup ctx n))")))
     (is (empty? (rules interop/findings
                        "(defn look [n] (.lookup (javax.naming.InitialContext.) n))")))))
+
+(deftest unscoped-tenant-query-precision
+  (testing "fires on a tenanted scan with no owner named"
+    (fires access/findings "unscoped-tenant-query"
+           "(d/q '[:find ?e :where [?e :document/type :invoice]] db)"
+           "(d/q '[:find ?e :in $ ?owner :where [?e :document/type :invoice] [?e :obj/owner ?owner]] db owner)"))
+  (testing "a pull takes an entity id the caller already holds, so it is not an
+            unscoped scan -- the tenancy question belongs where that id came
+            from. Measured: pulls were 40 of 124 findings on lume, sur and
+            forma, and not one was a scan"
+    (is (empty? (rules access/findings "(d/pull db '[*] eid)")))
+    (is (empty? (rules access/findings "(pull db '[*] eid)"))))
+  (testing "the taxonomy and compat layer classifies product DEFINITIONS and is
+            the same for every tenant, so a query touching only it has no
+            tenant to name. It was the largest false-positive class"
+    (is (empty? (rules access/findings "(d/q '[:find ?e :where [?e :taxon/factor _]] db)")))
+    (is (empty? (rules access/findings
+                       "(d/q '[:find ?a ?b :where [?a :std/carries ?b] [?a :conn/adapts ?b]] db)"))))
+  (testing "a query naming no attribute at all says nothing either way, and the
+            safer reading is to keep it"
+    (is (contains? (rules access/findings "(d/q query db)") "unscoped-tenant-query"))))

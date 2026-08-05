@@ -1,8 +1,31 @@
 <h2>Why is this an issue?</h2>
-<p>Tenant scope belongs inside the query. Applied to the results instead, the database has already returned another tenant's rows, and any path that forgets the filter returns them to the caller.</p>
-<h2>How can I fix it?</h2>
-<p>Put <code>:obj/owner</code> in the <code>:where</code> clause, or the org column in the <code>WHERE</code>.</p>
-<h2>Resources</h2>
+<p>A query that names no owner or tenant returns rows from every tenant. Whether
+that is a bug depends on what is being queried, which is why this rule is
+<strong>off by default</strong> and is a sweep aid rather than a gate.</p>
+<h2>What it is worth</h2>
+<p>Measured against 39,307 lines of Clojure across three repositories:</p>
 <ul>
-  <li><a href="https://cwe.mitre.org/data/definitions/639.html">CWE-639</a></li>
+  <li>124 findings before tuning; a hand-classified sample of 14 held roughly
+      10 that were not tenancy bugs.</li>
+  <li>56 after excluding <code>pull</code> (an entity id the caller already
+      holds is not a scan &mdash; 40 of the 124) and queries touching only the
+      shared taxonomy and compat layer.</li>
+  <li>A second sample of 12 still held roughly 8 that were not bugs: a token
+      revocation list that is global by design, the lookup of an organisation
+      by slug (which <em>is</em> the tenant lookup), and bootstrap queries.</li>
 </ul>
+<p>So precision is somewhere near a third, hand-estimated from samples rather
+than measured against ground truth. That is useful for an audit sweep &mdash;
+"show me every unscoped scan so I can read them" &mdash; and nowhere near good
+enough to fail a build. Enabling it in a quality profile would produce dozens
+of issues most of which are correct code.</p>
+<h2>Why it cannot be much better</h2>
+<p>Deciding whether a query <em>should</em> be tenant-scoped needs to know
+which entities are tenanted in the domain model, and admin surfaces
+legitimately query across tenants. Shape alone cannot tell an authorisation
+bug from a deliberate cross-tenant read.</p>
+<h2>How can I fix it?</h2>
+<p>If the query should be scoped, put the scope in the query rather than
+filtering afterwards &mdash; a filter applied later still reads every tenant's
+rows. If it should not be scoped, the query is correct and this finding is
+noise.</p>

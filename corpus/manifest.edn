@@ -193,4 +193,29 @@
  {:file "hooks/reflective_call.clj" :cwe 470 :expect #{"reflective-call"}
   :why "resolve on a computed name"}
  {:file "hooks/safe_resolve_literal.clj" :cwe 470 :expect #{}
-  :why "HARD NEGATIVE. resolve of a quoted symbol selects nothing dynamically"}]
+  :why "HARD NEGATIVE. resolve of a quoted symbol selects nothing dynamically"}
+ ;; --- Tenancy. This rule ships OFF and is a sweep aid, not a gate: deciding
+ ;; whether a query SHOULD be tenant-scoped needs to know which entities are
+ ;; tenanted, and admin surfaces legitimately read across tenants. These cases
+ ;; pin the false-positive classes that were removed so they cannot return.
+ ;; Scored with the `kondo`-style plugin rules via the test suite, not here --
+ ;; listed for the record of what the rule does and does not claim.
+
+ {:file "tenancy/unscoped_document_query.clj" :cwe 639 :expect #{}
+  :why "RECORD ONLY. Fires, and correctly -- but the rule is off by default
+        and is not scored, because a hand-classified sample put its precision
+        near a third. rules-detection-test asserts the behaviour instead"}
+
+ {:file "tenancy/safe_scoped_query.clj" :cwe 639 :expect #{}
+  :why "the scope is in the query, which is the fix"}
+
+ {:file "tenancy/safe_shared_taxonomy.clj" :cwe 639 :expect #{}
+  :why "HARD NEGATIVE. The taxonomy classifies product definitions and is the
+        same for every tenant. Largest false-positive class before the fix"}
+
+ {:file "tenancy/safe_pull_by_eid.clj" :cwe 639 :expect #{}
+  :why "HARD NEGATIVE. A pull takes an id the caller already holds; 40 of the
+        original 124 findings were pulls and none was a scan"}
+
+ {:file "tenancy/safe_compat_layer.clj" :cwe 639 :expect #{}
+  :why "HARD NEGATIVE. std/conn relate product definitions, not tenant data"}]
