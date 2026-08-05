@@ -28,12 +28,6 @@
 (def ^:private sql-fns         #{"query" "execute!" "jdbc/query" "jdbc/execute!"
                                  "sql/query" "db/query" "execute-one!"})
 (def ^:private build-fns       #{"str" "format" "clojure.core/str" "clojure.core/format"})
-(def ^:private datalog-fns
-  "Datomic is the dominant sink in this organisation's Clojure -- measured
-  2026-08-04 across lume, sur and forma: 148 `d/q` and 54 `d/transact` against
-  48 `jdbc/execute`. Seeding only the SQL names left the most-used data path
-  with no interprocedural coverage at all."
-  #{"d/q" "datomic/q" "datomic.api/q" "d/pull" "d/transact" "d/transact-async"})
 (def ^:private xml-fns         #{"clojure.data.xml/parse" "xml/parse" "parse-str" "xml/parse-str"})
 
 (def ^:private credential-name
@@ -162,28 +156,11 @@
     l))
 
 (defn- statement-arg
-  "The position that holds the statement, which differs by call shape.
-
-  jdbc and friends take `[sql & params]`, so the statement is the first
-  element of the vector. Datalog takes the query as its first argument
-  directly. Reading the wrong position is how a correctly parameterised call
-  gets flagged."
+  "The statement: the first element of the `[sql & params]` vector. Reading
+  the wrong position is how a correctly parameterised call gets flagged."
   [nodes l]
-  (if (contains? datalog-fns (:head l))
-    (first (tree/arguments nodes l))
-    (when-let [v (first (filter #(= :vector (:tag %)) (tree/children-of nodes l)))]
-      (first (filter #(= (inc (:depth v)) (:depth %)) (tree/children-of nodes v))))))
-
-(defn- fixed?
-  "A value that cannot carry taint: a literal, or anything quoted. A quoted
-  Datalog query is data, not a computation -- treating a quoted [:find ...] as
-  non-literal seeded every correctly written query as a sink."
-  [nodes n]
-  (or (tree/literal? n)
-      (:quoted? n)
-      (= :quote (:tag n))
-      (some #(or (:quoted? %) (= :quote (:tag %)))
-            (tree/children-of nodes n))))
+  (when-let [v (first (filter #(= :vector (:tag %)) (tree/children-of nodes l)))]
+    (first (filter #(= (inc (:depth v)) (:depth %)) (tree/children-of nodes v)))))
 
 (defn- reaching-sinks
   "SQL calls whose statement is a bare symbol -- a string that arrived from
@@ -207,7 +184,7 @@
   [nodes]
   (for [l (tree/lists-headed-by nodes sql-fns)
         :let [a (statement-arg nodes l)]
-        :when (and a (= :symbol (:type a)) (not (fixed? nodes a)))]
+        :when (and a (= :symbol (:type a)) (not (:quoted? a)))]
     l))
 
 (defn seeds

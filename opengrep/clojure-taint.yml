@@ -44,7 +44,8 @@ rules:
       # positive on a two-line safe sample.
       - patterns:
           - pattern: ($F $DB [$SQL ...])
-          - metavariable-regex:
+          - &sql-fn
+            metavariable-regex:
               metavariable: $F
               regex: ^(jdbc/execute!|jdbc/execute-one!|jdbc/plan|sql/query)$
           - focus-metavariable: $SQL
@@ -61,15 +62,11 @@ rules:
       # hard_safe_thread_param, which exists to keep it honest.
       - patterns:
           - pattern: (->> ... ($F $DB))
-          - metavariable-regex:
-              metavariable: $F
-              regex: ^(jdbc/execute!|jdbc/execute-one!|jdbc/plan|sql/query)$
+          - *sql-fn
           - pattern-not: (->> ["..." ...] ($F $DB))
       - patterns:
           - pattern: (-> $X ($F $DB))
-          - metavariable-regex:
-              metavariable: $F
-              regex: ^(jdbc/execute!|jdbc/execute-one!|jdbc/plan|sql/query)$
+          - *sql-fn
           - pattern-not: (-> ["..." ...] ($F $DB))
     pattern-sanitizers:
       - pattern: (jdbc/quoted ...)
