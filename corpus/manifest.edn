@@ -68,16 +68,17 @@
  ;; hour, proves almost nothing; these are the cases that carry information.
 
  {:file "hard_thread_last.clj" :cwe 89 :expect #{"clj-sql-injection"}
-  :why "->> threading. The sink call never appears in source order"
-  :known-miss
-  {"both" "Neither engine. See opengrep below; the callgraph pass models
-           var-to-var flow, not value flow inside a function, so a threading
-           macro is outside what it can see either."
-   "opengrep" "Taint does not propagate through ->>. Measured: a bare pattern
-               matches both the ->> form and the get-in inside it, so this is
-               dataflow through the macro, not pattern matching. ->> is
-               everywhere in Clojure, which makes this the most consequential
-               gap in the engine for this language."}}
+  :why "->> threading. The sink call never appears in source order. Was a
+        known miss: the sink pattern required a literal [sql ...] argument and
+        the vector arrives through the macro. Closed by matching the threaded
+        shape as well"}
+
+ {:file "hard_safe_thread_param.clj" :cwe 89 :expect #{}
+  :why "HARD NEGATIVE, and the price of the case above. A correctly
+        parameterised call written in threaded style: the tainted value is
+        bound as a parameter. Matching the threaded shape flagged it until the
+        rule excluded a threaded vector whose first element is a string
+        literal"}
 
  {:file "hard_destructured.clj" :cwe 89 :expect #{"clj-sql-injection"}
   :why "the source is an associative destructuring form, not a get-in call"

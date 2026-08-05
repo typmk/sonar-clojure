@@ -244,28 +244,34 @@ over clj-kondo's whole-project analysis. Measured across lume, sur and forma:
 intra-file engine can examine 4 files out of 181 there. 29 cases:
 
 ```
-opengrep    TP 15  FN 3  FP 0    recall 83.3%   precision 100.0%
-callgraph   TP  3  FN 15 FP 0    recall 16.7%   precision 100.0%
-both        TP 16  FN 2  FP 0    recall 88.9%   precision 100.0%
+opengrep    TP 16  FN 2   FP 0    recall 88.9%   precision 100.0%
+callgraph   TP  3  FN 15  FP 0    recall 16.7%   precision 100.0%
+both        TP 17  FN 1   FP 0    recall 94.4%   precision 100.0%
 ```
+
+Against 39,307 lines of real Clojure the same ruleset reports **0 findings and
+0 false positives**. That reading only means something because of the corpus:
+without it, nothing distinguishes a clean codebase from a blind scanner.
 
 The callgraph's 16.7% is not a defect: it only reports paths that cross a
 function boundary, which is one case in six here and most cases in real code.
 
-The two remaining misses are recorded rather than removed — a failing case deleted stops
+The remaining miss is recorded rather than removed — a failing case deleted stops
 being evidence, and one that blocks every build gets deleted — so recall says
 what the engine cannot do while the gate catches regressions:
 
-- **Taint does not propagate through `->>`.** A plain pattern matches both the
-  `->>` form and the `get-in` inside it, so this is dataflow through the macro,
-  not pattern matching. `->>` is everywhere in Clojure, which makes it the most
-  consequential gap.
 - **Nested map destructuring cannot be matched at all** — `{{:keys [n]} :params}`
   matches nothing, in taint mode or plain search. Destructured ring handlers
-  are idiomatic, so a source written that way is invisible.
+  are idiomatic, so a source written that way is invisible. The callgraph does
+  not catch it either: its source detection is head-matched, so it misses the
+  destructured binding for the same reason.
 
-Neither is caught by the callgraph either: it models var-to-var flow, not
-value flow inside a function.
+`->>` threading *was* the other one, and cost the most: 97 `->>` and 103 `->`
+across this organisation's Clojure. It turned out not to be a dataflow gap at
+all — the sink pattern required a literal `[sql ...]` argument, and under
+threading the vector arrives through the macro. Matching the threaded shape
+closed it, at the cost of one false positive on a correctly parameterised
+threaded call, which `pattern-not` on a leading string literal then removed.
 
 Writing the corpus after the rules, in the same hour, proves little; the eight
 cases added blind are the ones that carried information. Three of them failed,

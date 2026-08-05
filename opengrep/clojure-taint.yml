@@ -48,6 +48,29 @@ rules:
               metavariable: $F
               regex: ^(jdbc/execute!|jdbc/execute-one!|jdbc/plan|sql/query)$
           - focus-metavariable: $SQL
+      # Threaded form. The vector arrives through the macro, so the pattern
+      # above -- which requires a literal [$SQL ...] argument -- never matches,
+      # and the whole shape was a measured miss. There are 97 `->>` and 103
+      # `->` across this organisation's Clojure, so it is not an edge case.
+      #
+      # focus-metavariable cannot reach into an implicit argument, so the
+      # statement position is expressed the other way round: exclude the case
+      # where the threaded value is a vector whose FIRST element is a string
+      # literal, which is precisely a correctly parameterised call. Without the
+      # exclusion this cost one false positive -- measured, on
+      # hard_safe_thread_param, which exists to keep it honest.
+      - patterns:
+          - pattern: (->> ... ($F $DB))
+          - metavariable-regex:
+              metavariable: $F
+              regex: ^(jdbc/execute!|jdbc/execute-one!|jdbc/plan|sql/query)$
+          - pattern-not: (->> ["..." ...] ($F $DB))
+      - patterns:
+          - pattern: (-> $X ($F $DB))
+          - metavariable-regex:
+              metavariable: $F
+              regex: ^(jdbc/execute!|jdbc/execute-one!|jdbc/plan|sql/query)$
+          - pattern-not: (-> ["..." ...] ($F $DB))
     pattern-sanitizers:
       - pattern: (jdbc/quoted ...)
 
