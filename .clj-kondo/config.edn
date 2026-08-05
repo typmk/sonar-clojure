@@ -11,8 +11,12 @@
 {:lint-as {clojure.test.check.clojure-test/defspec clojure.core/def}
  :config-paths ["../clj-kondo"]
 
- ;; corpus/cases holds deliberately vulnerable code -- that is the point of it.
- ;; Excluded here rather than in each caller, because the pre-commit hook, CI
- ;; and anyone running `clj-kondo --lint .` would each have to remember, and
- ;; the one who forgets is told the corpus has 34 problems.
- :output {:exclude-files ["corpus/cases/"]}}
+ ;; corpus/cases is NOT excluded here, though it holds deliberately vulnerable
+ ;; code. Excluding it globally looked tidier and turned out to be a blindfold:
+ ;; --config {:output {:exclude-files []}} does not lift it, so the corpus
+ ;; scorer -- whose entire job is to check that these rules fire on vulnerable
+ ;; code -- measured zero findings on eighteen files written to trip them.
+ ;;
+ ;; The exclusion belongs in the one caller that needs it. The pre-commit hook
+ ;; skips corpus/cases; CI lints src and test by name.
+ }

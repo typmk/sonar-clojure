@@ -83,10 +83,11 @@
  {:file "hard_destructured.clj" :cwe 89 :expect #{"clj-sql-injection"}
   :why "the source is an associative destructuring form, not a get-in call"
   :known-miss
-  {"both" "Neither engine. See opengrep below; the callgraph pass seeds from
-           the same per-file scan, whose source detection is head-matched and
-           so misses the destructured binding too."
-   "opengrep" "The pattern language cannot express nested map destructuring:
+  ;; Caught by the clj-kondo hook, which resolves next.jdbc/execute! and works
+  ;; from the SINK side -- so it never needs to match the destructured source
+  ;; at all. Recorded as a miss for both taint engines until the hook rules
+  ;; were scored, which is what the corpus is for.
+  {"opengrep" "The pattern language cannot express nested map destructuring:
                (defn $N [{{:keys [$P]} :params} ...] ...) matches nothing at
                all, in taint mode or plain search. Destructured ring handlers
                are idiomatic, so a source written this way is invisible."}}
@@ -141,4 +142,55 @@
                engine; the CE fork does not have it, measured."}}
 
  {:file "xfile/safe_handler.clj" :cwe 89 :expect #{}
-  :why "same call, constant query"}]
+  :why "same call, constant query"}
+ ;; --- clj-kondo hook rules. Eight of the nine registered rules that had no
+ ;; automated test of any kind: they live in clj-kondo/hbt/security.clj rather
+ ;; than in plugin code, so the suite never named them, and the whole evidence
+ ;; for all eight was one MD5 probe run by hand. They are the crypto set, which
+ ;; makes them the worst possible place to be relying on that.
+ ;; Scored with `clojure -M:corpus <kondo.json> kondo`.
+
+ {:file "hooks/weak_hash.clj" :cwe 328 :expect #{"weak-hash-algorithm"}
+  :why "MD5 for a digest"}
+ {:file "hooks/safe_hash.clj" :cwe 328 :expect #{}
+  :why "SHA-256 is not a finding"}
+
+ {:file "hooks/cipher_ecb.clj" :cwe 327 :expect #{"cipher-ecb-mode"}
+  :why "ECB named explicitly"}
+ {:file "hooks/cipher_bare_defaults_ecb.clj" :cwe 327 :expect #{"cipher-ecb-mode"}
+  :why "SunJCE defaults a bare transformation to ECB. The commonest real ECB
+        bug on the JVM, and invisible to a rule that only looks for the string"}
+ {:file "hooks/weak_cipher.clj" :cwe 327 :expect #{"weak-cipher-algorithm"}
+  :why "DES"}
+ {:file "hooks/safe_cipher.clj" :cwe 327 :expect #{}
+  :why "HARD NEGATIVE. AES/GCM names a mode and is the right answer"}
+
+ {:file "hooks/weak_tls.clj" :cwe 326 :expect #{"weak-tls-protocol"}
+  :why "TLSv1"}
+ {:file "hooks/safe_tls.clj" :cwe 326 :expect #{}
+  :why "HARD NEGATIVE. TLSv1.3 shares a prefix with TLSv1 and must not match"}
+
+ {:file "hooks/eval_dynamic.clj" :cwe 94 :expect #{"eval-of-dynamic-value"}
+  :why "eval of a parameter"}
+ {:file "hooks/safe_eval_literal.clj" :cwe 94 :expect #{}
+  :why "HARD NEGATIVE. eval of a quoted literal is a warm-up, not a weakness"}
+
+ {:file "hooks/read_string_untrusted.clj" :cwe 502 :expect #{"read-string-untrusted"}
+  :why "clojure.core/read-string honours *read-eval*"}
+ {:file "hooks/safe_edn_read_string.clj" :cwe 502 :expect #{}
+  :why "HARD NEGATIVE. clojure.edn/read-string is the fix"}
+
+ {:file "hooks/insecure_random.clj" :cwe 338 :expect #{"insecure-random"}
+  :why "rand-int delegates to java.util.Random"}
+ {:file "hooks/safe_secure_random.clj" :cwe 338 :expect #{}
+  :why "SecureRandom"}
+
+ {:file "hooks/shell_injection.clj" :cwe 78 :expect #{"shell-command-injection"}
+  :why "a computed shell argument"}
+ {:file "hooks/safe_shell_literal.clj" :cwe 78 :expect #{}
+  :why "every argument a literal"}
+
+ {:file "hooks/reflective_call.clj" :cwe 470 :expect #{"reflective-call"}
+  :why "resolve on a computed name"}
+ {:file "hooks/safe_resolve_literal.clj" :cwe 470 :expect #{}
+  :why "HARD NEGATIVE. resolve of a quoted symbol selects nothing dynamically"}]

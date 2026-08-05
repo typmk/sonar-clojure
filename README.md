@@ -249,7 +249,7 @@ callgraph   TP  3  FN 15  FP 0    recall 16.7%   precision 100.0%
 both        TP 17  FN 1   FP 0    recall 94.4%   precision 100.0%
 ```
 
-Against 39,307 lines of real Clojure the same ruleset reports **0 findings and
+Against 39,307 lines of real Clojure the taint rules report **0 findings and
 0 false positives**. That reading only means something because of the corpus:
 without it, nothing distinguishes a clean codebase from a blind scanner.
 

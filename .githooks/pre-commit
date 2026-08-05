@@ -16,7 +16,12 @@
 
 set -euo pipefail
 
-staged=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.clj[csx]?$' || true)
+# corpus/cases is deliberately vulnerable code -- it exists to make the rules
+# fire. Skipped here rather than excluded in .clj-kondo/config.edn, because a
+# global exclusion cannot be lifted and blinds the corpus scorer.
+staged=$(git diff --cached --name-only --diff-filter=ACM \
+         | grep -E '\.clj[csx]?$' \
+         | grep -v '^corpus/cases/' || true)
 [ -z "$staged" ] && exit 0
 
 if ! command -v clj-kondo >/dev/null 2>&1; then

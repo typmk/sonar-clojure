@@ -16,6 +16,7 @@
   rule matching everything also does."
   (:require [clojure.test :refer [deftest is testing]]
             [au.com.heisenbergtech.sonar.access :as access]
+            [au.com.heisenbergtech.sonar.interop :as interop]
             [au.com.heisenbergtech.sonar.metadata :as metadata]
             [au.com.heisenbergtech.sonar.parse :as parse]
             [au.com.heisenbergtech.sonar.regex :as regex]
@@ -151,3 +152,21 @@
     (is (nil? (try (doall (f (:nodes (parse/parse src)))) nil
                    (catch Throwable t t)))
         (str "threw on " (pr-str src)))))
+
+;; ---------------------------------------------------------------- interop
+
+(deftest jndi-injection
+  (testing "the only one of the nine unexercised rules that is plugin-side
+            rather than a clj-kondo hook. It fires on the STATIC form"
+    (fires interop/findings "jndi-injection"
+           "(defn look [n] (javax.naming.InitialContext/doLookup n))"
+           "(defn look [] (javax.naming.InitialContext/doLookup \"java:comp/env\"))"))
+  (testing "and NOT on the instance form, which is the commoner one. Measured:
+            (.lookup ctx n), (.lookup (InitialContext.) n) and a ^Context type
+            hint all produce nothing. Detecting them needs to know the type of
+            the receiver, and this plugin has no type inference -- so the rule
+            covers a real shape rather than the whole weakness, and saying
+            otherwise would overstate what a JNDI scan here is worth"
+    (is (empty? (rules interop/findings "(defn look [n] (.lookup ctx n))")))
+    (is (empty? (rules interop/findings
+                       "(defn look [n] (.lookup (javax.naming.InitialContext.) n))")))))

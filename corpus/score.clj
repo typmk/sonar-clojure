@@ -34,6 +34,16 @@
             (update acc (key-for filename) (fnil conj #{}) rule))
           {} findings))
 
+(defn- kondo-findings
+  "clj-kondo's own JSON, for the hook rules. Their findings never reach this
+  plugin's Clojure at all -- they arrive through the report -- so nothing in
+  the suite could name them. The `hbt/` namespace is stripped, exactly as
+  au.com.heisenbergtech.sonar.kondo does before a key reaches Sonar."
+  [json-path]
+  (tally (for [f (external/findings "clj-kondo" (slurp json-path))
+               :when (str/starts-with? (:rule f) "hbt/")]
+           (update f :rule #(subs % 4)))))
+
 (defn- opengrep-findings [sarif-path]
   (tally (external/findings "opengrep" (slurp sarif-path))))
 
@@ -75,14 +85,17 @@
         found (case engine
                 "opengrep"  (opengrep-findings report)
                 "callgraph" (callgraph-findings report)
-                ;; The union. Neither engine is the answer on its own:
-                ;; opengrep sees within a file and this plugin's callgraph
-                ;; sees across them, and real code needs both -- measured
-                ;; across lume, sur and forma, 26 files hold a source and 46
-                ;; hold a sink while only 4 hold both.
-                "both" (merge-with into
-                                   (opengrep-findings (str report ".sarif"))
-                                   (callgraph-findings (str report ".json"))))
+                "kondo"     (kondo-findings report)
+                ;; The union, and the only mode worth gating. No engine here
+                ;; is the answer alone: opengrep sees taint within a file, the
+                ;; callgraph sees it across files, and the clj-kondo hooks see
+                ;; the crypto and interop weaknesses that need a resolved var
+                ;; rather than dataflow. Scoring any one of them against the
+                ;; whole manifest marks it failed for not doing another's job.
+                "union" (merge-with into
+                                    (opengrep-findings (str report ".sarif"))
+                                    (callgraph-findings (str report ".json"))
+                                    (kondo-findings (str report "-kondo.json"))))
         rows  (for [{:keys [file expect cwe why known-miss]} (manifest)
                     :let [got (get found file #{})
                           tp  (if rule-level?
@@ -112,10 +125,10 @@
 
 (defn -main [& [report engine]]
   (let [engine (or engine "opengrep")
-        path (or report (if (= engine "callgraph")
-                          "target/corpus-analysis.json"
-                          "target/corpus.sarif"))]
-    (doseq [needed (if (= engine "both") [(str path ".sarif") (str path ".json")] [path])]
+        path (or report "target/combined")]
+    (doseq [needed (if (= engine "union")
+                     [(str path ".sarif") (str path ".json") (str path "-kondo.json")]
+                     [path])]
       (when-not (.isFile (io/file needed))
         (println "no report at" needed "-- see corpus/README.md")
         (System/exit 2)))
