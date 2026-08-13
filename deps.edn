@@ -1,5 +1,6 @@
-;; The analysis is REQUIRED, not owned. scan/ holds every namespace reachable
-;; from the analysis facade and nothing that touches org.sonar; this repo holds
+;; The analysis is REQUIRED, not owned. hbtweb/scan holds every namespace
+;; reachable from the analysis facade and nothing that touches org.sonar; it is
+;; .cljc and also runs as ClojureScript inside defnet. This repo holds
 ;; the plugin -- sensors, rule definitions, profiles, measures -- and maps the
 ;; facade's findings onto Sonar's API. The split was computed: zero namespaces
 ;; on this side require a scan namespace directly.
@@ -8,7 +9,7 @@
  :deps {org.clojure/clojure   {:mvn/version "1.12.0"}
         org.clojure/data.json {:mvn/version "2.5.2"}
         rewrite-clj/rewrite-clj  {:mvn/version "1.2.55"}
-        au.com.heisenbergtech/scan {:local/root "scan"}}
+        au.com.heisenbergtech/scan {:local/root "../scan"}}
 
  :aliases
  {;; Sonar supplies the API at runtime. On the compile classpath only —
@@ -26,7 +27,7 @@
   ;; Runs against target/classes: the AOT artefacts are the thing under
   ;; test, so `clojure -T:build compile-clj*` must run first.
   :test
-  {:extra-paths ["test" "target/classes" "scan/test"]
+  {:extra-paths ["test" "target/classes" "../scan/test"]
    ;; sonar-plugin-api-impl carries SensorContextTester -- SonarSource's own
    ;; in-memory SensorContext. A sensor tested only through its helpers is
    ;; tested on the parts that cannot fail; running it against a real context
@@ -39,7 +40,7 @@
    ;; -d twice: the runner scans "test" by default, so scan/test was on the
    ;; classpath but never discovered -- 86 tests ran where 132 should have,
    ;; and a suite that silently shrinks is a suite that stopped checking.
-   :main-opts   ["-m" "cognitect.test-runner" "-d" "test" "-d" "scan/test"]
+   :main-opts   ["-m" "cognitect.test-runner" "-d" "test" "-d" "../scan/test"]
    :exec-fn     cognitect.test-runner.api/test}
 
   :coverage
