@@ -5,23 +5,10 @@
   Without the measures here, ncloc is zero and every ratio on the dashboard
   -- comment density, duplication density, technical-debt ratio -- divides
   by nothing."
-  (:require [clojure.string :as str]
-            [au.com.heisenbergtech.sonar.analysis :as analysis]
+  (:require [au.com.heisenbergtech.sonar.scan :as scan] [clojure.string :as str]
             [au.com.heisenbergtech.sonar.const :as const]
-            [au.com.heisenbergtech.sonar.highlight :as hl]
-            [au.com.heisenbergtech.sonar.metrics :as metrics]
-            [au.com.heisenbergtech.sonar.parse :as parse]
             [au.com.heisenbergtech.sonar.report :as report]
-            [au.com.heisenbergtech.sonar.access :as access]
-            [au.com.heisenbergtech.sonar.concurrency :as concurrency]
-            [au.com.heisenbergtech.sonar.dictionary :as dictionary]
-            [au.com.heisenbergtech.sonar.regex :as regex]
-            [au.com.heisenbergtech.sonar.tests :as tests]
-            [au.com.heisenbergtech.sonar.web :as web]
-            [au.com.heisenbergtech.sonar.interop :as interop]
-            [au.com.heisenbergtech.sonar.security :as security]
-            [au.com.heisenbergtech.sonar.coverage-sensor :as coverage]
-            [au.com.heisenbergtech.sonar.callgraph :as callgraph])
+            [au.com.heisenbergtech.sonar.coverage-sensor :as coverage])
   (:import [java.io File]
            [org.sonar.api.batch.fs InputFile InputFile$Status InputFile$Type]
            [org.sonar.api.batch.sensor.issue NewIssue$FlowType]
@@ -104,12 +91,12 @@
             :when (not= :comment (:type t))]
       (.addToken cpd (int (:line t)) (int (dec (:col t)))
                  (int (:end-line t)) (int (dec (:end-col t)))
-                 ^String (parse/cpd-image t)))
+                 ^String (scan/cpd-image t)))
     (.save cpd)))
 
 (defn- save-highlighting! [ctx ^InputFile f tokens]
   (let [h (.onFile (.newHighlighting ctx) f)]
-    (doseq [s (hl/spans tokens)]
+    (doseq [s (scan/spans tokens)]
       (.highlight h (int (:line s)) (int (dec (:col s)))
                   (int (:end-line s)) (int (dec (:end-col s)))
                   (TypeOfText/valueOf ^String (:type s))))
@@ -138,7 +125,7 @@
                  (if-let [in (report/input-file ctx filename)]
                    (do (save-security! ctx in fs) (+ n' (count fs)))
                    n'))
-               n (dictionary/findings (slurp f)))))
+               n (scan/prose-findings (slurp f)))))
    0
    (report/for-input ctx :analysis)))
 
@@ -148,7 +135,7 @@
   [ctx]
   (reduce (fn [acc ^File f]
             (if (report/exists? f)
-              (merge-with into acc (analysis/symbols (slurp f)))
+              (merge-with into acc (scan/symbols (slurp f)))
               (do (println "clj-kondo analysis not found:" (.getPath f)
                            "-- symbol navigation disabled for this run")
                   acc)))
@@ -201,7 +188,7 @@
 (defn- measure-file! [ctx by-file truth-by-path seeds ^InputFile f]
   (if (skip? ctx f)
     (do (.copyFromPrevious (.nextCache ctx) (cache-key f)) ::skipped)
-    (let [{:keys [ok? nodes error]} (parse/parse (slurp (.inputStream f)))]
+    (let [{:keys [ok? nodes error]} (scan/parse (slurp (.inputStream f)))]
     (if-not ok?
       (do (-> (.newAnalysisError ctx)
               (.onFile f)
@@ -210,19 +197,12 @@
               (.save))
           (println "Clojure: could not parse" (str (.filename f)) "--" error)
           nil)
-      (let [leaves (parse/leaves nodes)
-            ms     (metrics/from-nodes nodes)]
-        (swap! seeds #(merge-with into % (security/seeds nodes)))
+      (let [leaves (scan/leaves nodes)
+            ms     (scan/measures nodes)]
+        (swap! seeds #(merge-with into % (scan/seeds nodes)))
         (save-measures! ctx f ms)
-        (save-line-data! ctx f (metrics/line-data nodes (truth-for truth-by-path f)))
-        (save-security! ctx f (concat (security/findings nodes)
-                                      (interop/all-findings nodes)
-                                      (concurrency/findings nodes)
-                                      (regex/findings nodes)
-                                      (web/findings nodes)
-                                      (access/findings nodes)
-                                      (when (= InputFile$Type/TEST (.type f))
-                                        (tests/findings nodes))))
+        (save-line-data! ctx f (scan/line-data nodes (truth-for truth-by-path f)))
+        (save-security! ctx f (scan/findings nodes :test? (= InputFile$Type/TEST (.type f))))
         (save-cpd! ctx f leaves)
         (save-highlighting! ctx f leaves)
         (save-symbols! ctx f (or (get by-file (str (.path f)))
@@ -242,7 +222,7 @@
      + 0
      (for [^File f (report/for-input ctx :analysis)
            :when (report/exists? f)]
-       (let [fs (callgraph/findings (slurp f) seeds)]
+       (let [fs (scan/interprocedural (slurp f) seeds)]
          (doseq [finding fs]
            (when-let [in (report/input-file ctx (:filename finding))]
              (save-security! ctx in [finding])))
