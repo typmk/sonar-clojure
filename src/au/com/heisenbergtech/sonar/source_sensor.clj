@@ -188,7 +188,7 @@
 (defn- measure-file! [ctx by-file truth-by-path seeds ^InputFile f]
   (if (skip? ctx f)
     (do (.copyFromPrevious (.nextCache ctx) (cache-key f)) ::skipped)
-    (let [{:keys [ok? nodes error]} (scan/parse (slurp (.inputStream f)))]
+    (let [{:keys [ok? nodes error]} (scan/parse-source (slurp (.inputStream f)))]
     (if-not ok?
       (do (-> (.newAnalysisError ctx)
               (.onFile f)
