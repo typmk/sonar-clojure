@@ -1,4 +1,4 @@
-(ns au.com.heisenbergtech.sonar.dictionary
+(ns au.com.heisenbergtech.scan.dictionary
   "The project's own vocabulary, enforced.
 
   CLAUDE.md opens with `The enemy of progress is inconsistency` and carries a

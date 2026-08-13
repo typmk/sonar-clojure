@@ -1,11 +1,11 @@
-(ns au.com.heisenbergtech.sonar.metrics
+(ns au.com.heisenbergtech.scan.metrics
   "Size and complexity measures over the parsed tree.
 
   Every Sonar ratio -- comment density, duplication density, technical-debt
   ratio -- divides by ncloc. Without these the dashboard reports a project
   with no code and every ratio is undefined."
   (:require [clojure.string :as str]
-            [au.com.heisenbergtech.sonar.parse :as parse]))
+            [au.com.heisenbergtech.scan.parse :as parse]))
 
 (defn- line-span [{:keys [line end-line]}] (range line (inc end-line)))
 

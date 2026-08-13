@@ -1,10 +1,10 @@
-(ns au.com.heisenbergtech.sonar.security-test
+(ns au.com.heisenbergtech.scan.security-test
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
             [au.com.heisenbergtech.sonar.metadata]
-            [au.com.heisenbergtech.sonar.security :as security]))
+            [au.com.heisenbergtech.scan.security :as security]))
 
 (defn- rules-for [src] (set (map :rule (security/findings-of-source src))))
 

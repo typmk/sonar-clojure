@@ -1,4 +1,4 @@
-(ns au.com.heisenbergtech.sonar.access
+(ns au.com.heisenbergtech.scan.access
   "Rules for the access kernel, keyed on this codebase's own vocabulary.
 
   Java fills CWE-285 and CWE-287 with rules about Spring Security
@@ -16,7 +16,7 @@
   Everything here is a hotspot rather than a vulnerability. The shapes are
   strong signals, not proofs, and a wrong accusation about authorisation is
   the fastest way to get a security ruleset switched off."
-  (:require [au.com.heisenbergtech.sonar.tree :as tree]))
+  (:require [au.com.heisenbergtech.scan.tree :as tree]))
 
 (def ^:private tenant-word
   "For a QUERY: does it name the scope anywhere. The trailing boundary must

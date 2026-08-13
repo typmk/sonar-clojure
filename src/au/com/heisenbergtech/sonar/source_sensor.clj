@@ -5,7 +5,7 @@
   Without the measures here, ncloc is zero and every ratio on the dashboard
   -- comment density, duplication density, technical-debt ratio -- divides
   by nothing."
-  (:require [au.com.heisenbergtech.sonar.scan :as scan] [clojure.string :as str]
+  (:require [au.com.heisenbergtech.scan :as scan] [clojure.string :as str]
             [au.com.heisenbergtech.sonar.const :as const]
             [au.com.heisenbergtech.sonar.report :as report]
             [au.com.heisenbergtech.sonar.coverage-sensor :as coverage])
@@ -143,7 +143,7 @@
           (report/for-input ctx :analysis)))
 
 (defn- cache-key [^InputFile f]
-  (str "au.com.heisenbergtech.sonar.parse:" (.key f) ":" (.md5Hash f)))
+  (str "au.com.heisenbergtech.scan.parse:" (.key f) ":" (.md5Hash f)))
 
 (defn- skip?
   "True when Sonar says this file is unchanged since the last analysis AND

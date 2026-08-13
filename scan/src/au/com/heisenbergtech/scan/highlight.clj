@@ -1,11 +1,11 @@
-(ns au.com.heisenbergtech.sonar.highlight
+(ns au.com.heisenbergtech.scan.highlight
   "Maps token classes to Sonar's highlighting vocabulary.
 
   Sonar's palette was drawn for curly-brace languages, so the mapping is a
   judgement, not a translation: a Clojure keyword is a literal, and the
   special forms are the nearest thing the language has to reserved words."
   (:require [clojure.string :as str]
-            [au.com.heisenbergtech.sonar.forms :as forms]))
+            [au.com.heisenbergtech.scan.forms :as forms]))
 
 (defn- constant-name?
   "Earmuffed dynamic vars and SCREAMING names read as constants."

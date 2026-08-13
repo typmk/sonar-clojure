@@ -1,4 +1,4 @@
-(ns au.com.heisenbergtech.sonar.tests
+(ns au.com.heisenbergtech.scan.tests
   "Rules about the tests themselves.
 
   Java ships 48 of these; Clojure had one. A test that asserts nothing still
@@ -8,7 +8,7 @@
   and nothing would say so.
 
   Scoped to test files by the caller; these shapes are legitimate elsewhere."
-  (:require [au.com.heisenbergtech.sonar.tree :as tree]))
+  (:require [au.com.heisenbergtech.scan.tree :as tree]))
 
 (def ^:private assertions
   "`prop/for-all` is how a defspec asserts. Omitting it reported all fifteen

@@ -1,4 +1,4 @@
-(ns au.com.heisenbergtech.sonar.scan
+(ns au.com.heisenbergtech.scan
   "The analysis surface, named in one place.
 
   Everything under this namespace is Clojure analysis with no SonarQube in it:
@@ -22,19 +22,19 @@
   code it measures runs your side effects on the CI box. A REPL-side consumer
   that has already loaded the code is a different context and may rank higher;
   this surface is for the one that has not."
-  (:require [au.com.heisenbergtech.sonar.access :as access]
-            [au.com.heisenbergtech.sonar.analysis :as analysis]
-            [au.com.heisenbergtech.sonar.callgraph :as callgraph]
-            [au.com.heisenbergtech.sonar.concurrency :as concurrency]
-            [au.com.heisenbergtech.sonar.dictionary :as dictionary]
-            [au.com.heisenbergtech.sonar.highlight :as highlight]
-            [au.com.heisenbergtech.sonar.interop :as interop]
-            [au.com.heisenbergtech.sonar.metrics :as metrics]
-            [au.com.heisenbergtech.sonar.parse :as parse]
-            [au.com.heisenbergtech.sonar.regex :as regex]
-            [au.com.heisenbergtech.sonar.security :as security]
-            [au.com.heisenbergtech.sonar.tests :as tests]
-            [au.com.heisenbergtech.sonar.web :as web]))
+  (:require [au.com.heisenbergtech.scan.access :as access]
+            [au.com.heisenbergtech.scan.analysis :as analysis]
+            [au.com.heisenbergtech.scan.callgraph :as callgraph]
+            [au.com.heisenbergtech.scan.concurrency :as concurrency]
+            [au.com.heisenbergtech.scan.dictionary :as dictionary]
+            [au.com.heisenbergtech.scan.highlight :as highlight]
+            [au.com.heisenbergtech.scan.interop :as interop]
+            [au.com.heisenbergtech.scan.metrics :as metrics]
+            [au.com.heisenbergtech.scan.parse :as parse]
+            [au.com.heisenbergtech.scan.regex :as regex]
+            [au.com.heisenbergtech.scan.security :as security]
+            [au.com.heisenbergtech.scan.tests :as tests]
+            [au.com.heisenbergtech.scan.web :as web]))
 
 ;; ── structure ──────────────────────────────────────────────────────────────
 

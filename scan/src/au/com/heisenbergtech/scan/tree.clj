@@ -1,4 +1,4 @@
-(ns au.com.heisenbergtech.sonar.tree
+(ns au.com.heisenbergtech.scan.tree
   "Queries over the flat node stream that more than one rule set needs.
 
   Extracted when the Java-interop rules arrived and would otherwise have

@@ -1,6 +1,6 @@
-(ns au.com.heisenbergtech.sonar.callgraph-test
+(ns au.com.heisenbergtech.scan.callgraph-test
   (:require [clojure.test :refer [deftest is testing]]
-            [au.com.heisenbergtech.sonar.callgraph :as cg]))
+            [au.com.heisenbergtech.scan.callgraph :as cg]))
 
 (def analysis
   (str "{\"analysis\":{\"var-usages\":["

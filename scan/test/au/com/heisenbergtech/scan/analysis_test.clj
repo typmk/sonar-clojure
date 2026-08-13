@@ -1,8 +1,8 @@
-(ns au.com.heisenbergtech.sonar.analysis-test
+(ns au.com.heisenbergtech.scan.analysis-test
   (:require [clojure.test :refer [deftest is testing]]
-            [au.com.heisenbergtech.sonar.analysis :as analysis]
-            [au.com.heisenbergtech.sonar.highlight :as hl]
-            [au.com.heisenbergtech.sonar.parse :as parse]))
+            [au.com.heisenbergtech.scan.analysis :as analysis]
+            [au.com.heisenbergtech.scan.highlight :as hl]
+            [au.com.heisenbergtech.scan.parse :as parse]))
 
 (def report
   (str "{\"analysis\":{"

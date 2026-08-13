@@ -1,4 +1,4 @@
-(ns au.com.heisenbergtech.sonar.analysis
+(ns au.com.heisenbergtech.scan.analysis
   "Turns clj-kondo's analysis output into a Sonar symbol table.
 
   This is the one place Clojure has an advantage: clj-kondo already emits

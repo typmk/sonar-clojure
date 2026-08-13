@@ -1,4 +1,4 @@
-(ns au.com.heisenbergtech.sonar.security
+(ns au.com.heisenbergtech.scan.security
   "Security rules that have no call to hang a clj-kondo hook on.
 
   The call-shaped rules -- eval, read-string, sh, jdbc, MessageDigest and the
@@ -8,10 +8,10 @@
   string literal, a shell call with only literal arguments.
 
   The sink and source sets survive for one reason: seeding the interprocedural
-  pass in au.com.heisenbergtech.sonar.callgraph, which needs to know which vars reach a sink even
+  pass in au.com.heisenbergtech.scan.callgraph, which needs to know which vars reach a sink even
   though the direct finding is now raised by a hook."
-  (:require [au.com.heisenbergtech.sonar.parse :as parse]
-            [au.com.heisenbergtech.sonar.tree :as tree]))
+  (:require [au.com.heisenbergtech.scan.parse :as parse]
+            [au.com.heisenbergtech.scan.tree :as tree]))
 
 (def ^:private sources
   "Forms whose result is attacker-influenced. Deliberately small: a false
@@ -189,7 +189,7 @@
 
 (defn seeds
   "Which vars directly obtain attacker-influenced data, and which hand data to
-  an UNSAFE sink. These seed au.com.heisenbergtech.sonar.callgraph."
+  an UNSAFE sink. These seed au.com.heisenbergtech.scan.callgraph."
   [nodes]
   (let [nsname (namespace-name nodes)
         var-of (fn [l] (when-let [v (enclosing-var nodes l)] [nsname v]))]

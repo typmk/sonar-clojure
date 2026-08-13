@@ -1,10 +1,10 @@
-(ns au.com.heisenbergtech.sonar.callgraph
+(ns au.com.heisenbergtech.scan.callgraph
   "Interprocedural taint propagation over clj-kondo's call graph.
 
   clj-kondo's analysis emits, for every var usage, the var it appeared in
   (`from-var`) and the var it refers to (`to`/`name`). That is a call graph,
   and it is what lifts taint tracking above the single-form case the
-  intraprocedural pass in `au.com.heisenbergtech.sonar.security` is limited to.
+  intraprocedural pass in `au.com.heisenbergtech.scan.security` is limited to.
 
   The propagation is a fixpoint over two relations:
 

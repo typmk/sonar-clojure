@@ -1,11 +1,11 @@
-(ns au.com.heisenbergtech.sonar.interop-test
+(ns au.com.heisenbergtech.scan.interop-test
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [au.com.heisenbergtech.sonar.concurrency :as concurrency]
-            [au.com.heisenbergtech.sonar.interop :as interop]
-            [au.com.heisenbergtech.sonar.parse :as parse]))
+            [au.com.heisenbergtech.scan.concurrency :as concurrency]
+            [au.com.heisenbergtech.scan.interop :as interop]
+            [au.com.heisenbergtech.scan.parse :as parse]))
 
 (defn- nodes [s] (:nodes (parse/parse s)))
 (defn- rules-for [s] (set (map :rule (interop/all-findings (nodes s)))))
