@@ -15,13 +15,13 @@
   So every rule gets both. A positive alone proves a rule can fire, which a
   rule matching everything also does."
   (:require [clojure.test :refer [deftest is testing]]
-            [au.com.heisenbergtech.scan.access :as access]
-            [au.com.heisenbergtech.scan.interop :as interop]
+            [com.typemark.sift.access :as access]
+            [com.typemark.sift.interop :as interop]
             [au.com.heisenbergtech.sonar.metadata :as metadata]
-            [au.com.heisenbergtech.scan.parse :as parse]
-            [au.com.heisenbergtech.scan.regex :as regex]
-            [au.com.heisenbergtech.scan.tests :as tests]
-            [au.com.heisenbergtech.scan.web :as web]))
+            [com.typemark.sift.parse :as parse]
+            [com.typemark.sift.regex :as regex]
+            [com.typemark.sift.tests :as tests]
+            [com.typemark.sift.web :as web]))
 
 (defn- rules [f src] (set (map :rule (f (:nodes (parse/parse src))))))
 

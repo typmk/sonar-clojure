@@ -5,7 +5,7 @@
   Without the measures here, ncloc is zero and every ratio on the dashboard
   -- comment density, duplication density, technical-debt ratio -- divides
   by nothing."
-  (:require [au.com.heisenbergtech.scan :as scan] [clojure.string :as str]
+  (:require [com.typemark.sift :as sift] [clojure.string :as str]
             [au.com.heisenbergtech.sonar.const :as const]
             [au.com.heisenbergtech.sonar.report :as report]
             [au.com.heisenbergtech.sonar.coverage-sensor :as coverage])
@@ -91,12 +91,12 @@
             :when (not= :comment (:type t))]
       (.addToken cpd (int (:line t)) (int (dec (:col t)))
                  (int (:end-line t)) (int (dec (:end-col t)))
-                 ^String (scan/cpd-image t)))
+                 ^String (sift/cpd-image t)))
     (.save cpd)))
 
 (defn- save-highlighting! [ctx ^InputFile f tokens]
   (let [h (.onFile (.newHighlighting ctx) f)]
-    (doseq [s (scan/spans tokens)]
+    (doseq [s (sift/spans tokens)]
       (.highlight h (int (:line s)) (int (dec (:col s)))
                   (int (:end-line s)) (int (dec (:end-col s)))
                   (TypeOfText/valueOf ^String (:type s))))
@@ -125,7 +125,7 @@
                  (if-let [in (report/input-file ctx filename)]
                    (do (save-security! ctx in fs) (+ n' (count fs)))
                    n'))
-               n (scan/prose-findings (slurp f)))))
+               n (sift/prose-findings (slurp f)))))
    0
    (report/for-input ctx :analysis)))
 
@@ -135,7 +135,7 @@
   [ctx]
   (reduce (fn [acc ^File f]
             (if (report/exists? f)
-              (merge-with into acc (scan/symbols (slurp f)))
+              (merge-with into acc (sift/symbols (slurp f)))
               (do (println "clj-kondo analysis not found:" (.getPath f)
                            "-- symbol navigation disabled for this run")
                   acc)))
@@ -143,7 +143,7 @@
           (report/for-input ctx :analysis)))
 
 (defn- cache-key [^InputFile f]
-  (str "au.com.heisenbergtech.scan.parse:" (.key f) ":" (.md5Hash f)))
+  (str "com.typemark.sift.parse:" (.key f) ":" (.md5Hash f)))
 
 (defn- skip?
   "True when Sonar says this file is unchanged since the last analysis AND
@@ -188,7 +188,7 @@
 (defn- measure-file! [ctx by-file truth-by-path seeds ^InputFile f]
   (if (skip? ctx f)
     (do (.copyFromPrevious (.nextCache ctx) (cache-key f)) ::skipped)
-    (let [{:keys [ok? nodes error]} (scan/parse-source (slurp (.inputStream f)))]
+    (let [{:keys [ok? nodes error]} (sift/parse-source (slurp (.inputStream f)))]
     (if-not ok?
       (do (-> (.newAnalysisError ctx)
               (.onFile f)
@@ -197,12 +197,12 @@
               (.save))
           (println "Clojure: could not parse" (str (.filename f)) "--" error)
           nil)
-      (let [leaves (scan/leaves nodes)
-            ms     (scan/measures nodes)]
-        (swap! seeds #(merge-with into % (scan/seeds nodes)))
+      (let [leaves (sift/leaves nodes)
+            ms     (sift/measures nodes)]
+        (swap! seeds #(merge-with into % (sift/seeds nodes)))
         (save-measures! ctx f ms)
-        (save-line-data! ctx f (scan/line-data nodes (truth-for truth-by-path f)))
-        (save-security! ctx f (scan/findings nodes :test? (= InputFile$Type/TEST (.type f))))
+        (save-line-data! ctx f (sift/line-data nodes (truth-for truth-by-path f)))
+        (save-security! ctx f (sift/findings nodes :test? (= InputFile$Type/TEST (.type f))))
         (save-cpd! ctx f leaves)
         (save-highlighting! ctx f leaves)
         (save-symbols! ctx f (or (get by-file (str (.path f)))
@@ -222,7 +222,7 @@
      + 0
      (for [^File f (report/for-input ctx :analysis)
            :when (report/exists? f)]
-       (let [fs (scan/interprocedural (slurp f) seeds)]
+       (let [fs (sift/interprocedural (slurp f) seeds)]
          (doseq [finding fs]
            (when-let [in (report/input-file ctx (:filename finding))]
              (save-security! ctx in [finding])))
