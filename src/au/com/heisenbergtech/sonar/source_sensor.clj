@@ -188,7 +188,8 @@
 (defn- measure-file! [ctx by-file truth-by-path seeds ^InputFile f]
   (if (skip? ctx f)
     (do (.copyFromPrevious (.nextCache ctx) (cache-key f)) ::skipped)
-    (let [{:keys [ok? nodes error]} (sift/parse-source (slurp (.inputStream f)))]
+    (let [text (slurp (.inputStream f))
+          {:keys [ok? nodes error]} (sift/parse-source text)]
     (if-not ok?
       (do (-> (.newAnalysisError ctx)
               (.onFile f)
@@ -198,7 +199,10 @@
           (println "Clojure: could not parse" (str (.filename f)) "--" error)
           nil)
       (let [leaves (sift/leaves nodes)
-            ms     (sift/measures nodes)]
+            ;; text, not nodes: complexity and cognitive then come from sift's
+            ;; unit engine summed over the file, the one measured against cccc
+            ;; and SonarJS, rather than the node count that nothing validated
+            ms     (sift/measures text)]
         (swap! seeds #(merge-with into % (sift/seeds nodes)))
         (save-measures! ctx f ms)
         (save-line-data! ctx f (sift/line-data nodes (truth-for truth-by-path f)))
