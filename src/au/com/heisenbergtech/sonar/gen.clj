@@ -11,6 +11,8 @@
             [clojure.string :as str]
             [clojure.pprint :as pp]))
 
+(set! *warn-on-reflection* true)
+
 (defn clj-kondo-version
   "Read from deps.edn rather than from the loaded library, so the recorded
   version is the one this repository declares. clj-kondo exposes no version

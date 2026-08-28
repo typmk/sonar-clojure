@@ -14,6 +14,8 @@
    :name au.com.heisenbergtech.sonar.ClojureRulesDefinition
    :implements [org.sonar.api.server.rule.RulesDefinition]))
 
+(set! *warn-on-reflection* true)
+
 (defn catalogue []
   (with-open [r (io/reader (classpath/required-resource
                              "au/com/heisenbergtech/sonar/linters.edn"

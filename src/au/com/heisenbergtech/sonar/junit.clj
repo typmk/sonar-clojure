@@ -9,6 +9,8 @@
   (:import [javax.xml.parsers DocumentBuilderFactory]
            [org.w3c.dom Element Node]))
 
+(set! *warn-on-reflection* true)
+
 (defn- safe-factory
   "External entity resolution off. This parser reads a file produced by CI,
   and a report is exactly the kind of input an attacker reaches first."

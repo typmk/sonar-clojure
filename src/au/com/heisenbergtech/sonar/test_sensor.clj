@@ -14,6 +14,8 @@
    :name au.com.heisenbergtech.sonar.KaochaSensor
    :implements [org.sonar.api.batch.sensor.Sensor]))
 
+(set! *warn-on-reflection* true)
+
 (defn -describe [_ d]
   (.name d "kaocha test execution")
   (.onlyOnLanguage d const/language-key)

@@ -10,6 +10,8 @@
    :name au.com.heisenbergtech.sonar.ClojureMetrics
    :implements [org.sonar.api.measures.Metrics]))
 
+(set! *warn-on-reflection* true)
+
 (def completeness-key "clj_analysis_completeness")
 
 (def completeness

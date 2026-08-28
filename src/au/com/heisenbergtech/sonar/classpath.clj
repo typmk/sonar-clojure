@@ -14,6 +14,8 @@
   own."
   (:require [clojure.java.io :as io]))
 
+(set! *warn-on-reflection* true)
+
 (defn- own-loader
   "The classloader that defined this namespace's classes -- i.e. the plugin's,
   whatever the calling thread's context happens to be."

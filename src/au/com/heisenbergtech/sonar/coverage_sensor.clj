@@ -21,6 +21,8 @@
    :name au.com.heisenbergtech.sonar.CloverageSensor
    :implements [org.sonar.api.batch.sensor.Sensor]))
 
+(set! *warn-on-reflection* true)
+
 (defn -describe [_ d]
   (.name d "cloverage")
   (.onlyOnLanguage d const/language-key)

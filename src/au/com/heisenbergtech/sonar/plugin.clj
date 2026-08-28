@@ -18,6 +18,8 @@
    :name au.com.heisenbergtech.sonar.ClojurePlugin
    :implements [org.sonar.api.Plugin]))
 
+(set! *warn-on-reflection* true)
+
 (def ^:private property-specs
   "The two file-selection properties, plus one per report in the registry --
   which is where each report's key, default and prose already live."

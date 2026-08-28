@@ -26,6 +26,8 @@
    :name au.com.heisenbergtech.sonar.ExternalRulesDefinition
    :implements [org.sonar.api.server.rule.RulesDefinition]))
 
+(set! *warn-on-reflection* true)
+
 (defn catalogue
   "The shipped rule list for one engine, or nil when none is shipped."
   [engine-id]

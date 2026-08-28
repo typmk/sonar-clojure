@@ -11,6 +11,8 @@
    :init init
    :state state))
 
+(set! *warn-on-reflection* true)
+
 (defn -init [config]
   [[] {:config config}])
 

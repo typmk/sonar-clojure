@@ -17,6 +17,8 @@
             [clojure.string :as str])
   (:import [java.io File]))
 
+(set! *warn-on-reflection* true)
+
 (def inputs
   "Every report this plugin reads. Ordered by how misleading its silence is."
   [{:id :kondo

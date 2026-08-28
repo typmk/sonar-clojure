@@ -15,6 +15,8 @@
    :name au.com.heisenbergtech.sonar.CompletenessSensor
    :implements [org.sonar.api.batch.sensor.Sensor]))
 
+(set! *warn-on-reflection* true)
+
 (defn -describe [_ d]
   (.name d "Clojure analysis completeness")
   (.onlyOnLanguage d const/language-key)
