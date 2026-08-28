@@ -5,7 +5,8 @@
   Without the measures here, ncloc is zero and every ratio on the dashboard
   -- comment density, duplication density, technical-debt ratio -- divides
   by nothing."
-  (:require [com.typemark.sift :as sift] [clojure.string :as str]
+  (:require [au.com.heisenbergtech.sonar.metadata :as metadata]
+            [com.typemark.sift :as sift] [clojure.string :as str]
             [au.com.heisenbergtech.sonar.const :as const]
             [au.com.heisenbergtech.sonar.report :as report]
             [au.com.heisenbergtech.sonar.coverage-sensor :as coverage])
@@ -50,11 +51,18 @@
   (-> (.newMeasure ctx) (.on f) (.forMetric CoreMetrics/EXECUTABLE_LINES_DATA)
       (.withValue executable-data) (.save)))
 
-(defn- location [issue ^InputFile f {:keys [line col end-line end-col message]}]
-  (-> (.newLocation issue)
-      (.on f)
-      (.at (.newRange f (int line) (int (dec col)) (int end-line) (int (dec end-col))))
-      (.message message)))
+(defn- location
+  "A node-stream finding carries its full span; a shape or typeflow finding
+  from `sift/analyze` carries :line and :column only, and Sonar takes a
+  whole line for those."
+  [issue ^InputFile f {:keys [line col column end-line end-col message]}]
+  (let [col (or col column)]
+    (-> (.newLocation issue)
+        (.on f)
+        (.at (if (and col end-line end-col)
+               (.newRange f (int line) (int (dec col)) (int end-line) (int (dec end-col)))
+               (.selectLine f (int line))))
+        (.message message))))
 
 (defn- add-quick-fix!
   "A fix the reviewer can apply from the IDE. Only offered where the
@@ -206,7 +214,18 @@
         (swap! seeds #(merge-with into % (sift/seeds nodes)))
         (save-measures! ctx f ms)
         (save-line-data! ctx f (sift/line-data nodes (truth-for truth-by-path f)))
-        (save-security! ctx f (sift/findings nodes :test? (= InputFile$Type/TEST (.type f))))
+        ;; every family, one call — the node rules, shape, data rules (four
+        ;; interop detections live there since 2026-08-28), complexity and
+        ;; typeflow. Only rules this plugin registers become issues; the rest
+        ;; are counted, because an issue on an unregistered rule is dropped by
+        ;; the scanner without a message.
+        (let [{:keys [findings]} (sift/analyze {:text text :path (.filename f) :test? (= InputFile$Type/TEST (.type f))})
+              registered (set (metadata/all-keys))
+              [known unknown] ((juxt filter remove) #(registered (name (:rule %))) findings)]
+          (when (seq unknown)
+            (println "Clojure:" (count unknown) "findings on rules this plugin does not register in" (str (.filename f))
+                     "--" (pr-str (vec (distinct (map :rule unknown))))))
+          (save-security! ctx f (map #(update % :rule name) known)))
         (save-cpd! ctx f leaves)
         (save-highlighting! ctx f leaves)
         (save-symbols! ctx f (or (get by-file (str (.path f)))
