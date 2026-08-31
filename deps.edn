@@ -9,7 +9,11 @@
  :deps {org.clojure/clojure   {:mvn/version "1.12.0"}
         org.clojure/data.json {:mvn/version "2.5.2"}
         rewrite-clj/rewrite-clj  {:mvn/version "1.2.55"}
-        com.typemark/sift     {:local/root "../sift"}}
+        ;; A sibling checkout is not a dependency: `:local/root "../sift"` resolved
+        ;; on one laptop and on no runner. Pinned to a sha on the public repo;
+        ;; `clojure -M:test:local` swaps in ../sift for the dev loop.
+        com.typemark/sift     {:git/url "https://github.com/typmk/sift.git"
+                               :git/sha "2d04306b18d80aa9eaa93409129060ca5a780302"}}
 
  :aliases
  {;; Sonar supplies the API at runtime. On the compile classpath only —
@@ -27,7 +31,7 @@
   ;; Runs against target/classes: the AOT artefacts are the thing under
   ;; test, so `clojure -T:build compile-clj*` must run first.
   :test
-  {:extra-paths ["test" "target/classes" "../sift/test"]
+  {:extra-paths ["test" "target/classes"]
    ;; sonar-plugin-api-impl carries SensorContextTester -- SonarSource's own
    ;; in-memory SensorContext. A sensor tested only through its helpers is
    ;; tested on the parts that cannot fail; running it against a real context
@@ -37,11 +41,19 @@
                  org.clojure/test.check {:mvn/version "1.1.3"}
                  io.github.cognitect-labs/test-runner
                  {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
-   ;; -d twice: the runner scans "test" by default, so sift/test was on the
-   ;; classpath but never discovered -- 86 tests ran where 132 should have,
-   ;; and a suite that silently shrinks is a suite that stopped checking.
-   :main-opts   ["-m" "cognitect.test-runner" "-d" "test" "-d" "../sift/test"]
+   ;; sift's own suite used to run here too, via -d ../sift/test -- 86 tests
+   ;; ran where 132 should have when the second -d was missing, and a suite
+   ;; that silently shrinks is a suite that stopped checking. With sift a git
+   ;; dep that path does not exist; its suite runs in typmk/sift's own CI,
+   ;; and :local brings it back for the dev loop.
+   :main-opts   ["-m" "cognitect.test-runner" "-d" "test"]
    :exec-fn     cognitect.test-runner.api/test}
+
+  ;; The dev loop against the sibling checkout: clojure -M:test:local
+  :local
+  {:override-deps {com.typemark/sift {:local/root "../sift"}}
+   :extra-paths   ["../sift/test"]
+   :main-opts     ["-m" "cognitect.test-runner" "-d" "test" "-d" "../sift/test"]}
 
   :coverage
   {:extra-paths ["test" "target/classes"]

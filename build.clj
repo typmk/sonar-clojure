@@ -63,23 +63,16 @@
   (b/compile-clj {:basis      (basis)
                   :src-dirs   ["src"]
                   :class-dir  class-dir
+                  ;; Only namespaces that exist here. Fifteen that moved to sift on
+                  ;; 2026-08-13 (forms, tree, security, …) were still listed and the
+                  ;; compile failed on the first of them from that day until 2026-08-31;
+                  ;; the suite kept passing against a stale target/classes.
                   :ns-compile '[au.com.heisenbergtech.sonar.const
-                                au.com.heisenbergtech.sonar.forms
                                 au.com.heisenbergtech.sonar.report
-                                au.com.heisenbergtech.sonar.tree
                                 au.com.heisenbergtech.sonar.classpath
                                 au.com.heisenbergtech.sonar.metadata
-                                au.com.heisenbergtech.sonar.security
-                                au.com.heisenbergtech.sonar.interop
-                                au.com.heisenbergtech.sonar.concurrency
-                                au.com.heisenbergtech.sonar.dictionary
-                                au.com.heisenbergtech.sonar.regex
-                                au.com.heisenbergtech.sonar.tests
-                                au.com.heisenbergtech.sonar.web
-                                au.com.heisenbergtech.sonar.access
                                 au.com.heisenbergtech.sonar.hooks
                                 au.com.heisenbergtech.sonar.codecov
-                                au.com.heisenbergtech.sonar.callgraph
                                 au.com.heisenbergtech.sonar.external
                                 au.com.heisenbergtech.sonar.external-rules
                                 au.com.heisenbergtech.sonar.external-sensor
@@ -89,10 +82,6 @@
                                 au.com.heisenbergtech.sonar.rules
                                 au.com.heisenbergtech.sonar.profile
                                 au.com.heisenbergtech.sonar.sensor
-                                au.com.heisenbergtech.sonar.parse
-                                au.com.heisenbergtech.sonar.metrics
-                                au.com.heisenbergtech.sonar.highlight
-                                au.com.heisenbergtech.sonar.analysis
                                 au.com.heisenbergtech.sonar.lcov
                                 au.com.heisenbergtech.sonar.coverage-sensor
                                 au.com.heisenbergtech.sonar.source-sensor
