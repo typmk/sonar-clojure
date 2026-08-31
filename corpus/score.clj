@@ -15,9 +15,9 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [au.com.heisenbergtech.sonar.callgraph :as callgraph]
+            [com.typemark.sift.callgraph :as callgraph]
             [au.com.heisenbergtech.sonar.external :as external]
-            [au.com.heisenbergtech.sonar.security :as security]))
+            [com.typemark.sift.security :as security]))
 
 (defn- manifest [] (edn/read-string (slurp (io/file "corpus" "manifest.edn"))))
 
