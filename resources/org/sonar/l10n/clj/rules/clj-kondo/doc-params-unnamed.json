@@ -1,0 +1,22 @@
+{
+ "title": "Short docstring names none of the parameters",
+ "type": "CODE_SMELL",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "5min"
+ },
+ "tags": [
+  "documentation"
+ ],
+ "defaultSeverity": "Low",
+ "sqKey": "doc-params-unnamed",
+ "scope": "Main",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "MAINTAINABILITY": "LOW"
+  },
+  "attribute": "COMPLETE"
+ }
+}

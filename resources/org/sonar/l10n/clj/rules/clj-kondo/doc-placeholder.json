@@ -1,0 +1,22 @@
+{
+ "title": "Docstring is a placeholder",
+ "type": "CODE_SMELL",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "5min"
+ },
+ "tags": [
+  "documentation"
+ ],
+ "defaultSeverity": "Medium",
+ "sqKey": "doc-placeholder",
+ "scope": "Main",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "MAINTAINABILITY": "MEDIUM"
+  },
+  "attribute": "COMPLETE"
+ }
+}

@@ -77,11 +77,26 @@
     (.addInputFileEdit (-> (.newQuickFix issue) (.message message))
                        (.addTextEdit edit te))))
 
+(defn rule-key
+  "The string Sonar registered for a sift finding's :rule.
+
+  sift's families disagree about the type: security and dictionary findings
+  carry a string (\"banned-term\"), prose findings a namespaced keyword
+  (:doc/hedge). `RuleKey/of` takes a String, and a keyword reached it for
+  every prose finding of every scan -- ClassCastException, caught below,
+  printed as \"could not save security finding\", and the finding gone.
+  Measured 2026-08-31; no :doc/* key was registered either. :doc/hedge is
+  `doc-hedge` here, which is the resource name under rules/clj-kondo/."
+  [rule]
+  (if (keyword? rule)
+    (str (namespace rule) "-" (name rule))
+    rule))
+
 (defn- save-security! [ctx ^InputFile f findings]
   (doseq [{:keys [rule flow quick-fix] :as finding} findings]
     (try
       (let [issue (.newIssue ctx)]
-        (.forRule issue (RuleKey/of const/repository-key rule))
+        (.forRule issue (RuleKey/of const/repository-key (rule-key rule)))
         (.at issue (location issue f finding))
         (when (seq flow)
           (.addFlow issue

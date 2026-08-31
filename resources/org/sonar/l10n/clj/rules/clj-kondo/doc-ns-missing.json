@@ -1,0 +1,22 @@
+{
+ "title": "Namespace has no docstring, or fewer than four words",
+ "type": "CODE_SMELL",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "5min"
+ },
+ "tags": [
+  "documentation"
+ ],
+ "defaultSeverity": "Low",
+ "sqKey": "doc-ns-missing",
+ "scope": "Main",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "MAINTAINABILITY": "LOW"
+  },
+  "attribute": "COMPLETE"
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "title": "Docstring restates the function's name",
+ "type": "CODE_SMELL",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "5min"
+ },
+ "tags": [
+  "documentation"
+ ],
+ "defaultSeverity": "Low",
+ "sqKey": "doc-restates-name",
+ "scope": "Main",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "MAINTAINABILITY": "LOW"
+  },
+  "attribute": "CLEAR"
+ }
+}
