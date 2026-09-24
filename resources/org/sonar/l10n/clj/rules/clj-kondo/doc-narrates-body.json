@@ -1,0 +1,22 @@
+{
+ "title": "Docstrings should say what the code does not",
+ "type": "CODE_SMELL",
+ "status": "ready",
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "5min"
+ },
+ "tags": [
+  "documentation"
+ ],
+ "defaultSeverity": "Low",
+ "sqKey": "doc-narrates-body",
+ "scope": "Main",
+ "securityStandards": {},
+ "code": {
+  "impacts": {
+   "MAINTAINABILITY": "LOW"
+  },
+  "attribute": "CLEAR"
+ }
+}

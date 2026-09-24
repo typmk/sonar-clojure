@@ -45,7 +45,8 @@
       (.add (.fileSystem ctx) f)
       (.execute (ClojureSourceSensor.) ctx)
       (let [rules (set (map #(.rule (.ruleKey %)) (.allIssues ctx)))]
-        (testing "the hedge, the unnamed parameters and the undocumented namespace each land under the key the catalogue registered"
+        (testing "the hedge and the unnamed parameters each land under the key the catalogue registered"
           (is (contains? rules "doc-hedge") (str "issues saved: " rules))
-          (is (contains? rules "doc-params-unnamed") (str "issues saved: " rules))
-          (is (contains? rules "doc-ns-missing") (str "issues saved: " rules)))))))
+          (is (contains? rules "doc-params-unnamed") (str "issues saved: " rules)))
+        (testing "a namespace without a docstring is not an issue: sift turns ns-missing off by default"
+          (is (not (contains? rules "doc-ns-missing")) (str "issues saved: " rules)))))))

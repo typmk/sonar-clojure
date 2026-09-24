@@ -13,8 +13,10 @@
   (:require [clojure.test :refer [deftest is testing]]
             [au.com.heisenbergtech.sonar.metadata :as metadata]
             [au.com.heisenbergtech.sonar.source-sensor :as sensor]
-            [com.typemark.sift :as sift]
-            [com.typemark.sift.security :as security]))
+            [net.typemark.sift :as sift]))
+
+(defn- emitted [rulesets src]
+  (map :rule (:findings (sift/lint (sift/linter {:rulesets rulesets}) [{:path "src/a.clj" :text src}]))))
 
 (deftest every-rule-emitted-is-a-declared-rule
   (let [declared (set (metadata/all-keys))
@@ -26,7 +28,7 @@
              (MessageDigest/getInstance \"MD5\")
              (resolve (symbol s))
              (xml/parse s)"]
-    (is (every? declared (map :rule (security/findings-of-source src)))
+    (is (every? declared (map sensor/rule-key (emitted #{:security} src)))
         "a finding whose rule is not registered would be dropped by Sonar")))
 
 (deftest every-prose-rule-emitted-is-a-declared-rule
@@ -35,18 +37,11 @@
             Before 2026-08-31 neither held: the keyword failed RuleKey/of and
             no :doc/* rule shipped, so every prose finding was dropped."
     (let [declared (set (metadata/all-keys))
-          ;; two vars: one whose doc is its name, one that hedges, holds a
-          ;; placeholder and names neither parameter ("used to" would name a
-          ;; parameter called `to`, so the arglist avoids that word)
-          analysis (str "{\"analysis\":{\"var-definitions\":["
-                        "{\"filename\":\"src/a.clj\",\"ns\":\"a\",\"name\":\"parse-config\","
-                        "\"row\":3,\"col\":1,\"name-row\":3,\"name-col\":7,\"name-end-row\":3,\"name-end-col\":19,"
-                        "\"doc\":\"Parses the config.\",\"arglist-strs\":[\"[x]\"]},"
-                        "{\"filename\":\"src/a.clj\",\"ns\":\"a\",\"name\":\"merge-rows\","
-                        "\"row\":7,\"col\":1,\"name-row\":7,\"name-col\":7,\"name-end-row\":7,\"name-end-col\":17,"
-                        "\"doc\":\"This function is used for combining. TODO\",\"arglist-strs\":[\"[left right]\"]}],"
-                        "\"namespace-definitions\":[{\"filename\":\"src/a.clj\",\"name\":\"a\",\"row\":1,\"col\":1}]}}")
-          rules (->> (sift/prose-findings analysis) vals (apply concat) (map :rule))]
+          src (str "(ns a)\n"
+                   "(defn parse-config \"Parses the config.\" [x] x)\n"
+                   "(defn merge-rows \"This function is used for combining. TODO\" [left right] [left right])\n")
+          rules (distinct (map :rule (:findings (sift/lint (sift/linter {:rulesets #{:doc} :rules {:doc/ns-missing :warning}})
+                                                           [{:path "src/a.clj" :text src}]))))]
       (is (= #{:doc/restates-name :doc/hedge :doc/placeholder :doc/params-unnamed :doc/ns-missing} (set rules))
           "the fixture must trip all five, or the assertion below is vacuous for the ones it misses")
       (is (every? declared (map sensor/rule-key rules))

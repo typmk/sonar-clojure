@@ -12,8 +12,9 @@
         ;; A sibling checkout is not a dependency: `:local/root "../sift"` resolved
         ;; on one laptop and on no runner. Pinned to a sha on the public repo;
         ;; `clojure -M:test:local` swaps in ../sift for the dev loop.
-        com.typemark/sift     {:git/url "https://github.com/typmk/sift.git"
-                               :git/sha "2d04306b18d80aa9eaa93409129060ca5a780302"}}
+        io.github.typmk/sift  {:git/url "https://github.com/typmk/sift.git"
+                               :git/tag "v0.2.0"
+                               :git/sha "e2db0a8dbba38ffd8240075defe748c17b7bbb14"}}
 
  :aliases
  {;; Sonar supplies the API at runtime. On the compile classpath only —
@@ -51,7 +52,7 @@
 
   ;; The dev loop against the sibling checkout: clojure -M:test:local
   :local
-  {:override-deps {com.typemark/sift {:local/root "../sift"}}
+  {:override-deps {io.github.typmk/sift {:local/root "../sift"}}
    :extra-paths   ["../sift/test"]
    :main-opts     ["-m" "cognitect.test-runner" "-d" "test" "-d" "../sift/test"]}
 

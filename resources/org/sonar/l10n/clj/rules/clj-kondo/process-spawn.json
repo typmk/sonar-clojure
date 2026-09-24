@@ -1,0 +1,24 @@
+{
+ "tags": [
+  "cwe",
+  "security"
+ ],
+ "remediation": {
+  "func": "Constant/Issue",
+  "constantCost": "10min"
+ },
+ "type": "SECURITY_HOTSPOT",
+ "scope": "Main",
+ "sqKey": "process-spawn",
+ "title": "Spawned processes should be reviewed",
+ "status": "ready",
+ "securityStandards": {
+  "CWE": [
+   78
+  ],
+  "OWASP": [
+   "A1"
+  ]
+ },
+ "defaultSeverity": "Medium"
+}

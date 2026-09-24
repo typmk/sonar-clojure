@@ -6,7 +6,7 @@
   -- comment density, duplication density, technical-debt ratio -- divides
   by nothing."
   (:require [au.com.heisenbergtech.sonar.metadata :as metadata]
-            [com.typemark.sift :as sift] [clojure.string :as str]
+            [net.typemark.sift :as sift] [clojure.string :as str]
             [au.com.heisenbergtech.sonar.const :as const]
             [au.com.heisenbergtech.sonar.report :as report]
             [au.com.heisenbergtech.sonar.coverage-sensor :as coverage])
@@ -54,17 +54,15 @@
       (.withValue executable-data) (.save)))
 
 (defn- location
-  "A node-stream finding carries its full span; a shape or typeflow finding
-  from `sift/analyze` carries :line and :column only, and Sonar takes a
-  whole line for those."
-  [issue ^InputFile f {:keys [line col column end-line end-col message]}]
-  (let [col (or col column)]
-    (-> (.newLocation issue)
-        (.on f)
-        (.at (if (and col end-line end-col)
-               (.newRange f (int line) (int (dec col)) (int end-line) (int (dec end-col)))
-               (.selectLine f (int line))))
-        (.message message))))
+  "A finding with a full span becomes a range; one with :line and :column
+  only takes the whole line."
+  [issue ^InputFile f {:keys [line column end-line end-column message]}]
+  (-> (.newLocation issue)
+      (.on f)
+      (.at (if (and column end-line end-column)
+             (.newRange f (int line) (int (dec column)) (int end-line) (int (dec end-column)))
+             (.selectLine f (int line))))
+      (.message message)))
 
 (defn- add-quick-fix!
   "A fix the reviewer can apply from the IDE. Only offered where the
@@ -78,19 +76,15 @@
                        (.addTextEdit edit te))))
 
 (defn rule-key
-  "The string Sonar registered for a sift finding's :rule.
-
-  sift's families disagree about the type: security and dictionary findings
-  carry a string (\"banned-term\"), prose findings a namespaced keyword
-  (:doc/hedge). `RuleKey/of` takes a String, and a keyword reached it for
-  every prose finding of every scan -- ClassCastException, caught below,
-  printed as \"could not save security finding\", and the finding gone.
-  Measured 2026-08-31; no :doc/* key was registered either. :doc/hedge is
-  `doc-hedge` here, which is the resource name under rules/clj-kondo/."
+  "The string Sonar registered for a sift finding's :rule, a keyword
+  :ruleset/name. A rule keeps the key it was registered under before sift
+  had rulesets, so an issue's history survives: :security/csrf-protection-absent
+  is `csrf-protection-absent`, and the doc rules keep their prefix, :doc/hedge
+  is `doc-hedge`, the resource name under rules/clj-kondo/."
   [rule]
-  (if (keyword? rule)
-    (str (namespace rule) "-" (name rule))
-    rule))
+  (if (= "doc" (namespace rule))
+    (str "doc-" (name rule))
+    (name rule)))
 
 (defn- save-security! [ctx ^InputFile f findings]
   (doseq [{:keys [rule flow quick-fix] :as finding} findings]
@@ -138,22 +132,6 @@
                          (int (:end-line r)) (int (dec (:end-col r))))))
       (.save t))))
 
-(defn- dictionary-findings!
-  "Banned vocabulary, from the same analysis report the symbol table reads.
-  Reported once per file, from one pass, with no parsing of its own."
-  [ctx]
-  (reduce
-   (fn [n ^File f]
-     (if-not (report/exists? f)
-       n
-       (reduce (fn [n' [filename fs]]
-                 (if-let [in (report/input-file ctx filename)]
-                   (do (save-security! ctx in fs) (+ n' (count fs)))
-                   n'))
-               n (sift/prose-findings (slurp f)))))
-   0
-   (report/for-input ctx :analysis)))
-
 (defn- analysis-symbols
   "The symbol table needs clj-kondo's analysis output. Absent, everything else
   in this sensor still runs -- navigation degrades, measures do not."
@@ -168,7 +146,7 @@
           (report/for-input ctx :analysis)))
 
 (defn- cache-key [^InputFile f]
-  (str "com.typemark.sift.parse:" (.key f) ":" (.md5Hash f)))
+  (str "net.typemark.sift.parse:" (.key f) ":" (.md5Hash f)))
 
 (defn- skip?
   "True when Sonar says this file is unchanged since the last analysis AND
@@ -210,7 +188,7 @@
     (or (get by-path p)
         (some (fn [[k v]] (when (str/ends-with? p (str "/" k)) v)) by-path))))
 
-(defn- measure-file! [ctx by-file truth-by-path seeds ^InputFile f]
+(defn- measure-file! [ctx by-file truth-by-path ^InputFile f]
   (if (skip? ctx f)
     (do (.copyFromPrevious (.nextCache ctx) (cache-key f)) ::skipped)
     (let [text (slurp (.inputStream f))
@@ -228,64 +206,58 @@
             ;; unit engine summed over the file, the one measured against cccc
             ;; and SonarJS, rather than the node count that nothing validated
             ms     (sift/measures text)]
-        (swap! seeds #(merge-with into % (sift/seeds nodes)))
         (save-measures! ctx f ms)
         (save-line-data! ctx f (sift/line-data nodes (truth-for truth-by-path f)))
-        ;; every family, one call — the node rules, shape, data rules (four
-        ;; interop detections live there since 2026-08-28), complexity and
-        ;; typeflow. Only rules this plugin registers become issues; the rest
-        ;; are counted, because an issue on an unregistered rule is dropped by
-        ;; the scanner without a message.
-        (let [{:keys [findings]} (sift/analyze {:text text :path (.filename f) :test? (= InputFile$Type/TEST (.type f))})
-              registered (set (metadata/all-keys))
-              [known unknown] ((juxt filter remove) #(registered (name (:rule %))) findings)]
-          (when (seq unknown)
-            (println "Clojure:" (count unknown) "findings on rules this plugin does not register in" (str (.filename f))
-                     "--" (pr-str (vec (distinct (map :rule unknown))))))
-          (save-security! ctx f (map #(update % :rule name) known)))
         (save-cpd! ctx f leaves)
         (save-highlighting! ctx f leaves)
         (save-symbols! ctx f (or (get by-file (str (.path f)))
                                  (get by-file (.toString (.relativePath f)))
                                  []))
         (remember! ctx f)
-        ms)))))
+        (assoc ms ::input f ::text text))))))
 
-(defn- interprocedural!
-  "Taint paths that cross function boundaries. Needs clj-kondo's analysis
-  for the call graph, so it is silent without it -- the direct findings are
-  unaffected."
-  [ctx {:keys [taints reaches] :as seeds}]
-  (if (or (empty? taints) (empty? reaches))
-    0
-    (reduce
-     + 0
-     (for [^File f (report/for-input ctx :analysis)
-           :when (report/exists? f)]
-       (let [fs (sift/interprocedural (slurp f) seeds)]
-         (doseq [finding fs]
-           (when-let [in (report/input-file ctx (:filename finding))]
-             (save-security! ctx in [finding])))
-         (count fs))))))
+(defn- kondo-analysis
+  "The first clj-kondo analysis report that exists. sift's taint rule reads
+  its call graph; without one, sift reports the rule as skipped."
+  [ctx]
+  (some (fn [^File f] (when (report/exists? f) (slurp f))) (report/for-input ctx :analysis)))
+
+(defn- save-findings!
+  "One sift/lint over every file measured this run. Only rules this plugin
+  registers become issues; the rest are counted, because an issue on an
+  unregistered rule is dropped by the scanner without a message."
+  [ctx measured]
+  (let [by-path (into {} (for [m measured] [(str (.path ^InputFile (::input m))) (::input m)]))
+        kondo (kondo-analysis ctx)
+        linter (sift/linter (cond-> {} kondo (assoc :kondo kondo)))
+        {:keys [findings skipped]}
+        (sift/lint linter (for [m measured :let [^InputFile f (::input m)]]
+                            {:path (str (.path f)) :text (::text m) :test? (= InputFile$Type/TEST (.type f))}))
+        registered (set (metadata/all-keys))
+        [known unknown] ((juxt filter remove) #(registered (rule-key (:rule %))) findings)]
+    (when (seq unknown)
+      (println "Clojure:" (count unknown) "findings on rules this plugin does not register --"
+               (pr-str (vec (distinct (map :rule unknown))))))
+    (doseq [{:keys [rule missing]} skipped]
+      (println "Clojure: skipped" (subs (str rule) 1) "-- needs" (name missing)))
+    (doseq [[path fs] (group-by :file known)
+            :let [in (or (get by-path path) (report/input-file ctx path))]
+            :when in]
+      (save-security! ctx in fs))
+    (count known)))
 
 (defn -execute [_ ctx]
   (let [fs      (.fileSystem ctx)
         by-file (analysis-symbols ctx)
         inputs  (vec (.inputFiles fs (.hasLanguage (.predicates fs) const/language-key)))
         truth   (instrumented ctx)
-        seeds   (atom {:taints #{} :reaches #{}})
-        results (mapv #(measure-file! ctx by-file truth seeds %) inputs)
+        results (mapv #(measure-file! ctx by-file truth %) inputs)
         skipped (count (filter #(= ::skipped %) results))
         ok      (remove #(or (nil? %) (= ::skipped %)) results)]
     (println (format "Clojure: measured %d files, %d ncloc%s"
                      (count ok) (reduce + 0 (map :ncloc ok))
                      (if (pos? skipped) (format " (%d unchanged, from cache)" skipped) "")))
-    (let [d (dictionary-findings! ctx)]
-      (when (pos? d)
-        (println (format "Clojure: %d banned dictionary terms" d))))
-    (let [n (interprocedural! ctx @seeds)]
-      (when (pos? n)
-        (println (format "Clojure: %d interprocedural taint paths" n))))
+    (println (format "Clojure: %d findings" (save-findings! ctx ok)))
     (when-let [failed (seq (filter nil? results))]
       (println (format "Clojure: %d files could not be parsed -- their lines are missing from ncloc"
                        (count failed)))))
