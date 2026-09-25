@@ -95,7 +95,7 @@
                 "union" (merge-with into
                                     (opengrep-findings (str report ".sarif"))
                                     (callgraph-findings (str report ".json"))
-                                    (kondo-findings (str report "-kondo.json"))))
+                                    (kondo-findings (str report ".json"))))
         rows  (for [{:keys [file expect cwe why known-miss]} (manifest)
                     :let [got (get found file #{})
                           tp  (if rule-level?
@@ -127,7 +127,7 @@
   (let [engine (or engine "opengrep")
         path (or report "target/combined")]
     (doseq [needed (if (= engine "union")
-                     [(str path ".sarif") (str path ".json") (str path "-kondo.json")]
+                     [(str path ".sarif") (str path ".json")]
                      [path])]
       (when-not (.isFile (io/file needed))
         (println "no report at" needed "-- see corpus/README.md")
