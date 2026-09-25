@@ -334,12 +334,11 @@ on HEAD, and GPG-signs the jar when `SONAR_CLOJURE_GPG_KEY` names a key. With
 no key it says so rather than producing an unsigned release that reads as
 signed.
 
-Java packages are `au.com.heisenbergtech.*` (the reverse of
-heisenbergtech.com.au). `org/sonar/l10n/…` is SonarSource's own path and is not
+Java packages are `net.typemark.*` (the reverse of typemark.net). `org/sonar/l10n/…` is SonarSource's own path and is not
 renamed with them — a test asserts both, because a package rename that misses
 either produces a plugin SonarQube loads and silently ignores.
 
-The entry point is Java and must stay so; `au.com.heisenbergtech.sonar.ClojurePluginBootstrap`
+The entry point is Java and must stay so; `net.typemark.sonar.ClojurePluginBootstrap`
 documents why. Resources are staged into `target/stage`, never `target/classes`
 — the latter precedes `resources` on the test classpath, so a copy there makes
 the suite validate the last build instead of the source. Rule metadata is edited in

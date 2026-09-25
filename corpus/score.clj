@@ -15,7 +15,7 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [au.com.heisenbergtech.sonar.external :as external]
+            [net.typemark.sonar.external :as external]
             [net.typemark.sift :as sift]))
 
 (defn- manifest [] (edn/read-string (slurp (io/file "corpus" "manifest.edn"))))
@@ -37,7 +37,7 @@
   "clj-kondo's own JSON, for the hook rules. Their findings never reach this
   plugin's Clojure at all -- they arrive through the report -- so nothing in
   the suite could name them. The `hbt/` namespace is stripped, exactly as
-  au.com.heisenbergtech.sonar.kondo does before a key reaches Sonar."
+  net.typemark.sonar.kondo does before a key reaches Sonar."
   [json-path]
   (tally (for [f (external/findings "clj-kondo" (slurp json-path))
                :when (str/starts-with? (:rule f) "hbt/")]

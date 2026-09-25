@@ -1,5 +1,5 @@
 (ns build
-  (:require [au.com.heisenbergtech.sonar.provenance :as provenance]
+  (:require [net.typemark.sonar.provenance :as provenance]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.tools.build.api :as b])
@@ -67,29 +67,29 @@
                   ;; 2026-08-13 (forms, tree, security, …) were still listed and the
                   ;; compile failed on the first of them from that day until 2026-08-31;
                   ;; the suite kept passing against a stale target/classes.
-                  :ns-compile '[au.com.heisenbergtech.sonar.const
-                                au.com.heisenbergtech.sonar.report
-                                au.com.heisenbergtech.sonar.classpath
-                                au.com.heisenbergtech.sonar.metadata
-                                au.com.heisenbergtech.sonar.hooks
-                                au.com.heisenbergtech.sonar.codecov
-                                au.com.heisenbergtech.sonar.external
-                                au.com.heisenbergtech.sonar.external-rules
-                                au.com.heisenbergtech.sonar.external-sensor
-                                au.com.heisenbergtech.sonar.junit
-                                au.com.heisenbergtech.sonar.test-sensor
-                                au.com.heisenbergtech.sonar.language
-                                au.com.heisenbergtech.sonar.rules
-                                au.com.heisenbergtech.sonar.profile
-                                au.com.heisenbergtech.sonar.sensor
-                                au.com.heisenbergtech.sonar.lcov
-                                au.com.heisenbergtech.sonar.coverage-sensor
-                                au.com.heisenbergtech.sonar.source-sensor
-                                au.com.heisenbergtech.sonar.provenance
-                                au.com.heisenbergtech.sonar.cwe
-                                au.com.heisenbergtech.sonar.metrics-def
-                                au.com.heisenbergtech.sonar.completeness-sensor
-                                au.com.heisenbergtech.sonar.plugin]}))
+                  :ns-compile '[net.typemark.sonar.const
+                                net.typemark.sonar.report
+                                net.typemark.sonar.classpath
+                                net.typemark.sonar.metadata
+                                net.typemark.sonar.hooks
+                                net.typemark.sonar.codecov
+                                net.typemark.sonar.external
+                                net.typemark.sonar.external-rules
+                                net.typemark.sonar.external-sensor
+                                net.typemark.sonar.junit
+                                net.typemark.sonar.test-sensor
+                                net.typemark.sonar.language
+                                net.typemark.sonar.rules
+                                net.typemark.sonar.profile
+                                net.typemark.sonar.sensor
+                                net.typemark.sonar.lcov
+                                net.typemark.sonar.coverage-sensor
+                                net.typemark.sonar.source-sensor
+                                net.typemark.sonar.provenance
+                                net.typemark.sonar.cwe
+                                net.typemark.sonar.metrics-def
+                                net.typemark.sonar.completeness-sensor
+                                net.typemark.sonar.plugin]}))
 
 (defn- sha256
   "The checksum published beside the jar. SonarQube does not verify plugin
@@ -123,7 +123,7 @@
                                                    (str version "+" sha (when dirty? ".dirty")))
                        "Build-Revision"          (:sha (revision))
                        "Build-Status"            (if (:dirty? (revision)) "dirty" "clean")
-                       "Plugin-Class"            "au.com.heisenbergtech.sonar.ClojurePluginBootstrap"
+                       "Plugin-Class"            "net.typemark.sonar.ClojurePluginBootstrap"
                        "Plugin-Description"      (description)
                        "Plugin-License"          "EPL-2.0"
                        "Plugin-OrganizationName" "Heisenberg Technologies"
