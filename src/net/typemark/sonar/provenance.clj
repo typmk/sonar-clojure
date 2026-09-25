@@ -15,19 +15,20 @@
   copy cannot drift from the original."
   (:require [clojure.edn :as edn]
             [net.typemark.sonar.classpath :as classpath]
+            [net.typemark.sonar.const :as const]
             [net.typemark.sonar.cwe :as cwe]))
 
 (def clj-kondo-version
   (delay (:clj-kondo-version
           (edn/read-string
            (slurp (classpath/required-resource
-                   "net/typemark/sonar/provenance.edn"
+                   const/provenance-resource
                    "the generation record naming which clj-kondo this catalogue was built from"))))))
 
 (def rule-count
   (delay (count (edn/read-string
                  (slurp (classpath/required-resource
-                         "net/typemark/sonar/linters.edn"
+                         const/linters-resource
                          "the generated rule catalogue"))))))
 
 (defn summary

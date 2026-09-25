@@ -7,7 +7,8 @@
   simply is not there. The suite is the only place this gets caught early."
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [clojure.test :refer [deftest is testing]])
+            [clojure.test :refer [deftest is testing]]
+            [net.typemark.sonar.const :as const])
   (:import [java.util.jar JarFile]))
 
 (def ^:private jar
@@ -40,9 +41,9 @@
   (testing "every required-resource path is package-scoped, so a package
             rename moves them or breaks them -- there is no third outcome"
     (when @jar
-      (doseq [r ["net/typemark/sonar/cwe.json"
-                 "net/typemark/sonar/linters.edn"
-                 "net/typemark/sonar/provenance.edn"
+      (doseq [r [const/cwe-resource
+                 const/linters-resource
+                 const/provenance-resource
                  "org/sonar/l10n/clj/rules/clj-kondo/index.edn"]]
         (is (contains? (entries) r) (str r " missing from the jar"))))))
 

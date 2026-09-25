@@ -18,3 +18,7 @@
    "opengrep"   "sonar.clojure.opengrep.reportPaths"})
 
 (def unknown-rule "unknown-linter")
+
+(def linters-resource "net/typemark/sonar/linters.edn")
+(def provenance-resource "net/typemark/sonar/provenance.edn")
+(def cwe-resource "net/typemark/sonar/cwe.json")

@@ -17,11 +17,12 @@
   reproducible and pinned: the version is a fact about the artifact, and a
   MITRE revision cannot silently change what this plugin claimed."
   (:require [clojure.data.json :as json]
-            [net.typemark.sonar.classpath :as classpath]))
+            [net.typemark.sonar.classpath :as classpath]
+            [net.typemark.sonar.const :as const]))
 
 (def catalogue
   (delay (json/read-str (slurp (classpath/required-resource
-                 "net/typemark/sonar/cwe.json"
+                 const/cwe-resource
                  "the MITRE CWE catalogue every security rule mapping is checked against")))))
 
 (defn version [] (get @catalogue "version"))

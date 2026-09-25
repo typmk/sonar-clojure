@@ -9,7 +9,8 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp]
+            [net.typemark.sonar.const :as const]))
 
 (set! *warn-on-reflection* true)
 
@@ -62,12 +63,12 @@
      :url       (str "https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#" (name k))}))
 
 (defn write-linters!
-  "Emit resources/net/typemark/sonar/linters.edn from clj-kondo's default config."
+  "Emit const/linters-resource under resources/ from clj-kondo's default config."
   [_]
   (require 'clj-kondo.impl.config)
   (let [default @(resolve 'clj-kondo.impl.config/default-config)
         rules   (->> (:linters default) (map rule) (sort-by :key) vec)
-        out     (io/file "resources" "net" "typemark" "sonar" "linters.edn")]
+        out     (io/file "resources" const/linters-resource)]
     (io/make-parents out)
     (with-open [w (io/writer out)]
       (pp/pprint rules w))
@@ -87,6 +88,6 @@
     ;; the classpath. Everything else about the catalogues is readable from
     ;; the catalogues, so recording it here would be storing a derivation and
     ;; inviting the copy to drift from the original.
-    (let [out (io/file "resources" "net" "typemark" "sonar" "provenance.edn")]
+    (let [out (io/file "resources" const/provenance-resource)]
       (spit out (pr-str {:clj-kondo-version (clj-kondo-version)}))
       (println "wrote provenance ->" (str out)))))

@@ -42,8 +42,11 @@ jobs:
         # linter that is no longer the one being used.
         run: |
           clojure -X:gen-rules
-          git diff --exit-code -- resources/ \
-            || { echo "::error::rule catalogue is stale -- run 'clojure -X:gen-rules' and commit"; exit 1; }
+          # status, not diff: diff ignores untracked files, so a generator
+          # writing to a path nothing tracks passed this gate from 2026-08-04
+          # to 2026-09-25 while comparing nothing.
+          [ -z "$(git status --porcelain -- resources/)" ] \
+            || { git status --porcelain -- resources/; echo "::error::rule catalogue is stale -- run 'clojure -X:gen-rules' and commit"; exit 1; }
 
       - name: Build
         run: clojure -T:build uber

@@ -18,7 +18,7 @@
 
 (defn catalogue []
   (with-open [r (io/reader (classpath/required-resource
-                             "net/typemark/sonar/linters.edn"
+                             const/linters-resource
                              "Run `clojure -X:gen-rules` and rebuild."))]
     (edn/read (java.io.PushbackReader. r))))
 
