@@ -20,7 +20,8 @@
 (def unknown-rule "unknown-linter")
 
 (def hook-linter-prefix
-  "The namespace of every linter key net.typemark.sonar.security reports."
+  "The namespace of every linter key the clj-kondo hooks under
+  resources/clj-kondo.exports report."
   "typemark/")
 
 (def linters-resource "net/typemark/sonar/linters.edn")
