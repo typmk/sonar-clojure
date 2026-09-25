@@ -3,7 +3,3 @@ classes/
 .cpcache/
 .lsp/.cache/
 .clj-kondo/.cache/
-# clj-kondo's dependency-config cache. The security hooks are NOT copied here;
-# .clj-kondo/config.edn references ../clj-kondo via :config-paths so there is
-# one copy of them.
-.clj-kondo/imports/
