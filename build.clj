@@ -19,7 +19,7 @@
   "The single source of the plugin's version. A release is this string plus a
   matching `v`-prefixed annotated tag on a clean tree; `release` enforces both
   rather than trusting that whoever built it remembered."
-  "0.1.2")
+  "0.1.3")
 
 (defn- git [& args]
   (str/trim (or (b/git-process {:git-args (str/join " " args)}) "")))
