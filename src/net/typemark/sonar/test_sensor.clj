@@ -57,9 +57,5 @@
                        (.getName f) missed)))))
 
 (defn -execute [_ ctx]
-  (doseq [^File f (report/for-input ctx :tests)]
-    (if (report/exists? f)
-      (import-report! ctx f)
-      (println "kaocha JUnit report not found:" (.getPath f)
-               "-- test counts will be absent")))
+  (report/each ctx :tests #(import-report! ctx %))
   nil)

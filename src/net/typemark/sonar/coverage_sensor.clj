@@ -52,9 +52,5 @@
                   " was imported. Produce one with cloverage --codecov."))))
 
 (defn -execute [_ ctx]
-  (doseq [^File f (report/for-input ctx :coverage)]
-    (if (report/exists? f)
-      (import-report! ctx f)
-      (println "cloverage report not found:" (.getPath f)
-               "-- coverage will be reported as 0% and the quality gate will fail on it")))
+  (report/each ctx :coverage #(import-report! ctx %))
   nil)

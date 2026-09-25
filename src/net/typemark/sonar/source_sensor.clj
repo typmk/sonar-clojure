@@ -11,8 +11,7 @@
             [net.typemark.sonar.report :as report]
             [net.typemark.sonar.coverage :as coverage]
             [net.typemark.sonar.source :as source])
-  (:import [java.io File]
-           [org.sonar.api.batch.rule ActiveRule]
+  (:import [org.sonar.api.batch.rule ActiveRule]
            [org.sonar.api.batch.fs InputFile InputFile$Status InputFile$Type]
            [org.sonar.api.batch.sensor.issue NewIssue$FlowType]
            [org.sonar.api.rule RuleKey]
@@ -127,14 +126,7 @@
   "The symbol table needs clj-kondo's analysis output. Absent, everything else
   in this sensor still runs -- navigation degrades, measures do not."
   [ctx]
-  (reduce (fn [acc ^File f]
-            (if (report/exists? f)
-              (merge-with into acc (sift/symbols (slurp f)))
-              (do (println "clj-kondo analysis not found:" (.getPath f)
-                           "-- symbol navigation disabled for this run")
-                  acc)))
-          {}
-          (report/for-input ctx :analysis)))
+  (apply merge-with into {} (map #(sift/symbols (slurp %)) (report/existing ctx :analysis))))
 
 (defn- cache-key [^InputFile f]
   (str "net.typemark.sift.parse:" (.key f) ":" (.md5Hash f)))
@@ -163,12 +155,8 @@
   Ground truth for executable-lines data; the parse-tree heuristic is only a
   fallback for files no report mentions."
   [ctx]
-  (reduce (fn [acc ^File f]
-            (if (report/exists? f)
-              (merge acc (coverage/instrumented-lines (coverage/parse (slurp f))))
-              acc))
-          {}
-          (report/for-input ctx :coverage)))
+  (apply merge {} (map #(coverage/instrumented-lines (coverage/parse (slurp %)))
+                       (report/existing ctx :coverage))))
 
 (defn- measure-file! [ctx by-file truth-by-path ^InputFile f]
   (if (skip? ctx f)
@@ -202,7 +190,7 @@
   "The first clj-kondo analysis report that exists. sift's taint rule reads
   its call graph; without one, sift reports the rule as skipped."
   [ctx]
-  (some (fn [^File f] (when (report/exists? f) (slurp f))) (report/for-input ctx :analysis)))
+  (some-> (first (report/existing ctx :analysis)) slurp))
 
 (defn- active-keys [ctx]
   (into #{} (map #(.rule (.ruleKey ^ActiveRule %)))

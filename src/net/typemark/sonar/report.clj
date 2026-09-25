@@ -33,6 +33,22 @@
 
 (defn exists? [^File f] (.isFile f))
 
+(defn existing
+  "The configured paths of a registered report that are on disk."
+  [ctx id]
+  (filter exists? (for-input ctx id)))
+
+(defn each
+  "Calls `import!` on every configured path of a registered report that is on
+  disk, and names each one that is not, with what its absence costs. The
+  completeness sensor turns the same absence into data; this is the log line."
+  [ctx id import!]
+  (let [{:keys [label costs]} (inputs/input id)]
+    (doseq [^File f (for-input ctx id)]
+      (if (exists? f)
+        (import! f)
+        (println (str label " not found: " (.getPath f) " -- " costs))))))
+
 (defn- holds?
   "Whether `f` contains `needle`, scanned as a stream: an analysis report runs
   to tens of megabytes, and presence is all that is asked."
