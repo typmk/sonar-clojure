@@ -5,7 +5,7 @@
             [net.typemark.sonar.coverage-sensor]
             [net.typemark.sonar.language]
             [net.typemark.sonar.profile]
-            [net.typemark.sonar.report :as report]
+            [net.typemark.sonar.inputs :as inputs]
             [net.typemark.sonar.provenance :as provenance]
             [net.typemark.sonar.rules]
             [net.typemark.sonar.sensor]
@@ -33,7 +33,7 @@
      :name    "File patterns"
      :default (str/join "," (map #(str "**/*" %) const/default-suffixes))
      :doc     "Glob patterns analysed as Clojure. Read by the scanner's language detection."}]
-   (for [{:keys [prop name default doc]} report/inputs]
+   (for [{:keys [prop name default doc]} inputs/inputs]
      {:key prop :name name :default default :doc doc})))
 
 (def ^:private external-property-specs

@@ -79,11 +79,11 @@ jobs:
           opengrep scan --quiet --taint-intrafile \
             -f opengrep/clojure-taint.yml \
             --sarif-output=target/combined.sarif corpus/cases
+          # One run: the findings the kondo engine scores and the analysis the
+          # callgraph walks are the same document.
           clj-kondo --lint corpus/cases \
-            --config '{:output {:format :json :analysis {:locals true :keywords true}}}' \
+            --config '{:output {:format :json} :analysis {:locals true :keywords true}}' \
             > target/combined.json || true
-          clj-kondo --lint corpus/cases --config '{:output {:format :json}}' \
-            > target/combined-kondo.json || true
           # Both engines, and their union. opengrep sees within a file, this
           # plugin's callgraph sees across them, and real code needs both --
           # measured across lume, sur and forma, 26 files hold a source and 46
@@ -93,7 +93,7 @@ jobs:
           # the whole manifest marks it broken for being what it is.
           clojure -M:corpus target/combined.sarif opengrep       || true
           clojure -M:corpus target/combined.json callgraph       || true
-          clojure -M:corpus target/combined-kondo.json kondo     || true
+          clojure -M:corpus target/combined.json kondo           || true
           # The union is what a user actually gets, and is the gate.
           clojure -M:corpus target/combined union
 

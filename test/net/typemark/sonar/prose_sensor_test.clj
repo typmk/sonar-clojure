@@ -33,7 +33,7 @@
 (deftest a-hedged-docstring-arrives-as-an-issue
   (let [base (temp-dir)]
     (spit (doto (io/file base "src/a.clj") io/make-parents) src)
-    (spit (doto (io/file base "target/clj-kondo-analysis.json") io/make-parents) analysis)
+    (spit (doto (io/file base "target/clj-kondo.json") io/make-parents) analysis)
     (let [ctx (SensorContextTester/create base)
           f   (-> (TestInputFileBuilder. "mod" "src/a.clj")
                   (.setModuleBaseDir (.toPath base))

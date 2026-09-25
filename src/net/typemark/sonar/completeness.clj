@@ -14,16 +14,16 @@
   the question that matters -- was this measured? -- of the dashboard rather
   than of the build log.
 
-  What counts as an input is `net.typemark.sonar.report/inputs`, the same table the
+  What counts as an input is `net.typemark.sonar.inputs/inputs`, the same table the
   sensors read and the properties are defined from. Keeping a second list here
   is how the check would come to disagree with the thing it checks."
   (:require [clojure.string :as str]
-            [net.typemark.sonar.report :as report]))
+            [net.typemark.sonar.inputs :as inputs]))
 
 (defn assess
   "present? is a predicate on a report entry. Returns the completeness report."
   [present?]
-  (let [checked (map #(assoc % :present? (boolean (present? %))) report/inputs)
+  (let [checked (map #(assoc % :present? (boolean (present? %))) inputs/inputs)
         missing (remove :present? checked)
         total   (count checked)
         present (- total (count missing))]

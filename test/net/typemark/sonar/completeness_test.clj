@@ -4,7 +4,7 @@
             [clojure.test :refer [deftest is testing]]
             [net.typemark.sonar.completeness :as completeness]
             [net.typemark.sonar.metadata :as metadata]
-            [net.typemark.sonar.report :as report]))
+            [net.typemark.sonar.inputs :as inputs]))
 
 (deftest a-full-run-is-a-hundred-percent
   (let [r (completeness/assess (constantly true))]
@@ -15,7 +15,7 @@
   (testing "the whole point: no inputs must not read as a clean project"
     (let [r (completeness/assess (constantly false))]
       (is (= 0.0 (:percent r)))
-      (is (= (count report/inputs) (count (:missing r)))))))
+      (is (= (count inputs/inputs) (count (:missing r)))))))
 
 (deftest the-percentage-tracks-what-is-present
   (let [r (completeness/assess #(= :kondo (:id %)))]
@@ -33,14 +33,14 @@
 (deftest the-registry-is-usable-by-everything-that-reads-it
   (testing "one table serves the property definitions, the sensors and this
             check; a missing field silently breaks whichever consumer needs it"
-    (is (seq report/inputs))
-    (doseq [{:keys [id prop default name doc label costs]} report/inputs]
+    (is (seq inputs/inputs))
+    (doseq [{:keys [id prop default name doc label costs]} inputs/inputs]
       (is (keyword? id))
       (is (every? (comp seq str) [prop default name doc label costs])
           (str id " is missing a field some consumer of the registry needs")))
-    (is (= (count report/inputs) (count (distinct (map :id report/inputs))))))
+    (is (= (count inputs/inputs) (count (distinct (map :id inputs/inputs))))))
   (testing "an unknown id throws rather than resolving to no paths at all"
-    (is (thrown? clojure.lang.ExceptionInfo (report/input :nope)))))
+    (is (thrown? clojure.lang.ExceptionInfo (inputs/input :nope)))))
 
 (deftest the-rule-it-raises-is-registered
   (is (contains? (set (metadata/all-keys)) "incomplete-analysis")

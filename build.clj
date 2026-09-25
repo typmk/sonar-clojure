@@ -68,6 +68,7 @@
                   ;; compile failed on the first of them from that day until 2026-08-31;
                   ;; the suite kept passing against a stale target/classes.
                   :ns-compile '[net.typemark.sonar.const
+                                net.typemark.sonar.inputs
                                 net.typemark.sonar.report
                                 net.typemark.sonar.classpath
                                 net.typemark.sonar.metadata

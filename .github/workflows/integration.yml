@@ -55,11 +55,9 @@ jobs:
       - name: Build the plugin and the reports it reads
         run: |
           clojure -T:build uber
-          clj-kondo --lint src test --config '{:output {:format :json}}' \
-            > target/clj-kondo.json || true
           clj-kondo --lint src test \
-            --config '{:output {:format :json :analysis {:locals true :keywords true}}}' \
-            > target/clj-kondo-analysis.json || true
+            --config '{:output {:format :json} :analysis {:locals true :keywords true}}' \
+            > target/clj-kondo.json || true
 
       - name: Start SonarQube ${{ matrix.sonarqube }} with the plugin installed
         run: |
@@ -143,7 +141,7 @@ jobs:
           echo "ncloc=$(m ncloc) completeness=$(m clj_analysis_completeness) coverage=$(m coverage)"
           [ "$(m ncloc)" -gt 0 ] || { echo "::error::nothing was indexed as Clojure"; exit 1; }
           [ "$(m clj_analysis_completeness)" = "50.0" ] \
-            || { echo "::error::expected 50.0 completeness with 2 of 4 reports present"; exit 1; }
+            || { echo "::error::expected 50.0 completeness: one clj-kondo report is 2 of 4 inputs"; exit 1; }
           # Polled, not sampled once: the issue index settles after the CE task.
           # The URL is repeated rather than held in a shell function because a
           # function does not survive into `bash -c`.
