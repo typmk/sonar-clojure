@@ -10,7 +10,10 @@
   The claim is about SONAR, not about the rules. A finding whose rule key is
   not registered is dropped by the scanner without a word, so the failure mode
   is a rule that runs, matches, and produces nothing anyone sees."
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [clojure.test :refer [deftest is testing]]
+            [net.typemark.sonar.kondo :as kondo]
             [net.typemark.sonar.metadata :as metadata]
             [net.typemark.sonar.source-sensor :as sensor]
             [net.typemark.sift :as sift]
@@ -69,3 +72,19 @@
       (let [{:keys [config unconfigured]} (sensor/sift-config #{"unscoped-tenant-query"})]
         (is (= [:tenancy/unscoped-tenant-query] unconfigured))
         (is (empty? (sift/rules (sift/linter config))))))))
+
+(deftest every-registered-rule-has-something-that-raises-it
+  (testing "the converse of the tests above: a rule Sonar registers that
+            nothing can raise sits active in the profile and never fires.
+            banned-term and operator-as-party did, from sift's Vale-model
+            port on 2026-09-24 until 2026-09-25. Something raises a rule when
+            it is a sift rule, an exported clj-kondo hook, or the one the
+            completeness sensor raises itself."
+    (let [sift-keys (set (map (comp metadata/rule-key :id) registry/built-in))
+          hook-keys (->> (io/resource "clj-kondo.exports/net.typemark/sonar-clojure/config.edn")
+                         slurp edn/read-string :linters keys
+                         (map #(kondo/hook-rule (str (namespace %) "/" (name %))))
+                         set)
+          raised (into (conj sift-keys "incomplete-analysis") hook-keys)]
+      (doseq [k (metadata/all-keys)]
+        (is (raised k) (str k " is registered and nothing raises it"))))))
