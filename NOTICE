@@ -1,5 +1,5 @@
 sonar-clojure
-Copyright (c) 2026 Heisenberg Technologies
+Copyright (c) 2026 Typemark
 
 This product is licensed under the Eclipse Public License 2.0.
 See the LICENSE file for the full terms.
@@ -41,7 +41,7 @@ THIRD-PARTY SOFTWARE NOT REDISTRIBUTED
   https://github.com/clj-kondo/clj-kondo
 
     A BUILD-time dependency only. The rule catalogue in
-    resources/hbt/sonar/linters.edn is generated from clj-kondo's default
+    resources/net/typemark/sonar/linters.edn is generated from clj-kondo's default
     configuration by `clojure -X:gen-rules`; no clj-kondo code is shipped.
     At analysis time the plugin reads a report clj-kondo produced, and
     invokes nothing.

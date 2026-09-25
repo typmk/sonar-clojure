@@ -126,8 +126,8 @@
                        "Plugin-Class"            "net.typemark.sonar.ClojurePluginBootstrap"
                        "Plugin-Description"      (description)
                        "Plugin-License"          "EPL-2.0"
-                       "Plugin-OrganizationName" "Heisenberg Technologies"
-                       "Plugin-Homepage"         "https://hbtcomputers.com.au"
+                       "Plugin-OrganizationName" "Typemark"
+                       "Plugin-Homepage"         "https://github.com/typmk/sonar-clojure"
                        "Plugin-SourcesUrl"       "https://github.com/typmk/sonar-clojure"
                        ;; Compared against the PLUGIN API version, not the
                        ;; SonarQube version. 10.13 is where
