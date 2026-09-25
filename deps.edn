@@ -73,7 +73,7 @@
    ;; number is worse than no number, so they are named here rather than left
    ;; to look untested. What they do IS covered, by completeness-sensor-test
    ;; and packaging-test, which read the built jar.
-   :main-opts   ["-m" "cloverage.coverage" "--lcov" "--codecov"
+   :main-opts   ["-m" "cloverage.coverage" "--codecov"
                  "-p" "src" "-s" "test"
                  "-e" "net.typemark.sonar.(plugin|language|rules|profile|sensor|source-sensor|coverage-sensor|test-sensor|completeness-sensor|external-sensor|external-rules|metrics-def|gen)"]}
 

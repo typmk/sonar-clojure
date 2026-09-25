@@ -165,8 +165,7 @@
   [ctx]
   (reduce (fn [acc ^File f]
             (if (report/exists? f)
-              (merge acc (into {} (for [[file lines] (coverage/read-report f)]
-                                    [file (set (keys lines))])))
+              (merge acc (coverage/instrumented-lines (coverage/parse (slurp f))))
               acc))
           {}
           (report/for-input ctx :coverage)))

@@ -73,8 +73,6 @@
                                 net.typemark.sonar.classpath
                                 net.typemark.sonar.metadata
                                 net.typemark.sonar.hooks
-                                net.typemark.sonar.codecov
-                                net.typemark.sonar.lcov
                                 net.typemark.sonar.coverage
                                 net.typemark.sonar.source
                                 net.typemark.sonar.external

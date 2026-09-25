@@ -5,11 +5,7 @@
   `Sonar way` gate fails on `new_coverage < 80`, so a Clojure project with no
   coverage import is red from the first analysis and stays red.
 
-  Prefers codecov.json over lcov. cloverage's lcov reporter writes
-  `DA:<line>,<covered-form-count>`, so a line where one form of five ran is
-  recorded as covered -- measured on this project, 22 of 451 instrumented
-  lines were partial and every one read as fully covered. codecov.json keeps
-  the distinction."
+  Reads codecov.json only; `net.typemark.sonar.coverage` says why."
   (:require [net.typemark.sonar.const :as const]
             [net.typemark.sonar.coverage :as coverage]
             [net.typemark.sonar.report :as report])
@@ -34,9 +30,8 @@
         (.conditions c (int line) (int 2) (int 1))))
     (.save c)))
 
-(defn- import-report! [ctx ^File f]
-  (let [parsed (coverage/read-report f)
-        tally  (atom {:files 0 :lines 0 :unmatched 0})]
+(defn- import-parsed! [ctx ^File f parsed]
+  (let [tally  (atom {:files 0 :lines 0 :unmatched 0})]
     (doseq [[filename lines] parsed]
       (if-let [in (report/input-file ctx filename)]
         (do (save-file! ctx in lines)
@@ -46,13 +41,15 @@
           partials (reduce + 0 (map (fn [m] (count (filter :partial? (vals m)))) (vals parsed)))]
       (println (format "cloverage %s: %d files, %d lines, %d partial"
                        (.getName f) files lines partials))
-      (when (and (pos? lines) (not (coverage/codecov? f)))
-        (println (str "cloverage " (.getName f)
-                      ": lcov cannot express partial coverage, so partially covered"
-                      " lines are reported as covered. Prefer codecov.json.")))
       (when (pos? unmatched)
         (println (format "cloverage %s: %d files in the report are not indexed by Sonar -- their coverage is lost"
                          (.getName f) unmatched))))))
+
+(defn- import-report! [ctx ^File f]
+  (if-let [parsed (coverage/parse (slurp f))]
+    (import-parsed! ctx f parsed)
+    (println (str "cloverage " (.getName f) ": not a codecov.json report, so no coverage"
+                  " was imported. Produce one with cloverage --codecov."))))
 
 (defn -execute [_ ctx]
   (doseq [^File f (report/for-input ctx :coverage)]

@@ -40,7 +40,7 @@
     :label "cloverage coverage"
     :costs "coverage reports as 0%, failing the quality gate for a reason unrelated to the tests"
     :doc (str "Paths to cloverage reports. Use --codecov, not --lcov: cloverage's "
-              "lcov writer records a partially covered line as fully covered. "
+              "lcov writer records a partially covered line as fully covered, so lcov is not read. "
               "Produce one with: clojure -M:coverage -m cloverage.coverage "
               "--codecov -p src -s test")}
 

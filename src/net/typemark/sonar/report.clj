@@ -54,8 +54,8 @@
   "The InputFile for a path named inside a report, or nil.
 
   Three attempts, because the tools disagree about what a path is relative
-  to. cloverage's lcov writes `src/net/typemark/sonar/x.clj` while its codecov writer
-  drops the source root and writes `net/typemark/sonar/x.clj`; clj-kondo writes
+  to. cloverage's codecov writer drops the source root and writes
+  `net/typemark/sonar/x.clj`; clj-kondo writes
   whatever its working directory made it. A path that fails to resolve costs
   the finding silently, so it is worth trying all three.
 
