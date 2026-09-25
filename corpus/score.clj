@@ -15,9 +15,8 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [com.typemark.sift.callgraph :as callgraph]
             [au.com.heisenbergtech.sonar.external :as external]
-            [com.typemark.sift.security :as security]))
+            [net.typemark.sift :as sift]))
 
 (defn- manifest [] (edn/read-string (slurp (io/file "corpus" "manifest.edn"))))
 
@@ -58,12 +57,11 @@
   [analysis-path]
   (let [files (->> (file-seq (io/file "corpus" "cases"))
                    (filter #(str/ends-with? (.getName %) ".clj")))
-        direct (reduce (fn [acc f]
-                         (let [s (security/seeds-of-source (slurp f))]
-                           {:taints (into (:taints acc) (:taints s))
-                            :reaches (into (:reaches acc) (:reaches s))}))
-                       {:taints #{} :reaches #{}} files)]
-    (tally (callgraph/findings (slurp analysis-path) direct))))
+        linter (sift/linter {:rulesets #{}
+                             :rules {:security/interprocedural-taint :warning}
+                             :kondo (slurp analysis-path)})]
+    (tally (for [f (:findings (sift/lint linter (for [f files] {:path (str f) :text (slurp f)})))]
+             {:filename (:file f) :rule (name (:rule f))}))))
 
 (defn score
   "engine defaults to opengrep; :known-miss entries for that engine are still
