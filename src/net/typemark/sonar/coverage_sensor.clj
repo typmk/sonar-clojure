@@ -10,10 +10,8 @@
   recorded as covered -- measured on this project, 22 of 451 instrumented
   lines were partial and every one read as fully covered. codecov.json keeps
   the distinction."
-  (:require [clojure.string :as str]
-            [net.typemark.sonar.codecov :as codecov]
-            [net.typemark.sonar.const :as const]
-            [net.typemark.sonar.lcov :as lcov]
+  (:require [net.typemark.sonar.const :as const]
+            [net.typemark.sonar.coverage :as coverage]
             [net.typemark.sonar.report :as report])
   (:import [java.io File]
            [org.sonar.api.batch.fs InputFile])
@@ -28,16 +26,6 @@
   (.onlyOnLanguage d const/language-key)
   nil)
 
-(defn codecov? [^File f] (str/ends-with? (.getName f) ".json"))
-
-(defn read-report
-  "Both formats normalise to {file {line {:hits n :partial? bool}}}."
-  [^File f]
-  (if (codecov? f)
-    (codecov/parse (slurp f))
-    (into {} (for [[file lines] (lcov/parse (slurp f))]
-               [file (into {} (for [[l h] lines] [l {:hits h :partial? false}]))]))))
-
 (defn- save-file! [ctx ^InputFile in lines]
   (let [c (.onFile (.newCoverage ctx) in)]
     (doseq [[line {:keys [hits partial?]}] lines]
@@ -47,7 +35,7 @@
     (.save c)))
 
 (defn- import-report! [ctx ^File f]
-  (let [parsed (read-report f)
+  (let [parsed (coverage/read-report f)
         tally  (atom {:files 0 :lines 0 :unmatched 0})]
     (doseq [[filename lines] parsed]
       (if-let [in (report/input-file ctx filename)]
@@ -58,7 +46,7 @@
           partials (reduce + 0 (map (fn [m] (count (filter :partial? (vals m)))) (vals parsed)))]
       (println (format "cloverage %s: %d files, %d lines, %d partial"
                        (.getName f) files lines partials))
-      (when (and (pos? lines) (not (codecov? f)))
+      (when (and (pos? lines) (not (coverage/codecov? f)))
         (println (str "cloverage " (.getName f)
                       ": lcov cannot express partial coverage, so partially covered"
                       " lines are reported as covered. Prefer codecov.json.")))

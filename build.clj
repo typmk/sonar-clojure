@@ -74,6 +74,9 @@
                                 net.typemark.sonar.metadata
                                 net.typemark.sonar.hooks
                                 net.typemark.sonar.codecov
+                                net.typemark.sonar.lcov
+                                net.typemark.sonar.coverage
+                                net.typemark.sonar.source
                                 net.typemark.sonar.external
                                 net.typemark.sonar.external-rules
                                 net.typemark.sonar.external-sensor
@@ -83,7 +86,6 @@
                                 net.typemark.sonar.rules
                                 net.typemark.sonar.profile
                                 net.typemark.sonar.sensor
-                                net.typemark.sonar.lcov
                                 net.typemark.sonar.coverage-sensor
                                 net.typemark.sonar.source-sensor
                                 net.typemark.sonar.provenance

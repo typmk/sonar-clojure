@@ -6,11 +6,11 @@
   -- comment density, duplication density, technical-debt ratio -- divides
   by nothing."
   (:require [net.typemark.sonar.metadata :as metadata]
-            [net.typemark.sift :as sift] [clojure.string :as str]
-            [net.typemark.sift.registry :as registry]
+            [net.typemark.sift :as sift]
             [net.typemark.sonar.const :as const]
             [net.typemark.sonar.report :as report]
-            [net.typemark.sonar.coverage-sensor :as coverage])
+            [net.typemark.sonar.coverage :as coverage]
+            [net.typemark.sonar.source :as source])
   (:import [java.io File]
            [org.sonar.api.batch.rule ActiveRule]
            [org.sonar.api.batch.fs InputFile InputFile$Status InputFile$Type]
@@ -171,14 +171,6 @@
           {}
           (report/for-input ctx :coverage)))
 
-(defn- truth-for
-  "Match a file against the coverage report's key, which may or may not carry
-  the source root -- cloverage's two writers disagree."
-  [by-path ^InputFile f]
-  (let [p (str (.path f))]
-    (or (get by-path p)
-        (some (fn [[k v]] (when (str/ends-with? p (str "/" k)) v)) by-path))))
-
 (defn- measure-file! [ctx by-file truth-by-path ^InputFile f]
   (if (skip? ctx f)
     (do (.copyFromPrevious (.nextCache ctx) (cache-key f)) ::skipped)
@@ -198,7 +190,7 @@
             ;; and SonarJS, rather than the node count that nothing validated
             ms     (sift/measures text)]
         (save-measures! ctx f ms)
-        (save-line-data! ctx f (sift/line-data nodes (truth-for truth-by-path f)))
+        (save-line-data! ctx f (sift/line-data nodes (coverage/lines-for truth-by-path (str (.path f)))))
         (save-cpd! ctx f leaves)
         (save-highlighting! ctx f leaves)
         (save-symbols! ctx f (or (get by-file (str (.path f)))
@@ -213,25 +205,6 @@
   [ctx]
   (some (fn [^File f] (when (report/exists? f) (slurp f))) (report/for-input ctx :analysis)))
 
-(defn sift-config
-  "The sift linter configuration that runs exactly the rules in `active`, a
-  set of Sonar rule keys. The quality profile is the one statement of what
-  runs: a rule it leaves off is not computed, and one it turns on runs even
-  where sift's own default level is :off.
-
-  Returns {:config .. :unconfigured [rule ..]}. A rule that `:required`
-  options cannot run from here, because nothing in Sonar supplies them."
-  [active]
-  (let [chosen (filter #(active (metadata/rule-key (:id %))) registry/built-in)
-        [runnable unconfigured] ((juxt remove filter) :required chosen)
-        level (fn [{:keys [id level]}]
-                (if (or (nil? level) (= :off level))
-                  (get registry/rulesets (keyword (namespace id)) :warning)
-                  level))]
-    {:config {:rulesets #{}
-              :rules (into {} (for [r runnable] [(:id r) {:level (level r)}]))}
-     :unconfigured (mapv :id unconfigured)}))
-
 (defn- active-keys [ctx]
   (into #{} (map #(.rule (.ruleKey ^ActiveRule %)))
         (.findByRepository (.activeRules ctx) const/repository-key)))
@@ -242,7 +215,7 @@
   [ctx measured]
   (let [by-path (into {} (for [m measured] [(str (.path ^InputFile (::input m))) (::input m)]))
         kondo (kondo-analysis ctx)
-        {:keys [config unconfigured]} (sift-config (active-keys ctx))
+        {:keys [config unconfigured]} (source/sift-config (active-keys ctx))
         linter (sift/linter (cond-> config kondo (assoc :kondo kondo)))
         {:keys [findings skipped]}
         (sift/lint linter (for [m measured :let [^InputFile f (::input m)]]

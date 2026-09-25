@@ -15,7 +15,7 @@
             [clojure.test :refer [deftest is testing]]
             [net.typemark.sonar.kondo :as kondo]
             [net.typemark.sonar.metadata :as metadata]
-            [net.typemark.sonar.source-sensor :as sensor]
+            [net.typemark.sonar.source :as source]
             [net.typemark.sift :as sift]
             [net.typemark.sift.registry :as registry]))
 
@@ -60,7 +60,7 @@
         (is (declared (metadata/rule-key (:id r))) (str (:id r) " is not registered"))))))
 
 (deftest the-profile-decides-what-sift-runs
-  (let [run (fn [active] (-> (sensor/sift-config active) :config sift/linter sift/rules
+  (let [run (fn [active] (-> (source/sift-config active) :config sift/linter sift/rules
                              (->> (map :id) set)))]
     (testing "nothing active, nothing computed"
       (is (empty? (run #{}))))
@@ -69,7 +69,7 @@
     (testing "a rule sift defaults to :off runs when the profile turns it on"
       (is (= #{:doc/ns-missing} (run #{"doc-ns-missing"}))))
     (testing "a rule whose options Sonar cannot supply is reported, not run"
-      (let [{:keys [config unconfigured]} (sensor/sift-config #{"unscoped-tenant-query"})]
+      (let [{:keys [config unconfigured]} (source/sift-config #{"unscoped-tenant-query"})]
         (is (= [:tenancy/unscoped-tenant-query] unconfigured))
         (is (empty? (sift/rules (sift/linter config))))))))
 
