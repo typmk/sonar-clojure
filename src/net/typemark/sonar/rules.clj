@@ -22,13 +22,6 @@
                              "Run `clojure -X:gen-rules` and rebuild."))]
     (edn/read (java.io.PushbackReader. r))))
 
-(def ^:private remediation
-  "Minutes to fix, by impact severity. Without a remediation function every
-  rule costs nothing, `sqale_index` is 0 and the maintainability rating is
-  computed from an empty set -- your PHP project reports 15,384 minutes of
-  debt, Clojure reported none."
-  {"HIGH" "30min" "MEDIUM" "10min" "LOW" "5min"})
-
 (defn- section [key html]
   (-> (RuleDescriptionSection/builder)
       (.sectionKey key)
@@ -46,7 +39,7 @@
   [rule severity]
   (.setDebtRemediationFunction
     rule (.constantPerIssue (.debtRemediationFunctions rule)
-                            (get remediation severity "10min")))
+                            (get metadata/remediation severity "10min")))
   rule)
 
 (defn- add-rule!

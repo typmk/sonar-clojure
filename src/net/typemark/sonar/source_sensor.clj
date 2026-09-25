@@ -7,10 +7,12 @@
   by nothing."
   (:require [net.typemark.sonar.metadata :as metadata]
             [net.typemark.sift :as sift] [clojure.string :as str]
+            [net.typemark.sift.registry :as registry]
             [net.typemark.sonar.const :as const]
             [net.typemark.sonar.report :as report]
             [net.typemark.sonar.coverage-sensor :as coverage])
   (:import [java.io File]
+           [org.sonar.api.batch.rule ActiveRule]
            [org.sonar.api.batch.fs InputFile InputFile$Status InputFile$Type]
            [org.sonar.api.batch.sensor.issue NewIssue$FlowType]
            [org.sonar.api.rule RuleKey]
@@ -75,22 +77,11 @@
     (.addInputFileEdit (-> (.newQuickFix issue) (.message message))
                        (.addTextEdit edit te))))
 
-(defn rule-key
-  "The string Sonar registered for a sift finding's :rule, a keyword
-  :ruleset/name. A rule keeps the key it was registered under before sift
-  had rulesets, so an issue's history survives: :security/csrf-protection-absent
-  is `csrf-protection-absent`, and the doc rules keep their prefix, :doc/hedge
-  is `doc-hedge`, the resource name under rules/clj-kondo/."
-  [rule]
-  (if (= "doc" (namespace rule))
-    (str "doc-" (name rule))
-    (name rule)))
-
 (defn- save-security! [ctx ^InputFile f findings]
   (doseq [{:keys [rule flow quick-fix] :as finding} findings]
     (try
       (let [issue (.newIssue ctx)]
-        (.forRule issue (RuleKey/of const/repository-key (rule-key rule)))
+        (.forRule issue (RuleKey/of const/repository-key (metadata/rule-key rule)))
         (.at issue (location issue f finding))
         (when (seq flow)
           (.addFlow issue
@@ -222,29 +213,49 @@
   [ctx]
   (some (fn [^File f] (when (report/exists? f) (slurp f))) (report/for-input ctx :analysis)))
 
+(defn sift-config
+  "The sift linter configuration that runs exactly the rules in `active`, a
+  set of Sonar rule keys. The quality profile is the one statement of what
+  runs: a rule it leaves off is not computed, and one it turns on runs even
+  where sift's own default level is :off.
+
+  Returns {:config .. :unconfigured [rule ..]}. A rule that `:required`
+  options cannot run from here, because nothing in Sonar supplies them."
+  [active]
+  (let [chosen (filter #(active (metadata/rule-key (:id %))) registry/built-in)
+        [runnable unconfigured] ((juxt remove filter) :required chosen)
+        level (fn [{:keys [id level]}]
+                (if (or (nil? level) (= :off level))
+                  (get registry/rulesets (keyword (namespace id)) :warning)
+                  level))]
+    {:config {:rulesets #{}
+              :rules (into {} (for [r runnable] [(:id r) {:level (level r)}]))}
+     :unconfigured (mapv :id unconfigured)}))
+
+(defn- active-keys [ctx]
+  (into #{} (map #(.rule (.ruleKey ^ActiveRule %)))
+        (.findByRepository (.activeRules ctx) const/repository-key)))
+
 (defn- save-findings!
-  "One sift/lint over every file measured this run. Only rules this plugin
-  registers become issues; the rest are counted, because an issue on an
-  unregistered rule is dropped by the scanner without a message."
+  "One sift/lint over every file measured this run, over the rules the
+  quality profile has active and no others."
   [ctx measured]
   (let [by-path (into {} (for [m measured] [(str (.path ^InputFile (::input m))) (::input m)]))
         kondo (kondo-analysis ctx)
-        linter (sift/linter (cond-> {} kondo (assoc :kondo kondo)))
+        {:keys [config unconfigured]} (sift-config (active-keys ctx))
+        linter (sift/linter (cond-> config kondo (assoc :kondo kondo)))
         {:keys [findings skipped]}
         (sift/lint linter (for [m measured :let [^InputFile f (::input m)]]
-                            {:path (str (.path f)) :text (::text m) :test? (= InputFile$Type/TEST (.type f))}))
-        registered (set (metadata/all-keys))
-        [known unknown] ((juxt filter remove) #(registered (rule-key (:rule %))) findings)]
-    (when (seq unknown)
-      (println "Clojure:" (count unknown) "findings on rules this plugin does not register --"
-               (pr-str (vec (distinct (map :rule unknown))))))
+                            {:path (str (.path f)) :text (::text m) :test? (= InputFile$Type/TEST (.type f))}))]
+    (doseq [rule unconfigured]
+      (println "Clojure: skipped" (subs (str rule) 1) "-- needs options SonarQube cannot supply"))
     (doseq [{:keys [rule missing]} skipped]
       (println "Clojure: skipped" (subs (str rule) 1) "-- needs" (name missing)))
-    (doseq [[path fs] (group-by :file known)
+    (doseq [[path fs] (group-by :file findings)
             :let [in (or (get by-path path) (report/input-file ctx path))]
             :when in]
       (save-security! ctx in fs))
-    (count known)))
+    (count findings)))
 
 (defn -execute [_ ctx]
   (let [fs      (.fileSystem ctx)

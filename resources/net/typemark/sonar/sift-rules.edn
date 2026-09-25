@@ -1,0 +1,228 @@
+[{:attribute "LOGICAL",
+  :key "blocking-inside-go",
+  :name "correctness: blocking inside go",
+  :rule :correctness/blocking-inside-go,
+  :type "BUG",
+  :activate? true,
+  :severity "HIGH",
+  :quality "RELIABILITY",
+  :instruction
+  "Use the parking form — <! >! alts! — inside go. Blocking belongs outside it, or inside (a/thread …), which is an unbounded pool."}
+ {:attribute "LOGICAL",
+  :key "case-else",
+  :name "correctness: case else",
+  :rule :correctness/case-else,
+  :type "BUG",
+  :activate? true,
+  :severity "HIGH",
+  :quality "RELIABILITY",
+  :instruction
+  "case has no :else. Put the default in the trailing position with no test beside it, or use cond."}
+ {:attribute "LOGICAL",
+  :key "catch-all-swallow",
+  :name "suspicious: catch all swallow",
+  :rule :suspicious/catch-all-swallow,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "RELIABILITY",
+  :instruction
+  "Do not turn a host exception into a constant. Return the failure as data — (ex-info …), {:error …}, or nil with the cause logged — or let it propagate."}
+ {:attribute "FOCUSED",
+  :key "cognitive-complexity",
+  :name "complexity: cognitive complexity",
+  :rule :complexity/cognitive-complexity,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "Split the unit: one branch per helper, or lift the nested lambda that carries the score."}
+ {:attribute "CONVENTIONAL",
+  :key "cond-as-build-up",
+  :name "style: cond as build up",
+  :rule :style/cond-as-build-up,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "Do not rebuild one name through a chain of conditional rebindings. Use cond->: (cond-> init test (f args) test (g args)). Each pair is a test and the step it guards."}
+ {:attribute "CONVENTIONAL",
+  :key "cond-as-case",
+  :name "style: cond as case",
+  :rule :style/cond-as-case,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "Do not compare one value against literals clause by clause. Use case: (case x :a … :b … default). Keep the clause bodies; drop the (= x …) tests."}
+ {:attribute "LOGICAL",
+  :key "deref-inside-own-swap",
+  :name "correctness: deref inside own swap",
+  :rule :correctness/deref-inside-own-swap,
+  :type "BUG",
+  :activate? true,
+  :severity "HIGH",
+  :quality "RELIABILITY",
+  :instruction
+  "Inside (swap! a f), f receives the current value — use it. In the arguments, move the read into f: (swap! a update k merge …). A second @a may be older, and f may run more than once."}
+ {:attribute "CLEAR",
+  :key "doc-comment",
+  :name "doc: comment",
+  :rule :doc/comment,
+  :type "CODE_SMELL",
+  :activate? false,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction nil}
+ {:attribute "CLEAR",
+  :key "doc-docstring",
+  :name "doc: docstring",
+  :rule :doc/docstring,
+  :type "CODE_SMELL",
+  :activate? false,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction nil}
+ {:attribute "FOCUSED",
+  :key "first-filter-is-some",
+  :name "complexity: first filter is some",
+  :rule :complexity/first-filter-is-some,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "Use (some (fn [x] (when (p x) x)) xs); a nil or false element is the one case first finds and some does not."}
+ {:attribute "LOGICAL",
+  :key "js-prop-on-own-object",
+  :name "correctness: js prop on own object",
+  :rule :correctness/js-prop-on-own-object,
+  :type "BUG",
+  :activate? true,
+  :severity "HIGH",
+  :quality "RELIABILITY",
+  :instruction
+  "Read your own #js object with (aget obj \"k\"): #js writes a quoted key and .-k a renamable one, and :advanced renames one side."}
+ {:attribute "CONVENTIONAL",
+  :key "let-as-thread",
+  :name "style: let as thread",
+  :rule :style/let-as-thread,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "Do not name every intermediate value of one pipeline. Thread it: ->> when each step takes the value LAST, -> when it takes it first. The names are the shape, not information."}
+ {:attribute "FOCUSED",
+  :key "loop-as-map",
+  :name "complexity: loop as map",
+  :rule :complexity/loop-as-map,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "Do not walk a seq with loop/recur and conj onto an out vector. Use (into [] (map f) xs) or (into [] (comp (filter p) (map f)) xs). Keep the element transform; drop the out binding."}
+ {:attribute "FOCUSED",
+  :key "loop-as-reduce",
+  :name "complexity: loop as reduce",
+  :rule :complexity/loop-as-reduce,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "Do not walk a seq with loop/recur to thread an accumulator. Use (reduce (fn [acc x] …) init coll). Keep the step expression; drop the seq binding and the exhaustion test."}
+ {:attribute "CONVENTIONAL",
+  :key "marker-protocol",
+  :name "style: marker protocol",
+  :rule :style/marker-protocol,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "If it names a kind rather than a contract, a metadata key or a keyword in the value says so at no cost."}
+ {:attribute "CONVENTIONAL",
+  :key "monolithic-ns-split",
+  :name "style: monolithic ns split",
+  :rule :style/monolithic-ns-split,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "Make each file its own namespace and require it. load and in-ns bypass the dependency graph tools read."}
+ {:attribute "LOGICAL",
+  :key "mutable-escape",
+  :name "suspicious: mutable escape",
+  :rule :suspicious/mutable-escape,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "RELIABILITY",
+  :instruction
+  "Do not return a host mutable. Convert at the boundary — (vec …), (into {} …), (js->clj …) — so callers receive a value."}
+ {:attribute "LOGICAL",
+  :key "nested-reference",
+  :name "suspicious: nested reference",
+  :rule :suspicious/nested-reference,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "RELIABILITY",
+  :instruction
+  "Hold one value in one identity. Updating the inner reference does not change the outer one, so no reader ever sees a coherent whole."}
+ {:attribute "LOGICAL",
+  :key "ns-load-side-effect",
+  :name "correctness: ns load side effect",
+  :rule :correctness/ns-load-side-effect,
+  :type "BUG",
+  :activate? true,
+  :severity "HIGH",
+  :quality "RELIABILITY",
+  :instruction
+  "Declare it in the ns form. A requiring-resolve INSIDE a function is the idiom for breaking a cycle and is not this."}
+ {:attribute "FOCUSED",
+  :key "place-as-fold",
+  :name "complexity: place as fold",
+  :rule :complexity/place-as-fold,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "Do not accumulate in an atom. Use reduce (or into / group-by). Every branch, including else and catch, must return the accumulator. Do not swap! or reset!."}
+ {:attribute "CONVENTIONAL",
+  :key "private-multimethod",
+  :name "style: private multimethod",
+  :rule :style/private-multimethod,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "MEDIUM",
+  :quality "MAINTAINABILITY",
+  :instruction
+  "A multimethod exists so another namespace can extend it. If nothing may, a case or a map of functions says that plainly."}
+ {:attribute "LOGICAL",
+  :key "rt-internal",
+  :name "correctness: rt internal",
+  :rule :correctness/rt-internal,
+  :type "BUG",
+  :activate? true,
+  :severity "HIGH",
+  :quality "RELIABILITY",
+  :instruction
+  "Use the public var. RT has no compatibility promise and a release can move a method without notice."}
+ {:attribute "EFFICIENT",
+  :key "thread-sleep",
+  :name "performance: thread sleep",
+  :rule :performance/thread-sleep,
+  :type "CODE_SMELL",
+  :activate? true,
+  :severity "LOW",
+  :quality "RELIABILITY",
+  :instruction
+  "Schedule with a timer, a core.async timeout, or an executor; a blocked thread is a held resource."}]

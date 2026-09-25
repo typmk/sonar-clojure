@@ -24,5 +24,6 @@
   "typemark/")
 
 (def linters-resource "net/typemark/sonar/linters.edn")
+(def sift-rules-resource "net/typemark/sonar/sift-rules.edn")
 (def provenance-resource "net/typemark/sonar/provenance.edn")
 (def cwe-resource "net/typemark/sonar/cwe.json")

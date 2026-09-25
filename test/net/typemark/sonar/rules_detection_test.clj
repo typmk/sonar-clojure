@@ -5,7 +5,6 @@
   (node_rules_test), which this alias still runs."
   (:require [clojure.test :refer [deftest is testing]]
             [net.typemark.sonar.metadata :as metadata]
-            [net.typemark.sonar.source-sensor :as sensor]
             [net.typemark.sift :as sift]
             [net.typemark.sift.parse :as parse]
             [net.typemark.sift.regex :as regex]
@@ -31,7 +30,7 @@
           l (sift/linter {:rulesets #{:security :tests :tenancy}
                           :rules {:tenancy/ambiguous-owner-check {:tenant-pattern "owner|tenant"}
                                   :tenancy/unscoped-tenant-query {:tenant-pattern "owner|tenant"}}})
-          emitted (into #{} (map (comp sensor/rule-key :rule))
+          emitted (into #{} (map (comp metadata/rule-key :rule))
                         (:findings (sift/lint l [{:path "test/a_test.clj" :text src}])))]
       (is (<= 8 (count emitted)) (pr-str emitted))
       (is (every? declared emitted)

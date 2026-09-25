@@ -13,7 +13,8 @@
   (:require [clojure.test :refer [deftest is testing]]
             [net.typemark.sonar.metadata :as metadata]
             [net.typemark.sonar.source-sensor :as sensor]
-            [net.typemark.sift :as sift]))
+            [net.typemark.sift :as sift]
+            [net.typemark.sift.registry :as registry]))
 
 (defn- emitted [rulesets src]
   (map :rule (:findings (sift/lint (sift/linter {:rulesets rulesets}) [{:path "src/a.clj" :text src}]))))
@@ -28,7 +29,7 @@
              (MessageDigest/getInstance \"MD5\")
              (resolve (symbol s))
              (xml/parse s)"]
-    (is (every? declared (map sensor/rule-key (emitted #{:security} src)))
+    (is (every? declared (map metadata/rule-key (emitted #{:security} src)))
         "a finding whose rule is not registered would be dropped by Sonar")))
 
 (deftest every-prose-rule-emitted-is-a-declared-rule
@@ -44,5 +45,27 @@
                                                            [{:path "src/a.clj" :text src}]))))]
       (is (= #{:doc/restates-name :doc/hedge :doc/placeholder :doc/params-unnamed :doc/ns-missing} (set rules))
           "the fixture must trip all five, or the assertion below is vacuous for the ones it misses")
-      (is (every? declared (map sensor/rule-key rules))
+      (is (every? declared (map metadata/rule-key rules))
           "a prose rule whose string key is not registered is dropped by Sonar"))))
+
+(deftest every-sift-rule-a-scan-can-run-is-registered
+  (testing "a sift rule with no Sonar entry was computed on every scan and
+            its findings dropped -- 26 were, until 2026-09-25. Rules needing
+            the host-compiler oracle are the exception: a scan never has one."
+    (let [declared (set (metadata/all-keys))]
+      (doseq [r registry/built-in :when (not (contains? (:needs r) :oracle))]
+        (is (declared (metadata/rule-key (:id r))) (str (:id r) " is not registered"))))))
+
+(deftest the-profile-decides-what-sift-runs
+  (let [run (fn [active] (-> (sensor/sift-config active) :config sift/linter sift/rules
+                             (->> (map :id) set)))]
+    (testing "nothing active, nothing computed"
+      (is (empty? (run #{}))))
+    (testing "an active rule runs, and only it"
+      (is (= #{:style/let-as-thread} (run #{"let-as-thread"}))))
+    (testing "a rule sift defaults to :off runs when the profile turns it on"
+      (is (= #{:doc/ns-missing} (run #{"doc-ns-missing"}))))
+    (testing "a rule whose options Sonar cannot supply is reported, not run"
+      (let [{:keys [config unconfigured]} (sensor/sift-config #{"unscoped-tenant-query"})]
+        (is (= [:tenancy/unscoped-tenant-query] unconfigured))
+        (is (empty? (sift/rules (sift/linter config))))))))

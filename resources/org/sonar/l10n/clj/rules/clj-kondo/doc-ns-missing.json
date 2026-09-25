@@ -18,5 +18,6 @@
    "MAINTAINABILITY": "LOW"
   },
   "attribute": "COMPLETE"
- }
+ },
+ "defaultActivation": false
 }
