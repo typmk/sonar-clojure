@@ -9,17 +9,9 @@
            [org.sonar.api.batch.fs InputFile]
            [org.sonar.api.batch.rule Severity]
            [org.sonar.api.issue.impact SoftwareQuality]
-           [org.sonar.api.rules CleanCodeAttribute RuleType])
-  (:gen-class
-   :name net.typemark.sonar.ExternalAnalyzerSensor
-   :implements [org.sonar.api.batch.sensor.Sensor]))
+           [org.sonar.api.rules CleanCodeAttribute RuleType]))
 
 (set! *warn-on-reflection* true)
-
-(defn -describe [_ d]
-  (.name d "Clojure external analyzers")
-  (.onlyOnLanguage d const/language-key)
-  nil)
 
 (def ^:private impact-severity
   {"HIGH" org.sonar.api.issue.impact.Severity/HIGH
@@ -92,7 +84,7 @@
             (println (format "%s %s: %d findings dropped -- file not indexed by Sonar"
                              engine-id (.getName f) (- (count fs) saved)))))))))
 
-(defn -execute [_ ctx]
+(defn execute! [ctx]
   (doseq [[engine-id prop] const/external-report-props
           ^File f (report/paths ctx prop nil)
           :when (and f (report/exists? f))]

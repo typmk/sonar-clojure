@@ -21,10 +21,7 @@
             [net.typemark.sonar.const :as const]
             [net.typemark.sonar.external :as external])
   (:import [org.sonar.api.rules CleanCodeAttribute RuleType]
-           [org.sonar.api.issue.impact Severity SoftwareQuality])
-  (:gen-class
-   :name net.typemark.sonar.ExternalRulesDefinition
-   :implements [org.sonar.api.server.rule.RulesDefinition]))
+           [org.sonar.api.issue.impact Severity SoftwareQuality]))
 
 (set! *warn-on-reflection* true)
 
@@ -46,7 +43,7 @@
                        (Severity/valueOf ^String (or severity "MEDIUM")))
     (.setActivatedByDefault false)))
 
-(defn -define [_ ctx]
+(defn define! [ctx]
   (doseq [[engine-id {:keys [name]}] external/engines
           :let [rules (catalogue engine-id)]
           :when (seq rules)]

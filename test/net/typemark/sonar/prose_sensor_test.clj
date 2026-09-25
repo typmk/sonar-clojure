@@ -9,7 +9,8 @@
   context, which is the only place that failure is visible."
   (:require [clojure.java.io :as io]
             [clojure.test :refer [deftest is testing]]
-            [net.typemark.sonar.metadata :as metadata])
+            [net.typemark.sonar.metadata :as metadata]
+            [net.typemark.sonar.source-sensor :as source-sensor])
   (:import [java.nio.charset StandardCharsets]
            [java.nio.file Files]
            [java.nio.file.attribute FileAttribute]
@@ -17,8 +18,7 @@
            [org.sonar.api.batch.fs.internal TestInputFileBuilder]
            [org.sonar.api.batch.rule.internal ActiveRulesBuilder NewActiveRule$Builder]
            [org.sonar.api.rule RuleKey]
-           [org.sonar.api.batch.sensor.internal SensorContextTester]
-           [net.typemark.sonar ClojureSourceSensor]))
+           [org.sonar.api.batch.sensor.internal SensorContextTester]))
 
 (defn- temp-dir ^java.io.File []
   (.toFile (Files/createTempDirectory "prose-sensor" (into-array FileAttribute []))))
@@ -59,7 +59,7 @@
                   (.build))]
       (.add (.fileSystem ctx) f)
       (.setActiveRules ctx (default-profile))
-      (.execute (ClojureSourceSensor.) ctx)
+      (source-sensor/execute! ctx)
       (let [rules (set (map #(.rule (.ruleKey %)) (.allIssues ctx)))]
         (testing "the hedge and the unnamed parameters each land under the key the catalogue registered"
           (is (contains? rules "doc-hedge") (str "issues saved: " rules))

@@ -82,7 +82,7 @@
                                 net.typemark.sonar.language
                                 net.typemark.sonar.rules
                                 net.typemark.sonar.profile
-                                net.typemark.sonar.sensor
+                                net.typemark.sonar.kondo-sensor
                                 net.typemark.sonar.coverage-sensor
                                 net.typemark.sonar.source-sensor
                                 net.typemark.sonar.provenance

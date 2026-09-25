@@ -4,22 +4,13 @@
   Without it a project with 634 passing tests reports none, and the only
   evidence Sonar has that the code is exercised at all is the coverage
   percentage -- which says how much ran, never how much was checked."
-  (:require [net.typemark.sonar.const :as const]
-            [net.typemark.sonar.junit :as junit]
+  (:require [net.typemark.sonar.junit :as junit]
             [net.typemark.sonar.report :as report])
   (:import [java.io File]
            [org.sonar.api.batch.fs InputFile]
-           [org.sonar.api.measures CoreMetrics])
-  (:gen-class
-   :name net.typemark.sonar.KaochaSensor
-   :implements [org.sonar.api.batch.sensor.Sensor]))
+           [org.sonar.api.measures CoreMetrics]))
 
 (set! *warn-on-reflection* true)
-
-(defn -describe [_ d]
-  (.name d "kaocha test execution")
-  (.onlyOnLanguage d const/language-key)
-  nil)
 
 (def ^:private metric
   {:tests       CoreMetrics/TESTS
@@ -56,6 +47,6 @@
       (println (format "kaocha %s: %d namespaces had no indexed file -- their results are missing. Check sonar.tests."
                        (.getName f) missed)))))
 
-(defn -execute [_ ctx]
+(defn execute! [ctx]
   (report/each ctx :tests #(import-report! ctx %))
   nil)

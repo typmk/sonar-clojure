@@ -36,7 +36,8 @@
   (let [ctx (Plugin$Context. (runtime))]
     (.define (bootstrap) ctx)
     (testing "every extension the Clojure side registers arrives"
-      (is (= 11 (count (filter class? (.getExtensions ctx))))))))
+      (is (= 22 (count (.getExtensions ctx)))
+          "the language, 6 sensors, 2 rule repositories, a profile, a metric, 11 properties"))))
 
 (deftest it-restores-the-context-classloader
   (let [ctx    (Plugin$Context. (runtime))

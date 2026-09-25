@@ -9,12 +9,12 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
+            [net.typemark.sonar.completeness-sensor :as completeness-sensor]
             [net.typemark.sonar.inputs :as inputs]
             [net.typemark.sonar.metrics-def :as metrics-def])
   (:import [java.nio.file Files]
            [java.nio.file.attribute FileAttribute]
-           [org.sonar.api.batch.sensor.internal SensorContextTester]
-           [net.typemark.sonar CompletenessSensor]))
+           [org.sonar.api.batch.sensor.internal SensorContextTester]))
 
 (defn- temp-dir ^java.io.File []
   (.toFile (Files/createTempDirectory "completeness" (into-array FileAttribute []))))
@@ -37,7 +37,7 @@
         (spit t content)))
     (let [ctx (SensorContextTester/create base)]
       (doseq [[k v] props] (.setProperty (.settings ctx) ^String k ^String v))
-      (.execute (CompletenessSensor.) ctx)
+      (completeness-sensor/execute! ctx)
       {:measure (some-> (.measure ctx (.key (.project ctx)) metrics-def/completeness-key)
                         (.value))
        :issues  (vec (.allIssues ctx))})))

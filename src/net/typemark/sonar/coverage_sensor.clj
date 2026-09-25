@@ -6,21 +6,12 @@
   coverage import is red from the first analysis and stays red.
 
   Reads codecov.json only; `net.typemark.sonar.coverage` says why."
-  (:require [net.typemark.sonar.const :as const]
-            [net.typemark.sonar.coverage :as coverage]
+  (:require [net.typemark.sonar.coverage :as coverage]
             [net.typemark.sonar.report :as report])
   (:import [java.io File]
-           [org.sonar.api.batch.fs InputFile])
-  (:gen-class
-   :name net.typemark.sonar.CloverageSensor
-   :implements [org.sonar.api.batch.sensor.Sensor]))
+           [org.sonar.api.batch.fs InputFile]))
 
 (set! *warn-on-reflection* true)
-
-(defn -describe [_ d]
-  (.name d "cloverage")
-  (.onlyOnLanguage d const/language-key)
-  nil)
 
 (defn- save-file! [ctx ^InputFile in lines]
   (let [c (.onFile (.newCoverage ctx) in)]
@@ -51,6 +42,6 @@
     (println (str "cloverage " (.getName f) ": not a codecov.json report, so no coverage"
                   " was imported. Produce one with cloverage --codecov."))))
 
-(defn -execute [_ ctx]
+(defn execute! [ctx]
   (report/each ctx :coverage #(import-report! ctx %))
   nil)

@@ -2,18 +2,24 @@
   "Entry point named by Plugin-Class in the jar manifest."
   (:require [clojure.string :as str]
             [net.typemark.sonar.const :as const]
-            [net.typemark.sonar.coverage-sensor]
-            [net.typemark.sonar.language]
-            [net.typemark.sonar.profile]
+            [net.typemark.sonar.completeness-sensor :as completeness-sensor]
+            [net.typemark.sonar.coverage-sensor :as coverage-sensor]
+            [net.typemark.sonar.external-rules :as external-rules]
+            [net.typemark.sonar.external-sensor :as external-sensor]
             [net.typemark.sonar.inputs :as inputs]
+            [net.typemark.sonar.kondo-sensor :as kondo-sensor]
+            [net.typemark.sonar.language]
+            [net.typemark.sonar.metrics-def :as metrics-def]
+            [net.typemark.sonar.profile :as profile]
             [net.typemark.sonar.provenance :as provenance]
-            [net.typemark.sonar.rules]
-            [net.typemark.sonar.sensor]
-            [net.typemark.sonar.source-sensor]
-            [net.typemark.sonar.test-sensor]
-            [net.typemark.sonar.external-sensor]
-            [net.typemark.sonar.external-rules])
-  (:import [org.sonar.api.config PropertyDefinition PropertyDefinition$ConfigScope])
+            [net.typemark.sonar.rules :as rules]
+            [net.typemark.sonar.source-sensor :as source-sensor]
+            [net.typemark.sonar.test-sensor :as test-sensor])
+  (:import [org.sonar.api.batch.sensor Sensor SensorDescriptor]
+           [org.sonar.api.config PropertyDefinition PropertyDefinition$ConfigScope]
+           [org.sonar.api.measures Metrics]
+           [org.sonar.api.server.profile BuiltInQualityProfilesDefinition]
+           [org.sonar.api.server.rule RulesDefinition])
   (:gen-class
    :name net.typemark.sonar.ClojurePlugin
    :implements [org.sonar.api.Plugin]))
@@ -55,35 +61,47 @@
       (.multiValues true)
       (.build)))
 
-(def ^:private extension-classes
-  ["net.typemark.sonar.ClojureLanguage"
-   "net.typemark.sonar.ClojureRulesDefinition"
-   "net.typemark.sonar.ClojureQualityProfile"
-   "net.typemark.sonar.KondoSensor"
-   "net.typemark.sonar.ClojureSourceSensor"
-   "net.typemark.sonar.CloverageSensor"
-   "net.typemark.sonar.KaochaSensor"
-   "net.typemark.sonar.ExternalAnalyzerSensor"
-   "net.typemark.sonar.ExternalRulesDefinition"
-   "net.typemark.sonar.ClojureMetrics"
-   "net.typemark.sonar.CompletenessSensor"])
+(defn- sensor
+  "A Sensor from a name and a function of the SensorContext. Sonar takes an
+  extension as a class to instantiate or as an object; an object needs no
+  gen-class, no AOT-named class and no lookup by name."
+  [^String sensor-name execute!]
+  (reify
+    Object
+    (toString [_] (str "sonar-clojure sensor: " sensor-name))
+    Sensor
+    (describe [_ d]
+      (let [^SensorDescriptor d d]
+        (-> d (.name sensor-name) (.onlyOnLanguage const/language-key))))
+    (execute [_ ctx]
+      (execute! ctx))))
 
-(defn- load-extension
-  "Resolved by name because these are AOT artefacts of sibling namespaces.
-  A missing class means a broken build, so it throws rather than degrading
-  into a plugin that loads and does nothing."
-  [^String n]
-  (try
-    (Class/forName n)
-    (catch ClassNotFoundException e
-      (throw (ex-info (str "sonar-clojure: extension class missing from the plugin jar: " n
-                           " -- AOT compilation did not run or :ns-compile is incomplete")
-                      {:class n} e)))))
+(def sensors
+  "Every sensor, in the order Sonar logs them."
+  [["clj-kondo"                            kondo-sensor/execute!]
+   ["Clojure source measures and security" source-sensor/execute!]
+   ["cloverage"                            coverage-sensor/execute!]
+   ["kaocha test execution"                test-sensor/execute!]
+   ["Clojure external analyzers"           external-sensor/execute!]
+   ["Clojure analysis completeness"        completeness-sensor/execute!]])
+
+(defn extensions
+  "What the plugin registers. The language stays a class: its constructor
+  takes the project's Configuration, which is where per-project suffixes
+  live, and an instance made here would see only the boot configuration."
+  []
+  (concat
+   [(Class/forName "net.typemark.sonar.ClojureLanguage")
+    (reify RulesDefinition (define [_ ctx] (rules/define! ctx)))
+    (reify RulesDefinition (define [_ ctx] (external-rules/define! ctx)))
+    (reify BuiltInQualityProfilesDefinition (define [_ ctx] (profile/define! ctx)))
+    (reify Metrics (getMetrics [_] [metrics-def/completeness]))]
+   (for [[n f] sensors] (sensor n f))
+   (map property (concat property-specs external-property-specs))))
 
 (defn -define [_ ctx]
   ;; Printed once at load, so an operator reading sonar.log can see which
   ;; catalogues the running plugin was built from without unpacking the jar.
   (println "sonar-clojure:" (provenance/summary))
-  (.addExtensions ctx (concat (map load-extension extension-classes)
-                              (map property (concat property-specs external-property-specs))))
+  (.addExtensions ctx (vec (extensions)))
   nil)

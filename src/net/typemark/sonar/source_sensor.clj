@@ -16,17 +16,9 @@
            [org.sonar.api.batch.sensor.issue NewIssue$FlowType]
            [org.sonar.api.rule RuleKey]
            [org.sonar.api.batch.sensor.highlighting TypeOfText]
-           [org.sonar.api.measures CoreMetrics])
-  (:gen-class
-   :name net.typemark.sonar.ClojureSourceSensor
-   :implements [org.sonar.api.batch.sensor.Sensor]))
+           [org.sonar.api.measures CoreMetrics]))
 
 (set! *warn-on-reflection* true)
-
-(defn -describe [_ d]
-  (.name d "Clojure source measures and security")
-  (.onlyOnLanguage d const/language-key)
-  nil)
 
 (def ^:private metric
   {:ncloc         CoreMetrics/NCLOC
@@ -217,7 +209,7 @@
       (save-security! ctx in fs))
     (count findings)))
 
-(defn -execute [_ ctx]
+(defn execute! [ctx]
   (let [fs      (.fileSystem ctx)
         by-file (analysis-symbols ctx)
         inputs  (vec (.inputFiles fs (.hasLanguage (.predicates fs) const/language-key)))

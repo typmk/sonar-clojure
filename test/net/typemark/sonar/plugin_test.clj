@@ -1,14 +1,19 @@
 (ns net.typemark.sonar.plugin-test
-  "Drives the AOT'd extension classes against the real plugin API. This is
-  what tells you the plugin registers, not that it compiles."
+  "Drives the plugin's extensions against the real plugin API. This is what
+  tells you the plugin registers, not that it compiles."
   (:require [clojure.test :refer [deftest is testing]]
             [net.typemark.sonar.const :as const]
+            [net.typemark.sonar.plugin :as plugin]
             [net.typemark.sonar.rules :as rules]
             [net.typemark.sonar.metadata :as metadata])
   (:import [org.sonar.api.rules RuleType]
            [org.sonar.api Plugin$Context SonarEdition SonarProduct SonarQubeSide SonarRuntime]
-           [org.sonar.api.config Configuration]
-           [org.sonar.api.server.rule RulesDefinition$Context]
+           [org.sonar.api.batch.sensor Sensor]
+           [org.sonar.api.batch.sensor.internal DefaultSensorDescriptor]
+           [org.sonar.api.config Configuration PropertyDefinition]
+           [org.sonar.api.measures Metrics]
+           [org.sonar.api.server.profile BuiltInQualityProfilesDefinition]
+           [org.sonar.api.server.rule RulesDefinition RulesDefinition$Context]
            [org.sonar.api.utils Version]))
 
 (defn- config ^Configuration [m]
@@ -50,7 +55,7 @@
 
 (deftest rules-definition-registers-every-kondo-linter
   (let [ctx  (RulesDefinition$Context.)
-        _    (.define (instantiate "net.typemark.sonar.ClojureRulesDefinition") ctx)
+        _    (rules/define! ctx)
         repo (.repository ctx const/repository-key)
         keys' (set (map #(.key %) (.rules repo)))]
     (is (some? repo) "repository was created")
@@ -76,7 +81,7 @@
 
 (deftest security-rules-carry-the-standards-that-drive-security-reports
   (let [ctx  (RulesDefinition$Context.)
-        _    (.define (instantiate "net.typemark.sonar.ClojureRulesDefinition") ctx)
+        _    (rules/define! ctx)
         repo (.repository ctx const/repository-key)
         by-key (into {} (map (juxt #(.key %) identity)) (.rules repo))]
     (testing "every rule the detection can raise is registered"
@@ -105,24 +110,39 @@
       (is (some #(re-find #"owaspTop10" %)
                 (.securityStandards (get by-key "sql-string-built")))))))
 
+(defn- described [^Sensor s]
+  (let [d (DefaultSensorDescriptor.)]
+    (.describe s d)
+    {:name (.name d) :languages (vec (.languages d))}))
+
 (deftest plugin-registers-all-extensions
   (let [ctx (Plugin$Context. (runtime))]
     (.define (instantiate "net.typemark.sonar.ClojurePlugin") ctx)
-    (let [exts    (.getExtensions ctx)
-          classes (set (filter class? exts))
-          props   (remove class? exts)]
-      (testing "every extension class the plugin declares is registered"
-        (is (= #{"net.typemark.sonar.ClojureLanguage"
-                 "net.typemark.sonar.ClojureRulesDefinition"
-                 "net.typemark.sonar.ClojureQualityProfile"
-                 "net.typemark.sonar.KondoSensor"
-                 "net.typemark.sonar.ClojureSourceSensor"
-                 "net.typemark.sonar.CloverageSensor"
-                 "net.typemark.sonar.ClojureMetrics"
-                 "net.typemark.sonar.CompletenessSensor"
-                 "net.typemark.sonar.KaochaSensor"
-                 "net.typemark.sonar.ExternalAnalyzerSensor"
-                 "net.typemark.sonar.ExternalRulesDefinition"}
-               (set (map #(.getName ^Class %) classes)))))
+    (let [exts    (vec (.getExtensions ctx))
+          of      (fn [^Class c] (filter #(instance? c %) exts))]
+      (testing "the language is the one class, because it takes the project's Configuration"
+        (is (= ["net.typemark.sonar.ClojureLanguage"]
+               (map #(.getName ^Class %) (filter class? exts)))))
+      (testing "every sensor is an instance, named and scoped to Clojure"
+        (is (= (map (fn [[n]] {:name n :languages [const/language-key]}) plugin/sensors)
+               (map described (of Sensor)))))
+      (testing "two rule repositories, one profile, one metric"
+        (is (= 2 (count (of RulesDefinition))))
+        (is (= 1 (count (of BuiltInQualityProfilesDefinition))))
+        (is (= ["clj_analysis_completeness"]
+               (map #(.getKey %) (mapcat #(.getMetrics ^Metrics %) (of Metrics))))))
+      (testing "every extension is either the language class or an instance Sonar can use"
+        (is (= (count exts)
+               (+ 1 (count (of Sensor)) (count (of RulesDefinition))
+                  (count (of BuiltInQualityProfilesDefinition)) (count (of Metrics))
+                  (count (of PropertyDefinition))))))
       (testing "one property per report the plugin reads, plus file suffixes"
-        (is (= 11 (count props)) "suffixes, patterns, 4 reports, 5 external analyzers")))))
+        (is (= 11 (count (of PropertyDefinition)))
+            "suffixes, patterns, 4 reports, 5 external analyzers")))))
+
+(deftest the-rule-repositories-are-reachable-through-the-plugin
+  (let [ctx (RulesDefinition$Context.)]
+    (doseq [^RulesDefinition d (filter #(instance? RulesDefinition %) (plugin/extensions))]
+      (.define d ctx))
+    (is (some? (.repository ctx const/repository-key)))
+    (is (< 1 (count (.repositories ctx))) "the external analyzers' too")))

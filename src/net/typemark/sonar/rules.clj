@@ -9,10 +9,7 @@
   (:import [org.sonar.api.rules CleanCodeAttribute RuleType]
            [org.sonar.api.server.rule RuleDescriptionSection]
            [org.sonar.api.server.rule RulesDefinition$OwaspTop10 RulesDefinition$OwaspTop10Version]
-           [org.sonar.api.issue.impact Severity SoftwareQuality])
-  (:gen-class
-   :name net.typemark.sonar.ClojureRulesDefinition
-   :implements [org.sonar.api.server.rule.RulesDefinition]))
+           [org.sonar.api.issue.impact Severity SoftwareQuality]))
 
 (set! *warn-on-reflection* true)
 
@@ -81,7 +78,7 @@
                          (Severity/valueOf ^String severity)))
     rule))
 
-(defn -define [_ ctx]
+(defn define! [ctx]
   (let [repo (-> (.createRepository ctx const/repository-key const/language-key)
                  (.setName "clj-kondo"))]
     (run! #(add-rule! repo %) (catalogue))

@@ -3,14 +3,11 @@
   :off is active, so the dashboard and a local `clj-kondo --lint` agree."
   (:require [net.typemark.sonar.const :as const]
             [net.typemark.sonar.metadata :as metadata]
-            [net.typemark.sonar.rules :as rules])
-  (:gen-class
-   :name net.typemark.sonar.ClojureQualityProfile
-   :implements [org.sonar.api.server.profile.BuiltInQualityProfilesDefinition]))
+            [net.typemark.sonar.rules :as rules]))
 
 (set! *warn-on-reflection* true)
 
-(defn -define [_ ctx]
+(defn define! [ctx]
   (let [p (.createBuiltInQualityProfile ctx const/profile-name const/language-key)]
     (.setDefault p true)
     (doseq [r (rules/catalogue)

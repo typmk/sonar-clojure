@@ -10,19 +10,11 @@
             [net.typemark.sonar.const :as const]
             [net.typemark.sonar.metrics-def :as metrics-def]
             [net.typemark.sonar.report :as report])
-  (:import [org.sonar.api.rule RuleKey])
-  (:gen-class
-   :name net.typemark.sonar.CompletenessSensor
-   :implements [org.sonar.api.batch.sensor.Sensor]))
+  (:import [org.sonar.api.rule RuleKey]))
 
 (set! *warn-on-reflection* true)
 
-(defn -describe [_ d]
-  (.name d "Clojure analysis completeness")
-  (.onlyOnLanguage d const/language-key)
-  nil)
-
-(defn -execute [_ ctx]
+(defn execute! [ctx]
   (let [{:keys [percent missing] :as report} (completeness/assess #(report/present? ctx (:id %)))]
     (-> (.newMeasure ctx)
         (.on (.project ctx))

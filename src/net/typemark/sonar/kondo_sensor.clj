@@ -1,4 +1,4 @@
-(ns net.typemark.sonar.sensor
+(ns net.typemark.sonar.kondo-sensor
   "Reads a clj-kondo JSON report and saves one Sonar issue per finding.
 
   It reads a report rather than invoking clj-kondo: the scanner then needs no
@@ -13,17 +13,9 @@
             [net.typemark.sonar.rules :as rules])
   (:import [java.io File]
            [org.sonar.api.batch.fs InputFile]
-           [org.sonar.api.rule RuleKey])
-  (:gen-class
-   :name net.typemark.sonar.KondoSensor
-   :implements [org.sonar.api.batch.sensor.Sensor]))
+           [org.sonar.api.rule RuleKey]))
 
 (set! *warn-on-reflection* true)
-
-(defn -describe [_ d]
-  (.name d "clj-kondo")
-  (.onlyOnLanguage d const/language-key)
-  nil)
 
 (defn- known-rules []
   (into #{const/unknown-rule} (map :key) (rules/catalogue)))
@@ -66,7 +58,7 @@
         (println (format "clj-kondo %s: %d findings from linters newer than this plugin. Regenerate: clojure -X:gen-rules"
                          (.getName f) unrecognised))))))
 
-(defn -execute [_ ctx]
+(defn execute! [ctx]
   (let [known (known-rules)]
     (report/each ctx :kondo #(import-report! ctx known %)))
   nil)
