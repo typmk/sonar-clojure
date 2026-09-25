@@ -14,7 +14,7 @@
         ;; `clojure -M:test:local` swaps in ../sift for the dev loop.
         io.github.typmk/sift  {:git/url "https://github.com/typmk/sift.git"
                                :git/tag "v0.2.0"
-                               :git/sha "e2db0a8dbba38ffd8240075defe748c17b7bbb14"}}
+                               :git/sha "8c195369d9b4c391213e5d1f67764c49ee7d0a10"}}
 
  :aliases
  {;; Sonar supplies the API at runtime. On the compile classpath only —
