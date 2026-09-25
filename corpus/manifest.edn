@@ -144,7 +144,7 @@
  {:file "xfile/safe_handler.clj" :cwe 89 :expect #{}
   :why "same call, constant query"}
  ;; --- clj-kondo hook rules. Eight of the nine registered rules that had no
- ;; automated test of any kind: they live in clj-kondo/hbt/security.clj rather
+ ;; automated test of any kind: they live in net.typemark.sonar.security rather
  ;; than in plugin code, so the suite never named them, and the whole evidence
  ;; for all eight was one MD5 probe run by hand. They are the crypto set, which
  ;; makes them the worst possible place to be relying on that.

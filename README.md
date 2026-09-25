@@ -79,12 +79,22 @@ sonar.clojure.kaocha.reportPaths=target/junit.xml
 
 Ten rules are clj-kondo hooks rather than plugin code, because they need the
 *resolved* var: `next.jdbc/execute!` is a SQL sink, a local function named
-`query` is not. They ship in `clj-kondo/` and are installed by copying, which
-also makes them fire in your editor and at the REPL rather than only at merge.
+`query` is not. They ship in clj-kondo's export layout,
+`resources/clj-kondo.exports/net.typemark/sonar-clojure/`, which also makes
+them fire in your editor and at the REPL rather than only at merge.
 
 ```bash
-cp -r clj-kondo/. your-project/.clj-kondo/    # merge, do not overwrite
+# the plugin on your classpath (a git dep, say):
+clj-kondo --lint "$(clojure -Spath)" --copy-configs --skip-lint
+# otherwise, copy the directory to where --copy-configs would put it;
+# clj-kondo loads it without :config-paths:
+mkdir -p your-project/.clj-kondo/imports/net.typemark
+cp -r resources/clj-kondo.exports/net.typemark/sonar-clojure \
+      your-project/.clj-kondo/imports/net.typemark/
 ```
+
+Their clj-kondo linter keys are `:typemark/<rule>` (`:typemark/sql-string-built`);
+the Sonar rule key drops the namespace.
 
 Without this the plugin still works; `weak-hash-algorithm`, `cipher-ecb-mode`,
 `weak-cipher-algorithm`, `weak-tls-protocol`, `insecure-random`,

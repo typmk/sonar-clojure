@@ -1,8 +1,9 @@
 (ns net.typemark.sonar.hooks
   "Rules detected by clj-kondo hooks rather than by this plugin.
 
-  Their detection lives in clj-kondo/hbt/security.clj, shipped as a config a
-  project copies into .clj-kondo/. Keyed on the RESOLVED var, they do not
+  Their detection lives in net.typemark.sonar.security, exported under
+  resources/clj-kondo.exports/ for a project to import into .clj-kondo/.
+  Keyed on the RESOLVED var, they do not
   confuse a local named `query` with next.jdbc/execute!, which is where every
   false positive the audits measured came from.
 

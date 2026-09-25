@@ -19,6 +19,10 @@
 
 (def unknown-rule "unknown-linter")
 
+(def hook-linter-prefix
+  "The namespace of every linter key net.typemark.sonar.security reports."
+  "typemark/")
+
 (def linters-resource "net/typemark/sonar/linters.edn")
 (def provenance-resource "net/typemark/sonar/provenance.edn")
 (def cwe-resource "net/typemark/sonar/cwe.json")

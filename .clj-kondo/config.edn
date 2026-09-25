@@ -2,14 +2,15 @@
 ;; property test read as an unresolved symbol. Teaching the linter is the fix;
 ;; suppressing the rule would have hidden real unresolved symbols too.
 ;;
-;; The security hooks are this project's own, shipped in clj-kondo/ for other
-;; projects to copy. They are referenced here rather than copied in: a copy
+;; The security hooks are this project's own, exported from
+;; resources/clj-kondo.exports/ for other projects to import. They are
+;; referenced here rather than copied in: a copy
 ;; under .clj-kondo/ would be a second source of truth, and the copy that was
 ;; here before was gitignored -- so a fresh clone had a config naming a hook
 ;; namespace that did not exist, and clj-kondo errored on every run. CI found
 ;; that on its first execution.
 {:lint-as {clojure.test.check.clojure-test/defspec clojure.core/def}
- :config-paths ["../clj-kondo"]
+ :config-paths ["../resources/clj-kondo.exports/net.typemark/sonar-clojure"]
 
  ;; corpus/cases is NOT excluded here, though it holds deliberately vulnerable
  ;; code. Excluding it globally looked tidier and turned out to be a blindfold:

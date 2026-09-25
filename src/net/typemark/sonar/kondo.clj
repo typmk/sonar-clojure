@@ -23,11 +23,15 @@
                 :end-row  (get f "end-row")
                 :end-col  (get f "end-col")}))))
 
-(defn- normalise
-  "Hook findings arrive as :hbt/weak-hash-algorithm; the Sonar rule key is
+(defn hook-rule
+  "The Sonar rule key of a hook finding, or nil for any other linter. Hook
+  findings arrive as :typemark/weak-hash-algorithm; the Sonar rule key is
   weak-hash-algorithm. We own that namespace, so strip it."
   [t]
-  (if (and t (clojure.string/starts-with? t "hbt/")) (subs t 4) t))
+  (let [p const/hook-linter-prefix]
+    (when (and t (clojure.string/starts-with? t p)) (subs t (count p)))))
+
+(defn- normalise [t] (or (hook-rule t) t))
 
 (defn classify
   "Pick the rule a finding is filed under. A linter absent from the catalogue

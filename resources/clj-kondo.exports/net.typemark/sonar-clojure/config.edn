@@ -1,0 +1,46 @@
+;; clj-kondo's export layout: `clj-kondo --copy-configs` brings this directory
+;; into a project whose classpath carries the plugin, and a copy at
+;; .clj-kondo/imports/net.typemark/sonar-clojure/ loads without :config-paths. The rules
+;; then fire in the editor and at the REPL, not only when SonarQube runs, and
+;; their findings reach the plugin through the same JSON report it already
+;; imports.
+{:hooks
+ {:analyze-call
+  {java.security.MessageDigest/getInstance net.typemark.sonar.security/weak-hash
+   javax.crypto.Cipher/getInstance         net.typemark.sonar.security/cipher
+   javax.net.ssl.SSLContext/getInstance    net.typemark.sonar.security/tls-protocol
+
+   clojure.core/eval                       net.typemark.sonar.security/eval-call
+   clojure.core/load-string                net.typemark.sonar.security/eval-call
+   clojure.core/read-string                net.typemark.sonar.security/read-string-call
+
+   clojure.core/resolve                    net.typemark.sonar.security/reflective
+   clojure.core/ns-resolve                 net.typemark.sonar.security/reflective
+   clojure.core/requiring-resolve          net.typemark.sonar.security/reflective
+
+   clojure.core/rand                       net.typemark.sonar.security/insecure-random
+   clojure.core/rand-int                   net.typemark.sonar.security/insecure-random
+   clojure.core/rand-nth                   net.typemark.sonar.security/insecure-random
+   clojure.core/shuffle                    net.typemark.sonar.security/insecure-random
+
+   clojure.java.shell/sh                   net.typemark.sonar.security/shell
+   babashka.process/shell                  net.typemark.sonar.security/shell
+   babashka.process/process                net.typemark.sonar.security/shell
+
+   next.jdbc/execute!                      net.typemark.sonar.security/sql
+   next.jdbc/execute-one!                  net.typemark.sonar.security/sql
+   next.jdbc/plan                          net.typemark.sonar.security/sql
+   clojure.java.jdbc/query                 net.typemark.sonar.security/sql
+   clojure.java.jdbc/execute!              net.typemark.sonar.security/sql}}
+
+ :linters
+ {:typemark/weak-hash-algorithm    {:level :error}
+  :typemark/cipher-ecb-mode        {:level :error}
+  :typemark/weak-cipher-algorithm  {:level :error}
+  :typemark/weak-tls-protocol      {:level :error}
+  :typemark/eval-of-dynamic-value  {:level :error}
+  :typemark/read-string-untrusted  {:level :error}
+  :typemark/reflective-call        {:level :warning}
+  :typemark/insecure-random        {:level :warning}
+  :typemark/shell-command-injection {:level :error}
+  :typemark/sql-string-built       {:level :error}}}

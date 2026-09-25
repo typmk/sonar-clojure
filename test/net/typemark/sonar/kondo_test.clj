@@ -1,5 +1,7 @@
 (ns net.typemark.sonar.kondo-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [clojure.test :refer [deftest is testing]]
             [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
@@ -44,6 +46,23 @@
         (is (= const/unknown-rule (:rule c)))
         (is (false? (:recognised? c)))
         (is (re-find #"from-the-future" (:message c)))))))
+
+(deftest every-exported-hook-lands-on-a-registered-rule
+  (testing "the export's linter keys, the prefix the plugin strips, and the
+            rules Sonar registers are three spellings of one set; a hook key
+            outside the prefix files under the catch-all, and one with no
+            registered rule is dropped by the scanner"
+    (let [exported (-> (io/resource "clj-kondo.exports/net.typemark/sonar-clojure/config.edn")
+                       slurp edn/read-string :linters keys)
+          registered (set (edn/read-string
+                           (slurp (io/resource "org/sonar/l10n/clj/rules/clj-kondo/index.edn"))))]
+      (is (seq exported))
+      (doseq [k exported
+              :let [rule (kondo/hook-rule (str (namespace k) "/" (name k)))]]
+        (is (some? rule) (str k " is outside " const/hook-linter-prefix))
+        (is (contains? registered rule) (str rule " has no registered rule")))
+      (is (= {:rule "weak-hash-algorithm" :message "m" :recognised? true}
+             (kondo/classify registered {:type "typemark/weak-hash-algorithm" :message "m"}))))))
 
 (def gen-finding
   (gen/hash-map :row     (gen/one-of [(gen/choose -5 500) (gen/return nil)])

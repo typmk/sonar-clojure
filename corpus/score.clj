@@ -16,6 +16,7 @@
             [clojure.java.io :as io]
             [clojure.string :as str]
             [net.typemark.sonar.external :as external]
+            [net.typemark.sonar.kondo :as kondo]
             [net.typemark.sift :as sift]))
 
 (defn- manifest [] (edn/read-string (slurp (io/file "corpus" "manifest.edn"))))
@@ -36,12 +37,13 @@
 (defn- kondo-findings
   "clj-kondo's own JSON, for the hook rules. Their findings never reach this
   plugin's Clojure at all -- they arrive through the report -- so nothing in
-  the suite could name them. The `hbt/` namespace is stripped, exactly as
-  net.typemark.sonar.kondo does before a key reaches Sonar."
+  the suite could name them. The key is kondo/hook-rule's, the one a finding
+  reaches Sonar under."
   [json-path]
   (tally (for [f (external/findings "clj-kondo" (slurp json-path))
-               :when (str/starts-with? (:rule f) "hbt/")]
-           (update f :rule #(subs % 4)))))
+               :let [rule (kondo/hook-rule (:rule f))]
+               :when rule]
+           (assoc f :rule rule))))
 
 (defn- opengrep-findings [sarif-path]
   (tally (external/findings "opengrep" (slurp sarif-path))))
