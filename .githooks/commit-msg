@@ -1,5 +1,5 @@
 #!/bin/sh
-# commit-msg — the message shape in ~/CLAUDE.md, and no Claude co-author trailer. Installed by `mesh hooks install`. Do not edit.
+# commit-msg — the message shape in ~/CLAUDE.md, and no Claude trailer. Installed by `mesh hooks install`. Do not edit.
 awk '
 /^# -+ >8 -+$/ { exit }
 /^#/ { next }
@@ -12,8 +12,8 @@ END {
     if (subj ~ /^(Merge |Revert "|fixup! |squash! |amend! )/) exit 0
     bad = 0
     for (i = s; i <= n; i++)
-        if (tolower(lines[i]) ~ /^co-authored-by:.*(claude|noreply@anthropic\.com)/) {
-            print "commit-msg: a Claude Co-Authored-By line. Commits stay free of Claude references." > "/dev/stderr"; bad = 1
+        if (tolower(lines[i]) ~ /^co-authored-by:.*(claude|noreply@anthropic\.com)/ || tolower(lines[i]) ~ /^claude-session:/) {
+            print "commit-msg: a Claude trailer (" lines[i] "). Commits stay free of Claude references." > "/dev/stderr"; bad = 1
         }
     if (subj !~ /^[^ :][^:]{0,39}: [^ ]/) {
         print "commit-msg: the subject needs a scope prefix, `scope: what changed`." > "/dev/stderr"; bad = 1
