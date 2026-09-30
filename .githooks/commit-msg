@@ -1,0 +1,35 @@
+#!/bin/sh
+# commit-msg — the message shape in ~/CLAUDE.md, and no Claude co-author trailer. Installed by `mesh hooks install`. Do not edit.
+awk '
+/^# -+ >8 -+$/ { exit }
+/^#/ { next }
+{ lines[++n] = $0 }
+END {
+    while (n > 0 && lines[n] ~ /^[ \t]*$/) n--
+    s = 1
+    while (s <= n && lines[s] ~ /^[ \t]*$/) s++
+    subj = lines[s]
+    if (subj ~ /^(Merge |Revert "|fixup! |squash! |amend! )/) exit 0
+    bad = 0
+    for (i = s; i <= n; i++)
+        if (tolower(lines[i]) ~ /^co-authored-by:.*(claude|noreply@anthropic\.com)/) {
+            print "commit-msg: a Claude Co-Authored-By line. Commits stay free of Claude references." > "/dev/stderr"; bad = 1
+        }
+    if (subj !~ /^[^ :][^:]{0,39}: [^ ]/) {
+        print "commit-msg: the subject needs a scope prefix, `scope: what changed`." > "/dev/stderr"; bad = 1
+    }
+    if (length(subj) > 72) {
+        print "commit-msg: the subject is " length(subj) " characters; at most 72." > "/dev/stderr"; bad = 1
+    }
+    if (subj ~ /\.$/) {
+        print "commit-msg: the subject ends with a period." > "/dev/stderr"; bad = 1
+    }
+    if (s < n && lines[s + 1] !~ /^[ \t]*$/) {
+        print "commit-msg: a blank line goes between the subject and the body." > "/dev/stderr"; bad = 1
+    }
+    for (i = s + 2; i <= n; i++)
+        if (length(lines[i]) > 72 && lines[i] !~ /^[ \t]/ && lines[i] !~ /:\/\//) {
+            print "commit-msg: body line " i - s + 1 " is " length(lines[i]) " characters; wrap at 72." > "/dev/stderr"; bad = 1
+        }
+    exit bad
+}' "$1"
